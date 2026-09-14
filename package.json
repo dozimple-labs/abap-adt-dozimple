@@ -25,7 +25,7 @@
     "@modelcontextprotocol/sdk": "1.30.0",
     "abap-adt-api": "8.4.3",
     "axios": "1.20.0",
-    "zod": "3.25.76"
+    "zod": "4.5.4"
   },
   "devDependencies": {
     "@types/node": "22.20.2",

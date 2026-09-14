@@ -55,12 +55,12 @@ export interface ToolDef<S extends ZodRawShape = ZodRawShape> {
     /** Envía la consulta a internet: solo existe si el sidecar tiene allowOnline. */
     online?: boolean;
   };
-  run(args: z.objectOutputType<S, z.ZodTypeAny>, ctx: ToolContext): Promise<ToolResult>;
+  run(args: z.output<z.ZodObject<S>>, ctx: ToolContext): Promise<ToolResult>;
   /**
    * Solo tools write: qué va a cambiar, sin cambiar nada (diff, sintaxis,
    * orden). Es lo que el usuario confirma antes de que run() escriba.
    */
-  preview?(args: z.objectOutputType<S, z.ZodTypeAny>, ctx: ToolContext): Promise<string>;
+  preview?(args: z.output<z.ZodObject<S>>, ctx: ToolContext): Promise<string>;
 }
 
 /** Identidad tipada: da inferencia de los argumentos a partir de `input`. */

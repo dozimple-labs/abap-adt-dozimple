@@ -57,7 +57,7 @@ const SidecarSchema = z.object({
 const ConfigSchema = z.object({
   defaultSystem: z.string().optional(),
   systems: z.array(SystemSchema).min(1),
-  sidecars: z.record(SidecarSchema).default({}),
+  sidecars: z.record(z.string(), SidecarSchema).default({}),
 });
 
 export type SystemConfig = z.infer<typeof SystemSchema>;
