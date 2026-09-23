@@ -213,6 +213,11 @@ Tool nueva y contrato MCP ampliado (salida estructurada, progreso, cancelación)
     120 s). Al vencer, error `NETWORK` con el tiempo y la sugerencia de acotar; no se reintenta.
 
 ### Cambiado
+- **`run_atc` reutiliza el resultado de un objeto sin cambios**: si hay un ATC del mismo objeto de menos de una hora,
+  con la misma variante, una petición igual o más estrecha y la marca de cambio del objeto (`changedAt` de ADT) no
+  varió, devuelve ese resultado y lo dice («resultado de hace N min, objeto sin cambios»); `refresh=true` fuerza la
+  ejecución. Las órdenes de transporte nunca se reutilizan. Motivo: 786 ejecuciones en 14 días a 10 s de media,
+  la mayoría repetidas sobre el mismo objeto sin haberlo tocado.
 - Insignia de **OpenSSF Best Practices (Passing)** en el README: el proyecto cumple los 67 criterios del nivel
   Passing, incluidas las sugerencias, con la ficha pública en https://www.bestpractices.dev/projects/14759.
 - El job de publicación usa Node 24, que ya trae npm >= 11.5.1: se quita la instalación global de npm, que no se
