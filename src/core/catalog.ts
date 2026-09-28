@@ -55,6 +55,7 @@ export const GROUPS: Group[] = [
     tools: [
       { name: "transport_diff", credits: ["abapAdtApi", "arc1", "myers"] },
       { name: "transport_contents", credits: ADT },
+      { name: "my_transports", credits: ["abapAdtApi", "awsAccel"] },
       { name: "co_change", credits: ["vsp"] },
       { name: "inactive_objects", credits: ADT },
       { name: "edit_preflight", credits: ADT },

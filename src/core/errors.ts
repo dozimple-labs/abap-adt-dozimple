@@ -77,8 +77,11 @@ export function normalizeError(e: unknown, systemId?: string): ToolError {
  */
 export function isSessionExpired(e: unknown): boolean {
   if (isCsrfError(e)) return true;
-  const st = e as { status?: number; err?: number } | undefined;
-  return (isHttpError(e) && st?.status === 401) || (isAdtError(e) && st?.err === 401);
+  const st = e as { status?: number; err?: number; message?: string } | undefined;
+  if ((isHttpError(e) && st?.status === 401) || (isAdtError(e) && st?.err === 401)) return true;
+  // Tras una hora sin uso, SAP puede responder 400 «Logon Error» en vez de 401 (visto en otro MCP sobre ADT).
+  const is400 = (isHttpError(e) && st?.status === 400) || (isAdtError(e) && st?.err === 400);
+  return is400 && /logon/i.test(String(st?.message ?? ""));
 }
 
 export function renderError(te: ToolError): string {

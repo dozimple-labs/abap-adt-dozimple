@@ -4,6 +4,19 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Unreleased]
 
+### Añadido
+- **`my_transports`: «¿qué órdenes tengo abiertas?»** Las órdenes de un usuario (por defecto el de la conexión): las
+  suyas y aquellas en las que tiene una tarea, con tareas, estado, destino y objetos. Avisa de órdenes sin sistema
+  destino y de tareas propias dentro de órdenes de otra persona. En sistemas con datos productivos, solo el usuario de
+  la conexión y sin nombres ajenos. Idea del ABAP Accelerator de AWS (MIT-0), reimplementada.
+
+### Corregido
+- **`run_atc` ya no pierde hallazgos P1/P2 por el tope de SAP.** SAP recorta con `maximumVerdicts` antes de ordenar
+  por prioridad: con muchos hallazgos informativos, un P1 podía quedar fuera. Si los totales indican que faltan P1/P2,
+  la corrida se repite pidiendo todos (hasta 5.000).
+- La renovación automática de la sesión de lectura reconoce también el **400 «Logon Error»** que SAP puede devolver
+  tras una hora sin uso, además de CSRF y 401.
+
 ## [1.2.0] - 2026-09-23
 
 Cuatro tools para diagnóstico y soporte: dumps agrupados por periodo, búsqueda de texto en el código, estado de notas SAP y ampliaciones/BAdI. Todas verificadas en vivo en un NW 7.50.
