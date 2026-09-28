@@ -13,10 +13,10 @@
   "homepage": "https://dozimple.cl",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/roviedoCL/abap-adt-dozimple.git"
+    "url": "git+https://github.com/dozimple-labs/abap-adt-dozimple.git"
   },
   "bugs": {
-    "url": "https://github.com/roviedoCL/abap-adt-dozimple/issues"
+    "url": "https://github.com/dozimple-labs/abap-adt-dozimple/issues"
   },
   "type": "module",
   "bin": {
