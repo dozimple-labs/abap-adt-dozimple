@@ -4,11 +4,18 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-09-27
+
+`my_transports`, ATC sin pérdida de hallazgos P1/P2 y renovación de sesión ante «Logon Error». Primera versión publicada desde la organización `dozimple-labs`.
+
 ### Añadido
 - **`my_transports`: «¿qué órdenes tengo abiertas?»** Las órdenes de un usuario (por defecto el de la conexión): las
   suyas y aquellas en las que tiene una tarea, con tareas, estado, destino y objetos. Avisa de órdenes sin sistema
   destino y de tareas propias dentro de órdenes de otra persona. En sistemas con datos productivos, solo el usuario de
   la conexión y sin nombres ajenos. Idea del ABAP Accelerator de AWS (MIT-0), reimplementada.
+
+### Cambiado
+- El repositorio pasó a la organización `dozimple-labs`; `repository.url` actualizado (la procedencia de npm exige que coincida).
 
 ### Corregido
 - **`run_atc` ya no pierde hallazgos P1/P2 por el tope de SAP.** SAP recorta con `maximumVerdicts` antes de ordenar
