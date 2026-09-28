@@ -296,7 +296,7 @@ Designed to pass a Security and Basis review without exceptions. Details: **[SEC
 Pinned to an exact version, without install scripts, like the project's own dependencies:
 
 ```sh
-npm install -g --ignore-scripts @dozimple/abap-adt@1.2.0
+npm install -g --ignore-scripts @dozimple/abap-adt@1.3.0
 PKG="$(npm root -g)/@dozimple/abap-adt"
 mkdir -p ~/.config/abap-adt-dozimple && chmod 700 ~/.config/abap-adt-dozimple
 cp "$PKG/config/systems.example.json" ~/.config/abap-adt-dozimple/systems.json   # systems, roles and permissions
@@ -312,9 +312,9 @@ MCP client registration:
 ```
 
 Every release is published from CI with [npm provenance](https://docs.npmjs.com/generating-provenance-statements):
-`npm view @dozimple/abap-adt@1.2.0 dist.attestations` shows the attestation, and the GitHub release carries the
+`npm view @dozimple/abap-adt@1.3.0 dist.attestations` shows the attestation, and the GitHub release carries the
 tarball, its Sigstore bundle (`.sigstore.json`), the same bundle as in-toto provenance (`.intoto.jsonl`) and the
-SBOM. To check it: `gh attestation verify dozimple-abap-adt-1.2.0.tgz --repo <owner>/abap-adt-dozimple`.
+SBOM. To check it: `gh attestation verify dozimple-abap-adt-1.3.0.tgz --repo <owner>/abap-adt-dozimple`.
 
 ### From source
 
