@@ -2,3 +2,5 @@
 # Solo para el historial ya publicado (no se puede cambiar sin reescribirlo). Nunca contiene el valor encontrado.
 # Cualquier hallazgo que no esté aquí bloquea el push y el CI.
 af1a5bf:test/core.test.ts  contraseña en claro  # valor ficticio del test que comprueba que systems.json RECHAZA contraseñas en claro; no es una credencial (auditoría DZ-13, 21-09-2026)
+2075b5e:package.json  dato de cliente/sistema (configuración local)  # URL pública del propio repositorio con su propietario anterior (se transfirió a dozimple-labs el 27-09-2026); ya corregida en package.json
+0750c86:docs/PRESENTACION.md  dato de cliente/sistema (configuración local)  # misma URL anterior del repo, en la rama local de la presentación (sin publicar); actualizar al revisarla
