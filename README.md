@@ -56,7 +56,7 @@ and **a failure is never presented as an empty result or as success**.
 <!-- groups:start -->
 | Group | What for | Tools |
 |---|---|---|
-| [Code review and transports](#g-revision) | Know what a transport really changes and what it may break, before releasing it. | 5 |
+| [Code review and transports](#g-revision) | Know what a transport really changes and what it may break, before releasing it. | 6 |
 | [Quality, ATC and remediation](#g-calidad) | Find, understand and fix findings with SAP's real syntax check and quick fixes. | 6 |
 | [Repository exploration](#g-exploracion) | Read and understand any ABAP object and its relations, on ECC and S/4HANA. | 11 |
 | [Data queries](#g-datos) | Query tables with ABAP SQL, read-only, with sensitive and personal data protected. | 2 |
@@ -109,6 +109,7 @@ Summary per group; each tool's details — parameters, types, defaults, requirem
 |---|---|---|
 | [`transport_diff`](docs/TOOLS.md#revision) | **What a transport changed (code diff).** Code review of a transport: for each source object (programs, includes, classes, interfaces, function modules, CDS) compares the version recorded with that transport against the previous one and shows a unified diff. | read |
 | [`transport_contents`](docs/TOOLS.md#revision) | **Transport contents.** Header, tasks (owner and status) and objects of a transport request, read from E070/E07T/E071. | read |
+| [`my_transports`](docs/TOOLS.md#revision) | **My transports.** Transports of a user (by default the connection user): their own and those where they have a task, with tasks, status, target and objects; flags transports without a target and own tasks in someone else's transport. | read |
 | [`co_change`](docs/TOOLS.md#revision) | **What usually travels with this object?** Looks at the transports that touched an object and counts which other objects travelled with it, most frequent first. | read |
 | [`inactive_objects`](docs/TOOLS.md#revision) | **Inactive objects.** Objects saved but not activated by the connection user, with their transport. | read |
 | [`edit_preflight`](docs/TOOLS.md#revision) | **Before editing: which transport will it land in?** Tells, BEFORE changing an object, which transport the change will end up in and why: CTS lock by another transport, local object ($TMP), repair (different original system), or free with your open transports. | read |
@@ -348,7 +349,7 @@ abap-adt-doZimple is built on other people's work, and says so: each tool lists 
 <!-- credits:start -->
 | Project | Author / holder | License | Type | Used in |
 |---|---|---|---|---|
-| [abap-adt-api](https://github.com/marcellourbani/abap-adt-api) | Marcello Urbani | MIT | dependency | all (core), `transport_diff`, `transport_contents`, `inactive_objects`, `edit_preflight`, `run_atc` and 26 more |
+| [abap-adt-api](https://github.com/marcellourbani/abap-adt-api) | Marcello Urbani | MIT | dependency | all (core), `transport_diff`, `transport_contents`, `my_transports`, `inactive_objects`, `edit_preflight` and 27 more |
 | [Model Context Protocol TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk) | Model Context Protocol | MIT | dependency | all (core) |
 | [mcp-sap-docs](https://github.com/marianfoo/mcp-sap-docs) | Marian Zeis (marianfoo) | Apache-2.0 | dependency | `abap_feature_matrix`, `docs_search`, `docs_fetch`, `clean_core_objects`, `clean_core_object`, `abap_lint` and 1 more |
 | [abaplint](https://github.com/abaplint/abaplint) | Lars Hvam and contributors | MIT | dependency | `abap_lint` |
@@ -364,7 +365,7 @@ abap-adt-doZimple is built on other people's work, and says so: each tool lists 
 | [mcp-abap-adt](https://github.com/mario-andreschak/mcp-abap-adt) | mario-andreschak | MIT | idea | `search_objects`, `get_source`, `package_contents`, `ddic_type_info`, `transaction_info`, `table_contents` |
 | [ARC-1](https://github.com/arc-mcp/arc-1) | arc-mcp (Marian Zeis and contributors) | MIT | idea | `transport_diff`, `atc_quickfix`, `gateway_errors` |
 | [vibing-steampunk](https://github.com/oisee/vibing-steampunk) | oisee and contributors | MIT | idea | `co_change`, `api_release_state`, `source_search`, `enhancements`, `jobs`, `application_log` |
-| [ABAP Accelerator for Amazon Q Developer](https://github.com/aws-solutions-library-samples/guidance-for-deploying-sap-abap-accelerator-for-amazon-q-developer) | AWS Solutions Library Samples | MIT-0 | idea | all (core), `usage_stats` |
+| [ABAP Accelerator for Amazon Q Developer](https://github.com/aws-solutions-library-samples/guidance-for-deploying-sap-abap-accelerator-for-amazon-q-developer) | AWS Solutions Library Samples | MIT-0 | idea | all (core), `my_transports`, `usage_stats` |
 | [An O(ND) Difference Algorithm and Its Variations (1986)](https://doi.org/10.1007/BF01840446) | Eugene W. Myers | published algorithm | algorithm | `transport_diff`, `atc_quickfix` |
 <!-- credits:end -->
 

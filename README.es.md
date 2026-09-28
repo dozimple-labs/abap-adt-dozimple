@@ -55,7 +55,7 @@ El agente elige las tools, las encadena y responde con evidencia. Cada respuesta
 <!-- groups:start -->
 | Grupo | Para qué | Tools |
 |---|---|---|
-| [Revisión de código y pases](#g-revision) | Saber qué cambia de verdad una orden y qué puede romper, antes de liberarla. | 5 |
+| [Revisión de código y pases](#g-revision) | Saber qué cambia de verdad una orden y qué puede romper, antes de liberarla. | 6 |
 | [Calidad, ATC y remediación](#g-calidad) | Encontrar, entender y corregir hallazgos con la sintaxis y las correcciones reales de SAP. | 6 |
 | [Exploración del repositorio](#g-exploracion) | Leer y entender cualquier objeto ABAP y sus relaciones, en ECC y en S/4HANA. | 11 |
 | [Consulta de datos](#g-datos) | Preguntar a las tablas con ABAP SQL, de solo lectura y sin tocar material de credenciales. | 2 |
@@ -108,6 +108,7 @@ la **[referencia completa](docs/TOOLS.md)**.
 |---|---|---|
 | [`transport_diff`](docs/TOOLS.md#revision) | **Qué cambió una orden (diff de código).** Revisión de código de una orden: por cada objeto con fuente (programas, includes, clases, interfaces, FM, CDS) compara la versión grabada con esa orden (o sus tareas) contra la versión anterior, y muestra el diff unificado. | lectura |
 | [`transport_contents`](docs/TOOLS.md#revision) | **Contenido de una orden.** Cabecera, tareas (con dueño y estado) y objetos de una orden de transporte, leídos de E070/E07T/E071. | lectura |
+| [`my_transports`](docs/TOOLS.md#revision) | **Mis órdenes de transporte.** Órdenes de transporte de un usuario (por defecto, el de la conexión): las que son suyas y aquellas en las que tiene una tarea, con sus tareas, estado, sistema destino y objetos. | lectura |
 | [`co_change`](docs/TOOLS.md#revision) | **¿Con qué suele viajar este objeto?** Mira las órdenes que tocaron un objeto y cuenta qué otros objetos viajaron con él, de más a menos frecuente. | lectura |
 | [`inactive_objects`](docs/TOOLS.md#revision) | **Objetos sin activar.** Objetos con versión inactiva (guardados sin activar) del usuario de la conexión, con su orden. | lectura |
 | [`edit_preflight`](docs/TOOLS.md#revision) | **Antes de editar: ¿a qué orden irá?** Dice, ANTES de modificar un objeto, en qué orden acabará el cambio y por qué: bloqueo del CTS (TLOCK) de otra orden, objeto local ($TMP), reparación (sistema original distinto), o si está libre y qué órdenes tienes abiertas. | lectura |
@@ -347,7 +348,7 @@ abap-adt-doZimple se construye sobre el trabajo de otros, y lo reconoce: cada to
 <!-- credits:start -->
 | Proyecto | Autor / titular | Licencia | Tipo | Usado en |
 |---|---|---|---|---|
-| [abap-adt-api](https://github.com/marcellourbani/abap-adt-api) | Marcello Urbani | MIT | dependencia | todas (núcleo), `transport_diff`, `transport_contents`, `inactive_objects`, `edit_preflight`, `run_atc` y 26 más |
+| [abap-adt-api](https://github.com/marcellourbani/abap-adt-api) | Marcello Urbani | MIT | dependencia | todas (núcleo), `transport_diff`, `transport_contents`, `my_transports`, `inactive_objects`, `edit_preflight` y 27 más |
 | [Model Context Protocol TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk) | Model Context Protocol | MIT | dependencia | todas (núcleo) |
 | [mcp-sap-docs](https://github.com/marianfoo/mcp-sap-docs) | Marian Zeis (marianfoo) | Apache-2.0 | dependencia | `abap_feature_matrix`, `docs_search`, `docs_fetch`, `clean_core_objects`, `clean_core_object`, `abap_lint` y 1 más |
 | [abaplint](https://github.com/abaplint/abaplint) | Lars Hvam y contribuidores | MIT | dependencia | `abap_lint` |
@@ -363,7 +364,7 @@ abap-adt-doZimple se construye sobre el trabajo de otros, y lo reconoce: cada to
 | [mcp-abap-adt](https://github.com/mario-andreschak/mcp-abap-adt) | mario-andreschak | MIT | idea | `search_objects`, `get_source`, `package_contents`, `ddic_type_info`, `transaction_info`, `table_contents` |
 | [ARC-1](https://github.com/arc-mcp/arc-1) | arc-mcp (Marian Zeis y contribuidores) | MIT | idea | `transport_diff`, `atc_quickfix`, `gateway_errors` |
 | [vibing-steampunk](https://github.com/oisee/vibing-steampunk) | oisee y contribuidores | MIT | idea | `co_change`, `api_release_state`, `source_search`, `enhancements`, `jobs`, `application_log` |
-| [ABAP Accelerator for Amazon Q Developer](https://github.com/aws-solutions-library-samples/guidance-for-deploying-sap-abap-accelerator-for-amazon-q-developer) | AWS Solutions Library Samples | MIT-0 | idea | todas (núcleo), `usage_stats` |
+| [ABAP Accelerator for Amazon Q Developer](https://github.com/aws-solutions-library-samples/guidance-for-deploying-sap-abap-accelerator-for-amazon-q-developer) | AWS Solutions Library Samples | MIT-0 | idea | todas (núcleo), `my_transports`, `usage_stats` |
 | [An O(ND) Difference Algorithm and Its Variations (1986)](https://doi.org/10.1007/BF01840446) | Eugene W. Myers | algoritmo publicado | algoritmo | `transport_diff`, `atc_quickfix` |
 <!-- credits:end -->
 

@@ -1,11 +1,11 @@
 # Referencia de tools — abap-adt-doZimple
 
-Generado desde el código con `npm run docs`. 51 tools en 9 grupos y 3 flujos guiados.
+Generado desde el código con `npm run docs`. 52 tools en 9 grupos y 3 flujos guiados.
 Producto de [DoZimple](https://dozimple.cl).
 
 ## Índice
 
-- [Revisión de código y pases](#revision) — 5 tools: `transport_diff`, `transport_contents`, `co_change`, `inactive_objects`, `edit_preflight`
+- [Revisión de código y pases](#revision) — 6 tools: `transport_diff`, `transport_contents`, `my_transports`, `co_change`, `inactive_objects`, `edit_preflight`
 - [Calidad, ATC y remediación](#calidad) — 6 tools: `run_atc`, `atc_quickfix`, `api_release_state`, `sap_notes`, `syntax_check`, `run_unit_tests`
 - [Exploración del repositorio](#exploracion) — 11 tools: `search_objects`, `get_source`, `where_used`, `source_search`, `object_versions`, `package_contents`, `ddic_type_info`, `transaction_info`, `function_modules`, `text_elements`, `enhancements`
 - [Consulta de datos](#datos) — 2 tools: `sql_query`, `table_contents`
@@ -59,6 +59,35 @@ Cabecera, tareas (con dueño y estado) y objetos de una orden de transporte, le�
 | `max_objects` | number | 500 |  |
 
 \* obligatorio
+
+### `my_transports` — Mis órdenes de transporte
+
+Órdenes de transporte de un usuario (por defecto, el de la conexión): las que son suyas y aquellas en las que tiene una tarea, con sus tareas, estado, sistema destino y objetos. Responde «¿qué órdenes tengo abiertas?» sin saber el número. Avisa de órdenes sin destino (lo guardado no viajaría) y de tareas propias en órdenes ajenas.
+
+| | |
+|---|---|
+| **Acceso** | Solo lectura |
+| **Créditos** | [abap-adt-api](https://github.com/marcellourbani/abap-adt-api) — Marcello Urbani (MIT, dependencia)<br>[ABAP Accelerator for Amazon Q Developer](https://github.com/aws-solutions-library-samples/guidance-for-deploying-sap-abap-accelerator-for-amazon-q-developer) — AWS Solutions Library Samples (MIT-0, idea) |
+
+| Parámetro | Tipo | Por defecto | Descripción |
+|---|---|---|---|
+| `system` | string |  | Sistema SAP configurado. Obligatorio si hay varios y ninguno por defecto. |
+| `user` | string |  | Por defecto, el usuario de la conexión |
+| `status` | `open` \| `released` \| `all` | "open" |  |
+| `since` | string |  | Solo órdenes con fecha ≥ AAAAMMDD |
+| `objects_per_task` | number | 10 | Objetos de ejemplo por tarea (0 = solo el recuento) |
+| `max` | number | 30 |  |
+
+\* obligatorio
+
+Salida estructurada (`structuredContent`, además del texto):
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `user` | string |  |
+| `orders` | lista de { order, text, type, status, owner, target, date, warnings, tasks } |  |
+| `total` | number |  |
+| `truncated` | boolean |  |
 
 ### `co_change` — ¿Con qué suele viajar este objeto?
 

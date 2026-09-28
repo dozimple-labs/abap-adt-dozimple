@@ -17,6 +17,7 @@ export const GROUPS_EN: Record<string, { title: string; pitch: string }> = {
 
 export const TOOLS_EN: Record<string, string> = {
   transport_diff: "**What a transport changed (code diff).** Code review of a transport: for each source object (programs, includes, classes, interfaces, function modules, CDS) compares the version recorded with that transport against the previous one and shows a unified diff.",
+  my_transports: "**My transports.** Transports of a user (by default the connection user): their own and those where they have a task, with tasks, status, target and objects; flags transports without a target and own tasks in someone else's transport.",
   transport_contents: "**Transport contents.** Header, tasks (owner and status) and objects of a transport request, read from E070/E07T/E071.",
   co_change: "**What usually travels with this object?** Looks at the transports that touched an object and counts which other objects travelled with it, most frequent first.",
   inactive_objects: "**Inactive objects.** Objects saved but not activated by the connection user, with their transport.",
