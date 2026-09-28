@@ -117,3 +117,49 @@ describe("sesión caducada también con 400 «Logon Error»", () => {
     expect(isSessionExpired(AdtErrorException.create(400, {}, "", "Invalid parameter"))).toBe(false);
   });
 });
+
+describe("revisión 1.3.0", () => {
+  it("«Session Timed Out» también es sesión caducada", () => {
+    expect(isSessionExpired(AdtErrorException.create(400, {}, "", "Session Timed Out"))).toBe(true);
+  });
+
+  it("run_atc: con P1 exentos no repite la corrida y no los muestra si no se piden", async () => {
+    const calls: number[] = [];
+    const flags: boolean[] = [];
+    const c = {
+      atcCheckVariant: async () => "WL",
+      createAtcRun: async (_w: string, _u: string, max: number) => (calls.push(max), { id: "R", timestamp: 1, infos: [{ type: "FINDING_STATS", description: "1,0,1" }] }),
+      atcWorklists: async (_i: string, _t: number, _l: string, withExempted: boolean) => (flags.push(withExempted), {
+        objects: [{ name: "ZDEMO", type: "PROG/P", uri: "/x", findings: [
+          { priority: 1, checkTitle: "c", messageTitle: "exento", location: { uri: "/x", range: { start: { line: 1, column: 0 } } }, exemptionKind: "X" },
+          { priority: 3, checkTitle: "c", messageTitle: "info", location: { uri: "/x", range: { start: { line: 2, column: 0 } } }, exemptionKind: "" },
+        ] }],
+      }),
+    } as any;
+    const r = await runAtc(c, "/x", "V", 200, false);
+    expect(calls).toEqual([200]); // antes: el P1 exento no contaba y la corrida se repetía
+    expect(flags).toEqual([true]); // la lista se pide siempre con exentos y se filtra aquí
+    expect(r.findings.map((f) => f.messageTitle)).toEqual(["info"]);
+    expect(r.received).toBe(2);
+    const withExempted = await runAtc(c, "/x", "V", 200, true);
+    expect(withExempted.findings).toHaveLength(2);
+  });
+
+  it("my_transports: si una consulta llega a su tope, lo dice y marca el resultado como incompleto", async () => {
+    const def = myTransports as ToolDef<any>;
+    const sap = {
+      query: async (sql: string, rows: number) => {
+        if (/strkorr = ' '/.test(sql)) return { values: Array.from({ length: rows }, (_, i) => ({ TRKORR: `DEVK9${String(i).padStart(5, "0")}` })) };
+        if (/WHERE trkorr IN/.test(sql)) {
+          const ids = [...sql.matchAll(/'(DEVK\d+)'/g)].map((m) => m[1]);
+          return { values: ids.map((t) => ({ TRKORR: t, TRFUNCTION: "K", TRSTATUS: "D", TARSYSTEM: "QAS", AS4USER: "DEV_ME", AS4DATE: "20260920", STRKORR: "" })) };
+        }
+        return { values: [] };
+      },
+    };
+    const r: any = await def.run({ status: "all", objects_per_task: 0, max: 5 }, { sap, system: { id: "DEV", role: "DEV", user: "DEV_ME" } } as any);
+    expect(r.structured.incomplete).toEqual(["más de 500 órdenes propias"]);
+    expect(r.structured.truncated).toBe(true);
+    expect(r.text).toMatch(/RESULTADO INCOMPLETO \(más de 500 órdenes propias\): los totales son un mínimo/);
+  });
+});

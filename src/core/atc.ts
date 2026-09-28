@@ -22,6 +22,8 @@ export interface AtcRunOutcome {
   /** Totales por prioridad según SAP (incluye los que no caben en maxResults). */
   stats?: { p1: number; p2: number; p3: number };
   findings: AtcFindingRef[];
+  /** Veredictos que devolvió SAP, exentos incluidos (comparable con stats); findings puede tener menos por el filtro. */
+  received?: number;
 }
 
 /**
@@ -91,15 +93,20 @@ async function createMultiRun(c: ADTClient, worklistId: string, uris: string[], 
   return { id: tag("worklistId"), timestamp: new Date(tag("worklistTimestamp")).getTime() / 1000, infos };
 }
 
-/** Ejecuta ATC sobre una o varias URI (objeto, paquete, orden u objetos de una orden). */
 /** Máximo de veredictos que se piden a SAP al repetir una corrida para no perder P1/P2. */
 export const ATC_MAX_VERDICTS = 5000;
 
+/**
+ * Ejecuta ATC sobre una o varias URI (objeto, paquete, orden u objetos de una orden).
+ *
+ * La lista de hallazgos se pide SIEMPRE con los exentos y se filtra aquí: así el recuento que decide si faltan P1/P2
+ * es comparable con los totales de SAP (FINDING_STATS), cuenten o no los exentos, y no se repite la corrida sin motivo.
+ */
 export async function runAtc(c: ADTClient, uri: string | string[], variant: string, maxResults: number, includeExempted: boolean): Promise<AtcRunOutcome> {
   const worklistId = await c.atcCheckVariant(variant);
   const exec = (max: number) => (Array.isArray(uri) ? createMultiRun(c, worklistId, uri, max) : c.createAtcRun(worklistId, uri, max));
   let run = await exec(maxResults);
-  let wl = await c.atcWorklists(run.id, run.timestamp, "99999999999999999999999999999999", includeExempted);
+  let wl = await c.atcWorklists(run.id, run.timestamp, "99999999999999999999999999999999", true);
   let statsInfo = run.infos.find((i) => i.type === "FINDING_STATS")?.description;
   let [p1, p2, p3] = (statsInfo ?? "").split(",").map((x) => Number(x));
   // SAP recorta con maximumVerdicts ANTES de que se ordene por prioridad: con muchos hallazgos informativos, un P1
@@ -107,13 +114,16 @@ export async function runAtc(c: ADTClient, uri: string | string[], variant: stri
   const got = (p: number) => wl.objects.reduce((n, o) => n + o.findings.filter((f) => f.priority === p).length, 0);
   if ([p1, p2].every(Number.isFinite) && got(1) + got(2) < p1 + p2 && maxResults < ATC_MAX_VERDICTS) {
     run = await exec(Math.min(ATC_MAX_VERDICTS, p1 + p2 + (Number.isFinite(p3) ? p3 : 0)));
-    wl = await c.atcWorklists(run.id, run.timestamp, "99999999999999999999999999999999", includeExempted);
+    wl = await c.atcWorklists(run.id, run.timestamp, "99999999999999999999999999999999", true);
     statsInfo = run.infos.find((i) => i.type === "FINDING_STATS")?.description;
     [p1, p2, p3] = (statsInfo ?? "").split(",").map((x) => Number(x));
   }
   const findings: AtcFindingRef[] = [];
+  let received = 0;
   for (const o of wl.objects) {
     for (const f of o.findings) {
+      received++;
+      if (!includeExempted && f.exemptionKind) continue;
       findings.push({
         n: 0,
         objectName: o.name,
@@ -138,5 +148,6 @@ export async function runAtc(c: ADTClient, uri: string | string[], variant: stri
     at: new Date().toISOString(),
     stats: statsInfo && [p1, p2, p3].every(Number.isFinite) ? { p1, p2, p3 } : undefined,
     findings,
+    received,
   };
 }
