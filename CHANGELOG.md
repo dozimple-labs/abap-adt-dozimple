@@ -4,6 +4,17 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Unreleased]
 
+### Corregido
+- **`my_transports` ya no cuenta de menos sin avisar.** Cada consulta pide un registro más que su tope (500 órdenes
+  propias, 2.000 tareas, 5.000 objetos); si llega, la respuesta dice «RESULTADO INCOMPLETO» y lo marca en
+  `incomplete`. Visto en vivo: con `status: "all"`, un usuario con 2.063 órdenes superaba el tope y el total salía bajo.
+- **`run_atc` ya no repite la corrida por hallazgos exentos.** La lista se pide siempre con los exentos y se filtra
+  aquí, así que el recuento que decide si faltan P1/P2 es comparable con los totales de SAP; el aviso de recorte
+  compara con lo que SAP devolvió, no con lo que se muestra.
+- La sesión caducada se reconoce también con **400 «Session Timed Out»**, además de «Logon Error».
+- Workflow de release: npm procesa cada versión antes de hacerla visible; la comprobación del dist-tag espera ahora
+  hasta 10 minutos (con la 1.3.0 no bastaron 2, y hubo que repetir el paso).
+
 ## [1.3.0] - 2026-09-27
 
 `my_transports`, ATC sin pérdida de hallazgos P1/P2 y renovación de sesión ante «Logon Error». Primera versión publicada desde la organización `dozimple-labs`.

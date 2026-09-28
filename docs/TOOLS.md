@@ -87,7 +87,8 @@ Salida estructurada (`structuredContent`, además del texto):
 | `user` | string |  |
 | `orders` | lista de { order, text, type, status, owner, target, date, warnings, tasks } |  |
 | `total` | number |  |
-| `truncated` | boolean |  |
+| `truncated` | boolean | true si se muestran menos órdenes de las que hay, o si algún tope interno dejó datos fuera |
+| `incomplete` | lista de string | Topes internos alcanzados: los totales y recuentos son un mínimo |
 
 ### `co_change` — ¿Con qué suele viajar este objeto?
 

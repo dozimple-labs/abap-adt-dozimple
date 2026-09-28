@@ -29,6 +29,9 @@ const ORDER = z.object({
 });
 
 const inList = (xs: string[]) => xs.map(sqlLiteral).join(", ");
+const OWN_CAP = 500;
+const TASK_CAP = 2000;
+const OBJ_CAP = 5000;
 
 export default defineTool({
   name: "my_transports",
@@ -45,7 +48,13 @@ export default defineTool({
     objects_per_task: z.number().int().min(0).max(200).default(10).describe("Objetos de ejemplo por tarea (0 = solo el recuento)"),
     max: z.number().int().min(1).max(200).default(30),
   },
-  output: { user: z.string(), orders: z.array(ORDER), total: z.number().int(), truncated: z.boolean() },
+  output: {
+    user: z.string(),
+    orders: z.array(ORDER),
+    total: z.number().int(),
+    truncated: z.boolean().describe("true si se muestran menos órdenes de las que hay, o si algún tope interno dejó datos fuera"),
+    incomplete: z.array(z.string()).describe("Topes internos alcanzados: los totales y recuentos son un mínimo"),
+  },
   async run({ user, status, since, objects_per_task, max }, { sap, system }) {
     const me = system.user.toUpperCase();
     const who = (user ?? me).toUpperCase();
@@ -57,11 +66,21 @@ export default defineTool({
     const date = since ? ` AND as4date >= ${sqlLiteral(since)}` : "";
 
     // Órdenes propias y órdenes padre de las tareas propias.
-    const own = await sap.query(`SELECT trkorr FROM e070 WHERE as4user = ${sqlLiteral(who)} AND strkorr = ' ' AND trstatus IN ( ${st} )${date}`, 500);
-    const myTasks = await sap.query(`SELECT trkorr, strkorr FROM e070 WHERE as4user = ${sqlLiteral(who)} AND strkorr <> ' ' AND trstatus IN ( ${st} )`, 2000);
+    // Cada consulta pide un registro más que su tope: si llega, el resultado está incompleto y se dice.
+    const incomplete: string[] = [];
+    const capped = async (sql: string, cap: number, what: string) => {
+      const r = await sap.query(sql, cap + 1);
+      if (r.values.length > cap) {
+        incomplete.push(what);
+        r.values = r.values.slice(0, cap);
+      }
+      return r;
+    };
+    const own = await capped(`SELECT trkorr FROM e070 WHERE as4user = ${sqlLiteral(who)} AND strkorr = ' ' AND trstatus IN ( ${st} )${date}`, OWN_CAP, `más de ${OWN_CAP} órdenes propias`);
+    const myTasks = await capped(`SELECT trkorr, strkorr FROM e070 WHERE as4user = ${sqlLiteral(who)} AND strkorr <> ' ' AND trstatus IN ( ${st} )`, TASK_CAP, `más de ${TASK_CAP} tareas propias`);
     const roots = [...new Set([...own.values.map((v) => String(v.TRKORR)), ...myTasks.values.map((v) => String(v.STRKORR))])];
     if (!roots.length) {
-      const structured = { user: who, orders: [], total: 0, truncated: false };
+      const structured = { user: who, orders: [], total: 0, truncated: false, incomplete: [] };
       return { text: `${who} no tiene órdenes ${status === "open" ? "abiertas" : status === "released" ? "liberadas" : ""}${since ? ` desde ${since}` : ""} en ${system.id} (se consultó E070).`, structured };
     }
 
@@ -73,10 +92,10 @@ export default defineTool({
     orders = orders.slice(0, max);
 
     const shownRoots = orders.map((o) => o.trkorr);
-    const taskRows = shownRoots.length ? await sap.query(`SELECT trkorr FROM e070 WHERE strkorr IN ( ${inList(shownRoots)} )`, 2000) : { values: [] };
+    const taskRows = shownRoots.length ? await capped(`SELECT trkorr FROM e070 WHERE strkorr IN ( ${inList(shownRoots)} )`, TASK_CAP, `más de ${TASK_CAP} tareas en las órdenes mostradas`) : { values: [] };
     const taskHeads = await orderHeaders(sap, taskRows.values.map((v) => String(v.TRKORR)));
     const ids = [...shownRoots, ...taskHeads.keys()];
-    const entries = ids.length ? await sap.query(`SELECT trkorr, pgmid, object, obj_name FROM e071 WHERE trkorr IN ( ${inList(ids)} )`, 5000) : { values: [] };
+    const entries = ids.length ? await capped(`SELECT trkorr, pgmid, object, obj_name FROM e071 WHERE trkorr IN ( ${inList(ids)} )`, OBJ_CAP, `más de ${OBJ_CAP} objetos: los recuentos por tarea son mínimos`) : { values: [] };
     const byTask = new Map<string, string[]>();
     for (const e of entries.values) {
       if (e.PGMID === "CORR") continue;
@@ -104,7 +123,8 @@ export default defineTool({
       };
     });
 
-    const structured = { user: who, orders: rows, total, truncated: total > rows.length };
+    const structured = { user: who, orders: rows, total, truncated: total > rows.length || incomplete.length > 0, incomplete };
+    const warn = incomplete.length ? `\n⚠ RESULTADO INCOMPLETO (${incomplete.join("; ")}): los totales son un mínimo; acota con status o since.` : "";
     const lines = rows.map((r) => {
       const head = `${r.order} «${r.text}» · ${r.type} · ${r.status} · ${r.owner} · ${r.target ? `destino ${r.target}` : "SIN DESTINO"} · ${r.date}`;
       const warn = r.warnings.map((w) => `   ⚠ ${w}`);
@@ -114,7 +134,7 @@ export default defineTool({
       return [head, ...warn, ...tasks].join("\n");
     });
     return {
-      text: `${total} órdenes ${status === "open" ? "abiertas" : status === "released" ? "liberadas" : ""} de ${who} en ${system.id}${total > rows.length ? ` (se muestran ${rows.length})` : ""}\n\n${lines.join("\n\n")}`,
+      text: `${total} órdenes ${status === "open" ? "abiertas" : status === "released" ? "liberadas" : ""} de ${who} en ${system.id}${total > rows.length ? ` (se muestran ${rows.length})` : ""}${warn}\n\n${lines.join("\n\n")}`,
       structured,
     };
   },

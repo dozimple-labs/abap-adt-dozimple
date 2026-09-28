@@ -97,15 +97,16 @@ jobs:
             npm publish "${{ needs.build.outputs.tarball }}" --provenance --access public --tag "${{ needs.build.outputs.dist_tag }}"
           fi
       - name: Comprobar etiquetas de npm
-        # El registro tarda unos segundos en propagar la etiqueta: se reintenta hasta 2 minutos antes de fallar.
+        # npm procesa cada versión antes de hacerla visible («Your package is being processed»): puede tardar varios
+        # minutos. Se reintenta hasta 10 antes de fallar; con la 1.3.0 no bastaron 2.
         run: |
           v="${GITHUB_REF_NAME#v}"
-          for i in $(seq 1 12); do
+          for i in $(seq 1 60); do
             tag="$(npm view @dozimple/abap-adt dist-tags.${{ needs.build.outputs.dist_tag }} 2>/dev/null || true)"
             [ "$tag" = "$v" ] && { npm view @dozimple/abap-adt dist-tags; exit 0; }
-            echo "dist-tag ${{ needs.build.outputs.dist_tag }} = ${tag:-?}, se espera $v (intento $i/12)"; sleep 10
+            echo "dist-tag ${{ needs.build.outputs.dist_tag }} = ${tag:-?}, se espera $v (intento $i/60)"; sleep 10
           done
-          echo "La etiqueta no apunta a $v tras 2 minutos."; exit 1
+          echo "La etiqueta no apunta a $v tras 10 minutos."; exit 1
       - name: Release de GitHub con paquete, atestación y SBOM
         env:
           GH_TOKEN: ${{ github.token }}

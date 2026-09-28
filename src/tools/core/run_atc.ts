@@ -123,8 +123,10 @@ export default defineTool({
     const shown = res.findings.filter((f) => !a.priorities || a.priorities.includes(f.priority));
     const byPrio = [1, 2, 3, 4].map((p) => res.findings.filter((f) => f.priority === p).length);
     const stats = res.stats ? `SAP: P1 ${res.stats.p1} · P2 ${res.stats.p2} · P3 ${res.stats.p3}` : `P1 ${byPrio[0]} · P2 ${byPrio[1]} · P3 ${byPrio[2]}`;
-    const capped = res.stats && res.stats.p1 + res.stats.p2 + res.stats.p3 > res.findings.length
-      ? `\nSe recibieron ${res.findings.length} de ${res.stats.p1 + res.stats.p2 + res.stats.p3}: sube max_findings para verlos todos.`
+    // Se compara con lo recibido de SAP (exentos incluidos), no con lo mostrado: los exentos filtrados no son un recorte.
+    const received = res.received ?? res.findings.length;
+    const capped = res.stats && res.stats.p1 + res.stats.p2 + res.stats.p3 > received
+      ? `\nSAP devolvió ${received} de ${res.stats.p1 + res.stats.p2 + res.stats.p3} veredictos (los P1/P2 están todos): sube max_findings para ver el resto.`
       : "";
     if (!res.findings.length) return `ATC de ${res.scope} (variante ${res.variant}): se ejecutó y no hay hallazgos${a.include_exempted ? "" : " sin excepción"}.`;
 
