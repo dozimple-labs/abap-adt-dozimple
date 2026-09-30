@@ -4,6 +4,16 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Unreleased]
 
+### Añadido
+- **`create_object`: crear objetos ABAP nuevos en desarrollo** — programa, include, clase, interfaz, grupo de
+  funciones, módulo de función, vista CDS y control de acceso CDS — con las garantías de `write_source`: vista
+  previa, confirmación humana, registro de auditoría y solo en sistemas DEV con escritura. Recoge lo aprendido con
+  abap-fs, el ABAP Accelerator de AWS y los huecos anotados: idioma maestro del sistema (no EN fijo), sin `$TMP` por
+  defecto, orden obligatoria en paquetes transportables y prohibida en locales, validación previa de SAP, comprobación
+  de que el tipo se puede crear por ADT en ese release (en NW 7.50 no se pueden crear paquetes ni tablas), relectura
+  del objeto tras crearlo, fuente inicial comprobada con la sintaxis de SAP antes de guardarla y en un solo guardado,
+  y aviso del flag RFC de los módulos de función, que va en SE37.
+
 ### Corregido
 - **`my_transports` ya no cuenta de menos sin avisar.** Cada consulta pide un registro más que su tope (500 órdenes
   propias, 2.000 tareas, 5.000 objetos); si llega, la respuesta dice «RESULTADO INCOMPLETO» y lo marca en
