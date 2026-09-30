@@ -131,6 +131,7 @@ export const GROUPS: Group[] = [
     title: "Escritura controlada",
     pitch: "Guardar cambios solo en desarrollo, en la orden correcta y con la sintaxis verificada antes.",
     tools: [
+      { name: "create_object", credits: ["abapAdtApi", "awsAccel", "abapFs"] },
       { name: "write_source", credits: ADT },
       { name: "revert_source", credits: ADT },
       { name: "activate", credits: ADT },

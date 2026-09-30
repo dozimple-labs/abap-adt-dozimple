@@ -52,6 +52,7 @@ export const TOOLS_EN: Record<string, string> = {
   clean_core_object: "**Clean Core state of an SAP object.** Release state, Clean Core level and successor of an SAP object according to the public catalog (local).",
   abap_lint: "**abaplint on a snippet.** Runs abaplint locally (code never leaves the machine) on an ABAP snippet or source.",
   docs_community_search: "**Search SAP Community.** Searches SAP Community (blogs and questions) by error message, class or concept.",
+  create_object: "**Create ABAP object.** Creates a new program, include, class, interface, function group, function module, CDS view or CDS access control in a development system: explicit package and transport (never chosen by the server), master language of the system, optional initial source checked by SAP before saving, preview and human confirmation.",
   write_source: "**Save source to SAP.** Replaces the FULL source of an existing object (or class include) in the given transport, after a preview with syntax check and diff and a human confirmation.",
   revert_source: "**Revert to an earlier version.** Writes back an earlier version of an object (the last active one, the one before it, or a numbered one from object_versions) through the same preview, fingerprint, lock and transport as write_source; never reverts on its own.",
   activate: "**Activate object.** Activates an object and returns SAP's messages as they are (errors with line, warnings, objects left inactive).",

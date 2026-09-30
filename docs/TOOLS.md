@@ -1,6 +1,6 @@
 # Referencia de tools — abap-adt-doZimple
 
-Generado desde el código con `npm run docs`. 52 tools en 9 grupos y 3 flujos guiados.
+Generado desde el código con `npm run docs`. 53 tools en 9 grupos y 3 flujos guiados.
 Producto de [DoZimple](https://dozimple.cl).
 
 ## Índice
@@ -11,7 +11,7 @@ Producto de [DoZimple](https://dozimple.cl).
 - [Consulta de datos](#datos) — 2 tools: `sql_query`, `table_contents`
 - [Diagnóstico de incidentes](#diagnostico) — 4 tools: `dumps`, `jobs`, `application_log`, `gateway_errors`
 - [Documentación SAP](#documentacion) — 7 tools: `abap_feature_matrix`, `docs_search`, `docs_fetch`, `clean_core_objects`, `clean_core_object`, `abap_lint`, `docs_community_search`
-- [Escritura controlada](#escritura) — 5 tools: `write_source`, `revert_source`, `activate`, `write_text_elements`, `create_transport`
+- [Escritura controlada](#escritura) — 6 tools: `create_object`, `write_source`, `revert_source`, `activate`, `write_text_elements`, `create_transport`
 - [DoZimple Transport Risk](#transport-risk) — 7 tools: `analyze_transport_risk`, `import_health`, `failure_ranking`, `change_audit`, `object_transport_history`, `remote_source`, `transport_source_check`
 - [Operación y crecimiento](#operacion) — 4 tools: `sap_systems`, `report_gap`, `close_gap`, `usage_stats`
 - [Flujos guiados](#flujos-guiados)
@@ -818,6 +818,30 @@ Busca en SAP Community (blogs y preguntas) por mensaje de error, clase o concept
 ## Escritura controlada
 
 *Guardar cambios solo en desarrollo, en la orden correcta y con la sintaxis verificada antes.*
+
+### `create_object` — Crear objeto ABAP
+
+Crea un objeto ABAP nuevo en un sistema de desarrollo: programa, include, clase, interfaz, grupo de funciones, módulo de función, vista CDS o control de acceso CDS. Exige paquete y, si es transportable, la orden (nunca elige una por su cuenta). Opcional: fuente inicial, que se comprueba con la sintaxis de SAP antes de guardarse, y activación. Primero muestra una vista previa (validación de SAP, orden, idioma) y solo crea tras la confirmación. Para modificar objetos que ya existen, write_source.
+
+| | |
+|---|---|
+| **Acceso** | Escribe (solo DEV con `allowWrite`; nunca QAS/PRD) |
+| **Créditos** | [abap-adt-api](https://github.com/marcellourbani/abap-adt-api) — Marcello Urbani (MIT, dependencia)<br>[ABAP Accelerator for Amazon Q Developer](https://github.com/aws-solutions-library-samples/guidance-for-deploying-sap-abap-accelerator-for-amazon-q-developer) — AWS Solutions Library Samples (MIT-0, idea)<br>[ABAP Remote FS (vscode_abap_remote_fs)](https://github.com/marcellourbani/vscode_abap_remote_fs) — Marcello Urbani (MIT, idea) |
+
+| Parámetro | Tipo | Por defecto | Descripción |
+|---|---|---|---|
+| `system` | string |  | Sistema SAP configurado. Obligatorio si hay varios y ninguno por defecto. |
+| `object_type` * | `PROG` \| `INCL` \| `CLAS` \| `INTF` \| `FUGR` \| `FUNC` \| `DDLS` \| `DCLS` |  | PROG programa · INCL include · CLAS clase · INTF interfaz · FUGR grupo de funciones · FUNC módulo de función · DDLS vista CDS · DCLS control de acceso CDS |
+| `name` * | string |  |  |
+| `description` * | string |  | Texto breve (en el idioma del sistema) |
+| `package` | string |  | Paquete de desarrollo. Obligatorio salvo FUNC (usa el del grupo). $TMP solo si se pide expresamente |
+| `function_group` | string |  | Solo FUNC: grupo de funciones donde se crea |
+| `transport` | string |  | Orden (o tarea). Obligatoria si el paquete es transportable |
+| `source` | string |  | Fuente inicial completa. Se comprueba la sintaxis antes de guardarla; una clase, entera |
+| `activate` | boolean | true | Activar tras guardar la fuente inicial |
+| `confirm_token` | string |  | Token de la vista previa. Sin él la tool no escribe: devuelve qué va a cambiar y el token, que se usa tras la conformidad del usuario (un solo uso, 10 min). |
+
+\* obligatorio
 
 ### `write_source` — Guardar fuente en SAP
 
