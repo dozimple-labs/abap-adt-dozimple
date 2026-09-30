@@ -4,6 +4,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-09-30
+
+`create_object`: crear objetos ABAP nuevos en desarrollo, con vista previa, orden explícita y confirmación. Correcciones de la revisión de la 1.3.0 y dependencias actualizadas.
+
 ### Añadido
 - **`create_object`: crear objetos ABAP nuevos en desarrollo** — programa, include, clase, interfaz, grupo de
   funciones, módulo de función, vista CDS y control de acceso CDS — con las garantías de `write_source`: vista
@@ -13,6 +17,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
   de que el tipo se puede crear por ADT en ese release (en NW 7.50 no se pueden crear paquetes ni tablas), relectura
   del objeto tras crearlo, fuente inicial comprobada con la sintaxis de SAP antes de guardarla y en un solo guardado,
   y aviso del flag RFC de los módulos de función, que va en SE37.
+
+### Seguridad
+- Dependencias transitivas del SDK de MCP actualizadas por avisos moderados: `ip-address` 10.7.2 y `fast-uri` 3.1.8.
 
 ### Corregido
 - **`my_transports` ya no cuenta de menos sin avisar.** Cada consulta pide un registro más que su tope (500 órdenes

@@ -297,7 +297,7 @@ Modelo de amenazas con STRIDE y OWASP Top 10 para aplicaciones LLM: **[docs/THRE
 Con la versión exacta y sin scripts de instalación, igual que las dependencias del propio proyecto:
 
 ```sh
-npm install -g --ignore-scripts @dozimple/abap-adt@1.3.0
+npm install -g --ignore-scripts @dozimple/abap-adt@1.4.0
 PKG="$(npm root -g)/@dozimple/abap-adt"
 mkdir -p ~/.config/abap-adt-dozimple && chmod 700 ~/.config/abap-adt-dozimple
 cp "$PKG/config/systems.example.json" ~/.config/abap-adt-dozimple/systems.json   # sistemas, roles y permisos
@@ -313,9 +313,9 @@ Registro en el cliente MCP:
 ```
 
 Cada versión se publica desde el CI con [procedencia de npm](https://docs.npmjs.com/generating-provenance-statements):
-`npm view @dozimple/abap-adt@1.3.0 dist.attestations` muestra la atestación, y la release de GitHub incluye el
+`npm view @dozimple/abap-adt@1.4.0 dist.attestations` muestra la atestación, y la release de GitHub incluye el
 paquete, su bundle de Sigstore (`.sigstore.json`), el mismo bundle como procedencia in-toto (`.intoto.jsonl`)
-y el SBOM. Para comprobarlo: `gh attestation verify dozimple-abap-adt-1.3.0.tgz --repo <owner>/abap-adt-dozimple`.
+y el SBOM. Para comprobarlo: `gh attestation verify dozimple-abap-adt-1.4.0.tgz --repo <owner>/abap-adt-dozimple`.
 
 ### Desde el código fuente
 
