@@ -4,6 +4,14 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Unreleased]
 
+### Añadido
+- **`activate` activa varios objetos a la vez.** Además de un objeto, admite `objects` (una lista) o `all_inactive`
+  (todos los inactivos del usuario de la conexión, opcionalmente solo los de una `transport`), y los activa **juntos en
+  una sola activación** de SAP: es lo que resuelve dependencias mutuas (clase ↔ interfaz, programa ↔ include) que,
+  activadas una a una, fallan. Nunca activa borrados pendientes (activarlos borraría el objeto) y, si la lista cambió
+  entre la vista previa y la confirmación, no activa nada. Idea de `ActivateMultiple` (vsp / sap-ai-dev-toolkit) y del
+  ABAP Accelerator; implementación propia.
+
 ## [1.4.0] - 2026-09-30
 
 `create_object`: crear objetos ABAP nuevos en desarrollo, con vista previa, orden explícita y confirmación. Correcciones de la revisión de la 1.3.0 y dependencias actualizadas.
