@@ -386,4 +386,12 @@ Este MCP es un ejemplo de cómo trabajamos: IA útil, con control, trazabilidad 
 ## Licencia
 
 [Apache-2.0](LICENSE) — © 2026 [DoZimple](https://dozimple.cl). Ver también [NOTICE](NOTICE). El componente SAP de
-DoZimple Transport Risk es propietario y no forma parte de este repositorio.
+DoZimple Transport Risk es propietario y no forma parte de este repositorio. SAP, ABAP y S/4HANA son marcas de SAP SE;
+este proyecto no está afiliado a SAP SE.
+
+**Sobre el protocolo ADT.** El servidor usa el protocolo REST de ABAP Development Tools, el mismo que usa Eclipse ADT.
+No es una API liberada de SAP (sin contrato de estabilidad ni soporte de SAP para clientes de terceros), por eso el
+servidor consulta el discovery ADT de cada sistema y avisa de lo que falta en vez de suponerlo. Está pensado para usarse
+como un IDE: cada persona con su propio usuario SAP nominal y su licencia de desarrollador, nunca con un usuario técnico
+compartido. Antes de desplegarlo, revisen cómo trata su contrato con SAP las herramientas de desarrollo y el acceso
+indirecto. Detalle en [NOTICE](NOTICE).

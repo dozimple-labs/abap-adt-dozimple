@@ -17,3 +17,34 @@ are listed in README.md and docs/TOOLS.md.
 
 SAP, ABAP, S/4HANA and other SAP products are trademarks of SAP SE. This project is
 not affiliated with or endorsed by SAP SE.
+
+USE OF THE ABAP DEVELOPMENT TOOLS (ADT) PROTOCOL
+------------------------------------------------
+This server talks to SAP through the REST protocol of ABAP Development Tools
+(/sap/bc/adt/...), the same one Eclipse ADT uses, via the open-source library
+abap-adt-api. Please read the following before using it with an SAP system.
+
+1. It is not a released SAP API. The ADT protocol is not published in the SAP
+   Business Accelerator Hub and carries no stability contract: SAP may change or
+   remove endpoints between releases, and SAP does not support third-party ADT
+   clients. To limit that risk, the server reads each system's ADT discovery,
+   reports when a function is not available in that release instead of assuming
+   it, and fails with an explicit error rather than an empty or partial result.
+
+2. It is used like an IDE, not as an integration. Each person connects with their
+   own named SAP user, with their own developer license and authorizations
+   (e.g. S_DEVELOP), exactly as with Eclipse ADT. The server never extends those
+   permissions; it can only restrict them (read-only by system, no writes outside
+   development systems, human confirmation and an audit log for every change).
+
+3. Do not run it with a shared technical user. Serving several people, or an
+   automated process, through one technical SAP user changes the nature of the
+   access (it may count as indirect/digital access under your SAP agreement) and
+   breaks per-person authorization and traceability. This project is designed
+   and documented for named users only.
+
+4. Review your SAP agreement. Licensing terms differ per customer. Before rolling
+   it out, check with whoever manages your SAP contract how your agreement treats
+   developer tools and indirect access. Nothing in this notice is legal advice.
+
+DoZimple can help assess a specific landscape: https://dozimple.cl
