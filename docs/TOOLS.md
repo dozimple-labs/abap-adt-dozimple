@@ -888,9 +888,9 @@ Deshace un cambio escribiendo de nuevo una versión anterior del objeto: la últ
 
 \* obligatorio
 
-### `activate` — Activar objeto
+### `activate` — Activar objetos
 
-Activa un objeto y devuelve los mensajes de SAP tal cual (errores con línea, avisos, objetos que quedan inactivos).
+Activa un objeto, una lista de objetos o todos los inactivos del usuario (opcionalmente de una orden) y devuelve los mensajes de SAP tal cual (errores con línea, avisos, objetos que quedan inactivos). Varios objetos se activan JUNTOS en una sola activación, que resuelve dependencias mutuas (clase ↔ interfaz, programa ↔ include) que una a una fallan. Nunca activa borrados pendientes.
 
 | | |
 |---|---|
@@ -901,8 +901,11 @@ Activa un objeto y devuelve los mensajes de SAP tal cual (errores con línea, av
 | Parámetro | Tipo | Por defecto | Descripción |
 |---|---|---|---|
 | `system` | string |  | Sistema SAP configurado. Obligatorio si hay varios y ninguno por defecto. |
-| `object_name` * | string |  |  |
+| `object_name` | string |  | Un objeto |
 | `object_type` | string |  | Tipo corto: PROG, INCL, CLAS, INTF, FUGR, FUNC, DDLS, DDLX, DCLS, TABL, STRU, VIEW, DTEL, DOMA, TTYP, MSAG, XSLT, BDEF, SRVD, SRVB, ENHO. También vale el tipo ADT (p. ej. PROG/P). |
+| `objects` | lista de { name, type } |  | Varios objetos, activados juntos en una sola activación |
+| `all_inactive` | boolean | false | Todos los objetos inactivos del usuario de la conexión (como «activar todo» en Eclipse) |
+| `transport` | string |  | Con all_inactive: solo los inactivos de esta orden |
 | `confirm_token` | string |  | Token de la vista previa. Sin él la tool no escribe: devuelve qué va a cambiar y el token, que se usa tras la conformidad del usuario (un solo uso, 10 min). |
 
 \* obligatorio
