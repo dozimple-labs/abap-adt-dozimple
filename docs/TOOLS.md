@@ -1,6 +1,6 @@
 # Referencia de tools — abap-adt-doZimple
 
-Generado desde el código con `npm run docs`. 54 tools en 9 grupos y 3 flujos guiados.
+Generado desde el código con `npm run docs`. 55 tools en 9 grupos y 3 flujos guiados.
 Producto de [DoZimple](https://dozimple.cl).
 
 ## Índice
@@ -11,7 +11,7 @@ Producto de [DoZimple](https://dozimple.cl).
 - [Consulta de datos](#datos) — 2 tools: `sql_query`, `table_contents`
 - [Diagnóstico de incidentes](#diagnostico) — 4 tools: `dumps`, `jobs`, `application_log`, `gateway_errors`
 - [Documentación SAP](#documentacion) — 7 tools: `abap_feature_matrix`, `docs_search`, `docs_fetch`, `clean_core_objects`, `clean_core_object`, `abap_lint`, `docs_community_search`
-- [Escritura controlada](#escritura) — 7 tools: `create_object`, `write_source`, `edit_source`, `revert_source`, `activate`, `write_text_elements`, `create_transport`
+- [Escritura controlada](#escritura) — 8 tools: `create_object`, `write_source`, `edit_source`, `revert_source`, `change_package`, `activate`, `write_text_elements`, `create_transport`
 - [DoZimple Transport Risk](#transport-risk) — 7 tools: `analyze_transport_risk`, `import_health`, `failure_ranking`, `change_audit`, `object_transport_history`, `remote_source`, `transport_source_check`
 - [Operación y crecimiento](#operacion) — 4 tools: `sap_systems`, `report_gap`, `close_gap`, `usage_stats`
 - [Flujos guiados](#flujos-guiados)
@@ -906,6 +906,27 @@ Deshace un cambio escribiendo de nuevo una versión anterior del objeto: la últ
 | `target` | union | "active" | «active»: la última versión activa (deshace un borrador inactivo, p. ej. un write_source cuya activación falló). «previous»: la versión anterior a la activa (deshace la última activación). Un número N: la versión N tal como la lista object_versions. |
 | `transport` | string |  | Orden (o tarea) donde debe ir la reversión. Obligatoria salvo objetos locales |
 | `activate` | boolean | true |  |
+| `confirm_token` | string |  | Token de la vista previa. Sin él la tool no escribe: devuelve qué va a cambiar y el token, que se usa tras la conformidad del usuario (un solo uso, 10 min). |
+
+\* obligatorio
+
+### `change_package` — Cambiar el paquete de un objeto
+
+Cambia de paquete un objeto existente (programa, clase, interfaz, grupo de funciones, CDS, objeto de diccionario) y lo registra en la orden indicada: sirve para sacar de $TMP algo que nació como prueba. Es el «Change Package Assignment» de Eclipse. La vista previa incluye la validación de SAP sin cambiar nada. No mueve módulos de función ni includes sueltos (heredan el paquete de su contenedor) y nunca elige la orden.
+
+| | |
+|---|---|
+| **Acceso** | Escribe (solo DEV con `allowWrite`; nunca QAS/PRD) |
+| **Requiere** | endpoint ADT `/sap/bc/adt/refactorings` |
+| **Créditos** | [abap-adt-api](https://github.com/marcellourbani/abap-adt-api) — Marcello Urbani (MIT, dependencia) |
+
+| Parámetro | Tipo | Por defecto | Descripción |
+|---|---|---|---|
+| `system` | string |  | Sistema SAP configurado. Obligatorio si hay varios y ninguno por defecto. |
+| `object_name` * | string |  |  |
+| `object_type` | string |  | Tipo corto: PROG, INCL, CLAS, INTF, FUGR, FUNC, DDLS, DDLX, DCLS, TABL, STRU, VIEW, DTEL, DOMA, TTYP, MSAG, XSLT, BDEF, SRVD, SRVB, ENHO. También vale el tipo ADT (p. ej. PROG/P). |
+| `package` * | string |  | Paquete de destino. Debe existir (los paquetes se crean en SE21) |
+| `transport` | string |  | Orden (o tarea) donde se registra el objeto. Obligatoria si el paquete de destino es transportable |
 | `confirm_token` | string |  | Token de la vista previa. Sin él la tool no escribe: devuelve qué va a cambiar y el token, que se usa tras la conformidad del usuario (un solo uso, 10 min). |
 
 \* obligatorio
