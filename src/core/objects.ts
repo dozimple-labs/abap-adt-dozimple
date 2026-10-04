@@ -104,6 +104,10 @@ export async function resolveObject(c: ADTClient, name: string, type?: string): 
       );
     }
   }
+  if (exact.length === 0 && at === "FUGR/FF") {
+    const fm = await functionModuleByDirectory(c, wanted);
+    if (fm) return fm;
+  }
   if (exact.length === 0) {
     const near = hits.slice(0, 8).map((h) => `${h["adtcore:name"]} (${h["adtcore:type"]})`);
     throw new ToolError(
@@ -125,6 +129,25 @@ export async function resolveObject(c: ADTClient, name: string, type?: string): 
     packageName: h["adtcore:packageName"],
     description: h["adtcore:description"],
   };
+}
+
+/**
+ * quickSearch no devuelve un módulo de función recién creado y aún inactivo (NW 7.50): se busca su grupo en el
+ * directorio de funciones (ENLFDIR) y se construye la URI, que es fija: grupo + módulo.
+ */
+async function functionModuleByDirectory(c: ADTClient, name: string): Promise<ResolvedObject | undefined> {
+  if (!/^(\/[A-Z0-9_]+\/)?[A-Z0-9_]+$/.test(name)) return undefined;
+  let area: string | undefined;
+  try {
+    const r = await c.runQuery(`SELECT area FROM enlfdir WHERE funcname = ${sqlLiteral(name)}`, 1, true);
+    area = String((r.values[0] as Record<string, unknown> | undefined)?.AREA ?? "").trim() || undefined;
+  } catch {
+    return undefined;
+  }
+  if (!area) return undefined;
+  const seg = (n: string) => encodeURIComponent(n.toLowerCase());
+  addNote(`la búsqueda de SAP no devuelve ${name} (módulo nuevo o sin activar); se localizó por el directorio de funciones en el grupo ${area}.`);
+  return { name, type: "FUGR/FF", uri: `/sap/bc/adt/functions/groups/${seg(area)}/fmodules/${seg(name)}` };
 }
 
 export const CLASS_INCLUDES = ["main", "definitions", "implementations", "macros", "testclasses"] as const;
