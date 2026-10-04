@@ -297,6 +297,17 @@ describe("datos sensibles", () => {
     expect(() => maskPii("prod", "SELECT a~kunnr FROM kna1 AS a WHERE a~name1 = 'X'", ["KUNNR"], [])).toThrow(/columna simple/);
   });
 
+  it("el usuario SAP de quien creó o cambió un documento también es un dato personal", () => {
+    const cols = ["VBELN", "ERNAM", "ANGE_USER", "ERNAM_S", "READY_UNAME", "ZZ_ERNAM", "AS4USER", "WERKS", "USERCLASS", "RENAME"];
+    const rows = [Object.fromEntries(cols.map((c) => [c, "DEMO_USER"]))];
+    expect(maskPii("prod", "SELECT * FROM zdemo_order WHERE vbeln = '1'", cols, rows)).toEqual(["ERNAM", "ANGE_USER", "ERNAM_S", "READY_UNAME", "ZZ_ERNAM", "AS4USER"]);
+    expect(rows[0]).toMatchObject({ VBELN: "DEMO_USER", ERNAM: MASK, ANGE_USER: MASK, ERNAM_S: MASK, WERKS: "DEMO_USER", USERCLASS: "DEMO_USER", RENAME: "DEMO_USER" });
+    expect(() => maskPii("prod", "SELECT vbeln FROM zdemo_order WHERE ernam = 'DEMO_USER'", ["VBELN"], [])).toThrow(/columna simple/);
+    const dev = [{ ERNAM: "DEMO_USER" }];
+    expect(maskPii("test", "SELECT ernam FROM zdemo_order", ["ERNAM"], dev)).toEqual([]);
+    expect(dev[0].ERNAM).toBe("DEMO_USER");
+  });
+
   it("nombres candidatos: sin palabras clave, literales ni números", () => {
     expect(candidateNames("SELECT a~obj_name FROM tadir AS a WHERE a~devclass = 'ZDEMO' UP TO 10 ROWS")).toEqual(["OBJ_NAME", "TADIR", "DEVCLASS"]);
   });

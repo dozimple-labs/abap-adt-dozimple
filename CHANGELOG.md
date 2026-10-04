@@ -12,6 +12,16 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
   entre la vista previa y la confirmación, no activa nada. Idea de `ActivateMultiple` (vsp / sap-ai-dev-toolkit) y del
   ABAP Accelerator; implementación propia.
 
+### Seguridad
+- **El usuario SAP de una persona también se enmascara** en sistemas con datos productivos o enmascarados. Las columnas
+  de quién creó, cambió o aprobó un documento (`ERNAM`, `AENAM`, `UNAME`, `USNAM`, `AS4USER`… y sus variantes con
+  sufijo o prefijo, como `ERNAM_S`, `ANGE_USER` o `ZZ_ERNAM`) salían en claro en `sql_query` y `table_contents`; ahora
+  salen como `‹oculto›` y, como el resto de columnas personales, no valen en WHERE, alias ni expresiones.
+
+### Corregido
+- `function_modules` rotulaba como «normal» los módulos de actualización: el tipo se lee ahora también de
+  `TFDIR-UTASK` (V1, V1 sin reinicio, V2, colectiva).
+
 ## [1.4.0] - 2026-09-30
 
 `create_object`: crear objetos ABAP nuevos en desarrollo, con vista previa, orden explícita y confirmación. Correcciones de la revisión de la 1.3.0 y dependencias actualizadas.

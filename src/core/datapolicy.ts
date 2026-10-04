@@ -33,15 +33,32 @@ export const PII_COLUMNS = new Set([
 export const MASK = "‹oculto›";
 
 /**
+ * Columnas con el usuario SAP de una persona (quién creó, cambió, aprobó). Identifican a un empleado igual que un
+ * nombre, y las tablas de negocio las traen con sufijos y prefijos propios (ERNAM_S, ANGE_USER, ZZ_ERNAM): por eso
+ * se reconocen por patrón y no solo por lista.
+ */
+const USER_ID_COLUMNS = new Set([
+  "ERNAM", "AENAM", "UNAME", "USNAM", "USERNAME", "BNAME", "XUBNAME", "AS4USER", "TDFUSER", "TDLUSER", "ERNAME", "AENAME",
+  "CRUSER", "CHUSER", "CREATED_BY", "CHANGED_BY", "LAST_CHANGED_BY", "CRNAM", "CHNAM",
+]);
+const USER_ID_RE = /^(ZZ?_?)?(ERNAM|AENAM|UNAME|USNAM|ERNAME|AENAME)(_[A-Z0-9]+)?$|_(USER|UNAME|USNAM|ERNAM|AENAM)$/;
+
+/** ¿La columna lleva un dato personal? Lista estándar, usuario SAP por patrón, o las propias del cliente. */
+export function isPersonalColumn(name: string, extra?: ReadonlySet<string>): boolean {
+  const n = name.toUpperCase();
+  return PII_COLUMNS.has(n) || USER_ID_COLUMNS.has(n) || USER_ID_RE.test(n) || !!extra?.has(n);
+}
+
+/**
  * En sistemas masked/prod una columna personal solo puede salir como columna
  * simple, para enmascararla. Usarla en un WHERE, un alias o una expresión
  * dejaría deducir su valor sin que aparezca en el resultado.
  */
 export function maskPii(cls: DataClass, sql: string, columns: string[], rows: Record<string, unknown>[], extra: string[] = []): string[] {
   if (cls === "test") return [];
-  const pii = extra.length ? new Set([...PII_COLUMNS, ...extra.map((c) => c.toUpperCase())]) : PII_COLUMNS;
+  const own = new Set(extra.map((c) => c.toUpperCase()));
   const cols = new Set(columns.map((c) => c.toUpperCase()));
-  const mentioned = new Set(sqlWords(sql).flatMap((w) => w.split("~")).filter((w) => pii.has(w)));
+  const mentioned = new Set(sqlWords(sql).flatMap((w) => w.split("~")).filter((w) => isPersonalColumn(w, own)));
   const hidden = [...mentioned].filter((w) => !cols.has(w));
   if (hidden.length) {
     throw new ToolError(
@@ -51,7 +68,7 @@ export function maskPii(cls: DataClass, sql: string, columns: string[], rows: Re
       "Filtra por la clave (KUNNR, LIFNR, PARTNER…) y deja que la columna salga enmascarada, o consulta un sistema de test.",
     );
   }
-  const masked = columns.filter((c) => pii.has(c.toUpperCase()));
+  const masked = columns.filter((c) => isPersonalColumn(c, own));
   for (const row of rows) for (const c of masked) if (row[c] !== "" && row[c] !== null && row[c] !== undefined) row[c] = MASK;
   return masked;
 }

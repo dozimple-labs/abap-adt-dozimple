@@ -14,6 +14,14 @@ const SPRAS: Record<string, string> = {
 export const sapLanguage = (iso: string) => SPRAS[iso.trim().toUpperCase()] ?? iso.trim().toUpperCase().slice(0, 1);
 
 const MODE: Record<string, string> = { R: "RFC", "": "normal", K: "update (V1)", L: "update (V2)", X: "update" };
+/** TFDIR-UTASK: cómo se ejecuta un módulo de actualización. FMODE no lo dice: viene vacío en los de actualización. */
+const UTASK: Record<string, string> = { "1": "update (V1)", "2": "update (V1, sin reinicio)", "3": "update (V2)", "4": "update (colectiva)" };
+export function moduleKind(fmode: unknown, utask: unknown): string {
+  const u = UTASK[String(utask ?? "").trim()];
+  const f = String(fmode ?? "").trim();
+  if (u) return f === "R" ? `RFC, ${u}` : u;
+  return MODE[f] ?? f;
+}
 
 export default defineTool({
   name: "function_modules",
@@ -42,7 +50,7 @@ export default defineTool({
     if (!NAME_RE.test(area)) throw new ToolError("INPUT", `Nombre de grupo inválido: ${group}`);
 
     const rows = await sap.query(
-      `SELECT e~funcname, t~fmode FROM enlfdir AS e INNER JOIN tfdir AS t ON t~funcname = e~funcname ` +
+      `SELECT e~funcname, t~fmode, t~utask FROM enlfdir AS e INNER JOIN tfdir AS t ON t~funcname = e~funcname ` +
         `WHERE e~area = ${sqlLiteral(area)} ORDER BY e~funcname`,
       2000,
     );
@@ -71,7 +79,7 @@ export default defineTool({
       ["módulo", "tipo", "texto"],
       rows.values.map((r) => {
         const n = String(r.FUNCNAME).trim();
-        return [n, MODE[String(r.FMODE ?? "").trim()] ?? String(r.FMODE), texts.get(n)?.text ?? ""];
+        return [n, moduleKind(r.FMODE, r.UTASK), texts.get(n)?.text ?? ""];
       }),
     );
     const capped = rows.values.length >= 2000 ? "\n\nTope de 2000 módulos alcanzado: puede haber más." : "";
