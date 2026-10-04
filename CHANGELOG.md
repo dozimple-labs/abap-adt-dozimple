@@ -20,6 +20,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
   los existentes—, comprueba contra el sistema el paquete, la tarea, los nombres y todo lo que referencia, y devuelve el
   fichero de instrucciones que una persona ejecuta en SE38 con el programa generador (componente de DoZimple que no se
   incluye en este repositorio). Es de **solo lectura**: no abre ningún servicio de escritura en SAP.
+- **`odata_model`: modelo OData V2 (EDMX) desde el diccionario**, para importarlo en un proyecto de SEGW en ECC / NW
+  7.50: entity types, entity sets, asociaciones y navegación a partir de tablas, estructuras o vistas, con tipos,
+  longitudes, claves y etiquetas reales (el mandante no se expone). Solo lee el diccionario. Crear el proyecto,
+  importar, generar las clases y registrar el servicio siguen siendo pasos manuales, y la importación en SEGW **no está
+  verificada**: es experimental.
 
 ### Corregido
 - **Un módulo de función nuevo o sin activar ya se encuentra.** En NW 7.50 la búsqueda de SAP no devuelve un módulo
