@@ -57,7 +57,7 @@ El agente elige las tools, las encadena y responde con evidencia. Cada respuesta
 |---|---|---|
 | [Revisión de código y pases](#g-revision) | Saber qué cambia de verdad una orden y qué puede romper, antes de liberarla. | 6 |
 | [Calidad, ATC y remediación](#g-calidad) | Encontrar, entender y corregir hallazgos con la sintaxis y las correcciones reales de SAP. | 6 |
-| [Exploración del repositorio](#g-exploracion) | Leer y entender cualquier objeto ABAP y sus relaciones, en ECC y en S/4HANA. | 11 |
+| [Exploración del repositorio](#g-exploracion) | Leer y entender cualquier objeto ABAP y sus relaciones, en ECC y en S/4HANA. | 12 |
 | [Consulta de datos](#g-datos) | Preguntar a las tablas con ABAP SQL, de solo lectura y sin tocar material de credenciales. | 2 |
 | [Diagnóstico de incidentes](#g-diagnostico) | Reunir en una conversación lo que antes exigía ST22, SM37, SLG1 y /IWFND/ERROR_LOG. | 4 |
 | [Documentación SAP](#g-documentacion) | Responder con la documentación oficial y comprobar qué sintaxis existe en cada release. | 7 |
@@ -141,6 +141,7 @@ la **[referencia completa](docs/TOOLS.md)**.
 | [`object_versions`](docs/TOOLS.md#exploracion) | **Versiones de un objeto.** Historial de versiones de un objeto (fecha, autor, orden). | lectura |
 | [`package_contents`](docs/TOOLS.md#exploracion) | **Contenido de un paquete.** Objetos de un paquete de desarrollo agrupados por tipo, con sus subpaquetes (TADIR/TDEVC, cualquier release). | lectura |
 | [`ddic_type_info`](docs/TOOLS.md#exploracion) | **Elemento de datos, dominio o tipo tabla.** Definición de un tipo DDIC: elemento de datos (dominio, tipo, longitud, textos), dominio (tipo, longitud, valores fijos, tabla de valores) o tipo tabla (tipo de línea, clave). | lectura |
+| [`ddic_plan`](docs/TOOLS.md#exploracion) | **Preparar objetos de diccionario (NW 7.50).** Para sistemas donde ADT no crea ni modifica tablas, estructuras, dominios, elementos de datos ni tipos tabla (ECC / NW 7.50): valida una especificación de objetos nuevos y de cambios (añadir campos, valores, textos), comprueba contra el sistema el paquete, la tarea, los nombres y todo lo que referencia, y devuelve el fichero de instrucciones que una persona ejecuta en SE38 con el programa ZDZ_DDIC_GEN (primero en simulación). | lectura |
 | [`transaction_info`](docs/TOOLS.md#exploracion) | **Qué ejecuta una transacción.** Programa, dynpro y parámetros de una transacción (TSTC/TSTCP), con su texto. | lectura |
 | [`function_modules`](docs/TOOLS.md#exploracion) | **Módulos de función de un grupo.** Lista los módulos de función de un grupo de funciones, con su texto y si son RFC o de actualización. | lectura |
 | [`text_elements`](docs/TOOLS.md#exploracion) | **Símbolos de texto y textos de selección.** Lee los símbolos de texto (TEXT-001…), textos de selección o encabezados de un programa, clase o grupo de funciones. | lectura |

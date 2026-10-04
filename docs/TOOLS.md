@@ -1,13 +1,13 @@
 # Referencia de tools — abap-adt-doZimple
 
-Generado desde el código con `npm run docs`. 55 tools en 9 grupos y 3 flujos guiados.
+Generado desde el código con `npm run docs`. 56 tools en 9 grupos y 3 flujos guiados.
 Producto de [DoZimple](https://dozimple.cl).
 
 ## Índice
 
 - [Revisión de código y pases](#revision) — 6 tools: `transport_diff`, `transport_contents`, `my_transports`, `co_change`, `inactive_objects`, `edit_preflight`
 - [Calidad, ATC y remediación](#calidad) — 6 tools: `run_atc`, `atc_quickfix`, `api_release_state`, `sap_notes`, `syntax_check`, `run_unit_tests`
-- [Exploración del repositorio](#exploracion) — 11 tools: `search_objects`, `get_source`, `where_used`, `source_search`, `object_versions`, `package_contents`, `ddic_type_info`, `transaction_info`, `function_modules`, `text_elements`, `enhancements`
+- [Exploración del repositorio](#exploracion) — 12 tools: `search_objects`, `get_source`, `where_used`, `source_search`, `object_versions`, `package_contents`, `ddic_type_info`, `ddic_plan`, `transaction_info`, `function_modules`, `text_elements`, `enhancements`
 - [Consulta de datos](#datos) — 2 tools: `sql_query`, `table_contents`
 - [Diagnóstico de incidentes](#diagnostico) — 4 tools: `dumps`, `jobs`, `application_log`, `gateway_errors`
 - [Documentación SAP](#documentacion) — 7 tools: `abap_feature_matrix`, `docs_search`, `docs_fetch`, `clean_core_objects`, `clean_core_object`, `abap_lint`, `docs_community_search`
@@ -442,6 +442,31 @@ Definición de un tipo DDIC: elemento de datos (dominio, tipo, longitud, textos)
 | `system` | string |  | Sistema SAP configurado. Obligatorio si hay varios y ninguno por defecto. |
 | `name` * | string |  |  |
 | `kind` | `DTEL` \| `DOMA` \| `TTYP` |  |  |
+
+\* obligatorio
+
+### `ddic_plan` — Preparar objetos de diccionario (NW 7.50)
+
+Para sistemas donde ADT no crea ni modifica tablas, estructuras, dominios, elementos de datos ni tipos tabla (ECC / NW 7.50): valida una especificación de objetos nuevos y de cambios (añadir campos, valores, textos), comprueba contra el sistema el paquete, la tarea, los nombres y todo lo que referencia, y devuelve el fichero de instrucciones que una persona ejecuta en SE38 con el programa ZDZ_DDIC_GEN (primero en simulación). Esta tool NO modifica SAP: solo lee y prepara. También cubre grupos y módulos de función con su interfaz y la marca RFC.
+
+| | |
+|---|---|
+| **Acceso** | Solo lectura |
+| **Créditos** | Desarrollo propio de DoZimple |
+
+| Parámetro | Tipo | Por defecto | Descripción |
+|---|---|---|---|
+| `system` | string |  | Sistema SAP configurado. Obligatorio si hay varios y ninguno por defecto. |
+| `package` * | string |  | Paquete de los objetos nuevos |
+| `task` * | string |  | TAREA (no la orden) donde se registra todo. Debe ser de quien ejecutará el generador |
+| `description` | string |  | Título del cambio |
+| `domains` | lista de { name, type, length, text, values } | [] |  |
+| `data_elements` | lista de { name, domain, text, label, short_label } | [] |  |
+| `tables` | lista de { name, kind, text, delivery_class, maintenance, data_class, size_category, fields } | [] |  |
+| `table_types` | lista de { name, row_type, text } | [] |  |
+| `function_groups` | lista de { name, text } | [] |  |
+| `functions` | lista de { name, group, text, rfc, importing, exporting, tables } | [] |  |
+| `modify` | object | {} | Objetos que YA existen: solo se indica lo que cambia |
 
 \* obligatorio
 

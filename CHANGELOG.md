@@ -15,6 +15,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
   incluye la validación de SAP sin cambiar nada, y tras ejecutar se comprueba el paquete que quedó en el catálogo de
   objetos. Si SAP registraría el cambio en otra orden (objeto bloqueado), no sigue. La ejecución real está sin probar
   en vivo: solo la vista previa.
+- **`ddic_plan`: preparar objetos de diccionario donde ADT no los crea (ECC / NW 7.50).** Valida una especificación de
+  dominios, elementos de datos, tablas, estructuras, tipos tabla y grupos/módulos de función —nuevos, o cambios sobre
+  los existentes—, comprueba contra el sistema el paquete, la tarea, los nombres y todo lo que referencia, y devuelve el
+  fichero de instrucciones que una persona ejecuta en SE38 con el programa generador (componente de DoZimple que no se
+  incluye en este repositorio). Es de **solo lectura**: no abre ningún servicio de escritura en SAP.
 
 ### Corregido
 - **Un módulo de función nuevo o sin activar ya se encuentra.** En NW 7.50 la búsqueda de SAP no devuelve un módulo

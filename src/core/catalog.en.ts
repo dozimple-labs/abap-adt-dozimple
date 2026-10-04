@@ -36,6 +36,7 @@ export const TOOLS_EN: Record<string, string> = {
   object_versions: "**Object versions.** Version history of an object (date, author, transport).",
   package_contents: "**Package contents.** Objects of a development package grouped by type, with subpackages (TADIR/TDEVC, any release).",
   ddic_type_info: "**Data element, domain or table type.** Definition of a DDIC type: data element (domain, type, length, texts), domain (type, length, fixed values, value table) or table type (line type, key).",
+  ddic_plan: "**Prepare dictionary objects (NW 7.50).** Where ADT cannot create or change tables, structures, domains, data elements or table types: validates a specification of new objects and changes against the system and returns the instruction file a person runs in SE38 with the generator program. Read-only: it never modifies SAP.",
   function_modules: "**Function modules of a group.** Lists the function modules of a function group with their text and whether they are RFC or update modules; given a module, finds its group and siblings. Works with /XXX/ namespaces.",
   transaction_info: "**What a transaction runs.** Program, screen and parameters of a transaction (TSTC/TSTCP), with its text.",
   text_elements: "**Text symbols and selection texts.** Reads the text symbols (TEXT-001…), selection texts or headings of a program, class or function group.",
