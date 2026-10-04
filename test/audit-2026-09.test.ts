@@ -154,6 +154,8 @@ describe("DZ-14 · la escritura no aplica un diff sobre algo que cambió tras la
     const c = {
       searchObject: async () => [{ "adtcore:name": "ZDEMO", "adtcore:type": "PROG/P", "adtcore:uri": "/sap/bc/adt/programs/programs/zdemo", "adtcore:packageName": "$TMP" }],
       objectStructure: async () => { throw new Error("sin estructura"); },
+      // Al empezar todavía es la versión de la vista previa: el cambio ajeno llega justo antes del bloqueo.
+      getObjectSource: async () => "REPORT zdemo.\n",
     };
     const ctx = { sap: { adt: async () => c, stateful: async (fn: any) => fn(s), query: async () => ({ values: [] }) }, confirmedState: stateOf("REPORT zdemo.\n") } as any;
     const r: any = await (writeSource as ToolDef<any>).run(
