@@ -4,6 +4,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-10-04
+
+Activar varios objetos juntos y, en sistemas con datos productivos, el usuario SAP de las personas sale enmascarado.
+
 ### Añadido
 - **`activate` activa varios objetos a la vez.** Además de un objeto, admite `objects` (una lista) o `all_inactive`
   (todos los inactivos del usuario de la conexión, opcionalmente solo los de una `transport`), y los activa **juntos en
