@@ -62,7 +62,7 @@ and **a failure is never presented as an empty result or as success**.
 | [Data queries](#g-datos) | Query tables with ABAP SQL, read-only, with sensitive and personal data protected. | 2 |
 | [Incident diagnosis](#g-diagnostico) | One conversation for what used to take ST22, SM37, SLG1 and /IWFND/ERROR_LOG. | 4 |
 | [SAP documentation](#g-documentacion) | Answer from official documentation and check which syntax exists in each release. | 7 |
-| [Controlled writes](#g-escritura) | Save changes only in development, in the right transport, previewed and confirmed by a human. | 7 |
+| [Controlled writes](#g-escritura) | Save changes only in development, in the right transport, previewed and confirmed by a human. | 8 |
 | [DoZimple Transport Risk](#g-transport-risk) | Decide whether a whole release can go to QA or production, with the why in business terms. | 7 |
 | [Operations and growth](#g-operacion) | See what works on each system and decide the next tool with data. | 4 |
 <!-- groups:end -->
@@ -195,6 +195,7 @@ Summary per group; each tool's details — parameters, types, defaults, requirem
 | [`write_source`](docs/TOOLS.md#escritura) | **Save source to SAP.** Replaces the FULL source of an existing object (or class include) in the given transport, after a preview with syntax check and diff and a human confirmation. | writes (authorized DEV) |
 | [`edit_source`](docs/TOOLS.md#escritura) | **Edit a fragment of the source.** Replaces specific fragments of an existing object's source without resending it whole (exact current text → new text), through the same preview, syntax check, diff, fingerprint, lock and transport as write_source. | writes (authorized DEV) |
 | [`revert_source`](docs/TOOLS.md#escritura) | **Revert to an earlier version.** Writes back an earlier version of an object (the last active one, the one before it, or a numbered one from object_versions) through the same preview, fingerprint, lock and transport as write_source; never reverts on its own. | writes (authorized DEV) |
+| [`change_package`](docs/TOOLS.md#escritura) | **Change an object's package.** Moves an existing object to another package and records it in the given transport (typically out of $TMP), like Eclipse's “Change Package Assignment”; the preview includes SAP's own validation and nothing is changed until confirmed. | writes (authorized DEV) |
 | [`activate`](docs/TOOLS.md#escritura) | **Activate objects.** Activates one object, a list, or all inactive objects of the connection user (optionally of one transport) together in a single SAP activation, which resolves mutual dependencies; never activates pending deletions. | writes (authorized DEV) |
 | [`write_text_elements`](docs/TOOLS.md#escritura) | **Create or change text symbols.** Adds or changes text symbols (or selection texts) of a program/class/group, merging with the existing ones: nothing not mentioned is deleted. | writes (authorized DEV) |
 | [`create_transport`](docs/TOOLS.md#escritura) | **Create transport request.** Creates a workbench request for an object's package BEFORE the first edit, so the change lands in the ticket's transport and not in a reused task. | writes (authorized DEV) |
@@ -351,7 +352,7 @@ abap-adt-doZimple is built on other people's work, and says so: each tool lists 
 <!-- credits:start -->
 | Project | Author / holder | License | Type | Used in |
 |---|---|---|---|---|
-| [abap-adt-api](https://github.com/marcellourbani/abap-adt-api) | Marcello Urbani | MIT | dependency | all (core), `transport_diff`, `transport_contents`, `my_transports`, `inactive_objects`, `edit_preflight` and 29 more |
+| [abap-adt-api](https://github.com/marcellourbani/abap-adt-api) | Marcello Urbani | MIT | dependency | all (core), `transport_diff`, `transport_contents`, `my_transports`, `inactive_objects`, `edit_preflight` and 30 more |
 | [Model Context Protocol TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk) | Model Context Protocol | MIT | dependency | all (core) |
 | [mcp-sap-docs](https://github.com/marianfoo/mcp-sap-docs) | Marian Zeis (marianfoo) | Apache-2.0 | dependency | `abap_feature_matrix`, `docs_search`, `docs_fetch`, `clean_core_objects`, `clean_core_object`, `abap_lint` and 1 more |
 | [abaplint](https://github.com/abaplint/abaplint) | Lars Hvam and contributors | MIT | dependency | `abap_lint` |

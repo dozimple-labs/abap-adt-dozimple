@@ -10,6 +10,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
   `write_source` (sintaxis de SAP sobre la fuente resultante, diff, orden explícita, huella y bloqueo). No adivina: si
   el fragmento no aparece o aparece varias veces (sin `replace_all`), no hace nada y lo dice. Pensada para cambios
   pequeños en programas de miles de líneas, donde reproducir el objeto entero es lento y arriesga cambios no pedidos.
+- **`change_package`: cambiar de paquete un objeto existente** y registrarlo en la orden indicada (el caso típico:
+  sacar de `$TMP` algo que nació como prueba). Usa el refactoring de ADT («Change Package Assignment»); la vista previa
+  incluye la validación de SAP sin cambiar nada, y tras ejecutar se comprueba el paquete que quedó en el catálogo de
+  objetos. Si SAP registraría el cambio en otra orden (objeto bloqueado), no sigue. La ejecución real está sin probar
+  en vivo: solo la vista previa.
 
 ### Corregido
 - **Un módulo de función nuevo o sin activar ya se encuentra.** En NW 7.50 la búsqueda de SAP no devuelve un módulo
