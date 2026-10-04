@@ -1058,7 +1058,7 @@ Qué órdenes han tocado un objeto, cuándo, y cuáles llegaron ya al destino. �
 
 ### `remote_source` — Fuente en el destino
 
-La fuente de un objeto TAL COMO ESTÁ en calidad o productivo, leída por el canal de TMS (como «Traer versiones remotas»). Compárala con get_source en DEV para ver qué cambia de verdad con un pase.
+La fuente de un objeto TAL COMO ESTÁ en calidad o productivo, leída por el canal de TMS (como «Traer versiones remotas»). Compárala con get_source en DEV para ver qué cambia de verdad con un pase. Admite el nombre de un módulo de función: se traduce a su include (L<grupo>Unn) con el directorio de funciones de desarrollo.
 
 | | |
 |---|---|

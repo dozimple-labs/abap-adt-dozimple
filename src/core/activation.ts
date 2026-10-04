@@ -11,7 +11,36 @@ export interface ActivationOutcome {
  * inactivos. Un fallo nunca se presenta como «ya estaba activo».
  */
 export async function activateObject(c: ADTClient, obj: ResolvedObject): Promise<ActivationOutcome> {
-  return describeActivation(await c.activate(obj.name, obj.uri), obj.name);
+  const first = await c.activate(obj.name, obj.uri);
+  const own = ownInactive(first, obj);
+  if (!own) return describeActivation(first, obj.name);
+  // SAP no activó nada y no dio ningún mensaje: devuelve como inactivos la clase y sus includes de método. Es lo que
+  // hace Eclipse al pedir que se elijan; aquí se reintenta UNA vez con esa lista, que solo contiene el propio objeto.
+  const second = describeActivation(await c.activate(own), obj.name);
+  return second.ok ? { ok: true, text: `${second.text}\n(Segundo intento: SAP pidió activar ${obj.name} junto con sus ${own.length - 1} subobjetos inactivos.)` } : second;
+}
+
+/**
+ * La lista para reintentar, o undefined si no procede: solo cuando no hubo errores, quedó algo inactivo y TODO lo
+ * inactivo es el propio objeto o uno de sus subobjetos (nunca arrastra objetos ajenos ni borrados pendientes).
+ */
+function ownInactive(r: ActivationResult, obj: ResolvedObject): InactiveObject[] | undefined {
+  if (r.messages.some((m) => ["E", "A", "X"].includes(m.type?.toUpperCase()))) return undefined;
+  const list = r.inactive.map((i) => i.object).filter((o): o is NonNullable<typeof o> => !!o);
+  if (!list.length || list.length !== r.inactive.length) return undefined;
+  const base = obj.uri.toLowerCase();
+  const mine = (o: (typeof list)[number]) => {
+    const uri = (o["adtcore:uri"] ?? "").toLowerCase();
+    const parent = (o["adtcore:parentUri"] ?? "").toLowerCase();
+    return !o.deleted && (uri === base || uri.startsWith(`${base}/`) || parent === base);
+  };
+  if (!list.every(mine) || list.length < 2) return undefined;
+  return list.map((o) => ({
+    "adtcore:name": o["adtcore:name"],
+    "adtcore:type": o["adtcore:type"],
+    "adtcore:uri": o["adtcore:uri"],
+    "adtcore:parentUri": o["adtcore:parentUri"] ?? "",
+  }));
 }
 
 /**

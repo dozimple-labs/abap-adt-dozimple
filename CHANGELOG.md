@@ -4,6 +4,16 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Unreleased]
 
+### Corregido
+- **Un módulo de función nuevo o sin activar ya se encuentra.** En NW 7.50 la búsqueda de SAP no devuelve un módulo
+  recién creado, y `create_object` no guardaba su fuente inicial; `get_source`, `syntax_check` y `write_source`
+  respondían «No existe FUNC». Ahora, si la búsqueda no lo trae, se localiza por el directorio de funciones y se dice.
+- **Activar una clase que SAP devuelve inactiva junto a su include de método.** Cuando SAP no activa, no da ningún
+  mensaje y devuelve como inactivos solo el propio objeto y sus subobjetos, se reintenta **una vez** con esa lista (lo
+  que en Eclipse es elegirlos en el diálogo). No se reintenta si hay errores, objetos ajenos o borrados pendientes.
+- **`remote_source` admite el nombre de un módulo de función**: lo traduce a su include (`L<grupo>Unn`) con el
+  directorio de funciones de desarrollo, y lo indica en la respuesta. Antes respondía «No hay versión activa».
+
 ## [1.5.0] - 2026-10-04
 
 Activar varios objetos juntos y, en sistemas con datos productivos, el usuario SAP de las personas sale enmascarado.
