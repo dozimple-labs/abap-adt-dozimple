@@ -1,13 +1,13 @@
 # Referencia de tools — abap-adt-doZimple
 
-Generado desde el código con `npm run docs`. 56 tools en 9 grupos y 3 flujos guiados.
+Generado desde el código con `npm run docs`. 57 tools en 9 grupos y 3 flujos guiados.
 Producto de [DoZimple](https://dozimple.cl).
 
 ## Índice
 
 - [Revisión de código y pases](#revision) — 6 tools: `transport_diff`, `transport_contents`, `my_transports`, `co_change`, `inactive_objects`, `edit_preflight`
 - [Calidad, ATC y remediación](#calidad) — 6 tools: `run_atc`, `atc_quickfix`, `api_release_state`, `sap_notes`, `syntax_check`, `run_unit_tests`
-- [Exploración del repositorio](#exploracion) — 12 tools: `search_objects`, `get_source`, `where_used`, `source_search`, `object_versions`, `package_contents`, `ddic_type_info`, `ddic_plan`, `transaction_info`, `function_modules`, `text_elements`, `enhancements`
+- [Exploración del repositorio](#exploracion) — 13 tools: `search_objects`, `get_source`, `where_used`, `source_search`, `object_versions`, `package_contents`, `ddic_type_info`, `ddic_plan`, `odata_model`, `transaction_info`, `function_modules`, `text_elements`, `enhancements`
 - [Consulta de datos](#datos) — 2 tools: `sql_query`, `table_contents`
 - [Diagnóstico de incidentes](#diagnostico) — 4 tools: `dumps`, `jobs`, `application_log`, `gateway_errors`
 - [Documentación SAP](#documentacion) — 7 tools: `abap_feature_matrix`, `docs_search`, `docs_fetch`, `clean_core_objects`, `clean_core_object`, `abap_lint`, `docs_community_search`
@@ -467,6 +467,24 @@ Para sistemas donde ADT no crea ni modifica tablas, estructuras, dominios, eleme
 | `function_groups` | lista de { name, text } | [] |  |
 | `functions` | lista de { name, group, text, rfc, importing, exporting, tables } | [] |  |
 | `modify` | object | {} | Objetos que YA existen: solo se indica lo que cambia |
+
+\* obligatorio
+
+### `odata_model` — Modelo OData (EDMX) desde el diccionario
+
+Genera el modelo de un servicio OData V2 (fichero EDMX: entity types, entity sets, asociaciones y navegación) a partir de tablas, estructuras o vistas del diccionario, con tipos, longitudes, claves y etiquetas reales. Es para importarlo en un proyecto de SEGW (Data Model → Import → Data Model from File) en sistemas ECC / NW 7.50, en vez de definir cada propiedad a mano. Solo lee el diccionario: crear el proyecto, importar, generar las clases y registrar el servicio siguen siendo pasos manuales en SEGW y /IWFND/MAINT_SERVICE; el código de DPC_EXT se escribe después con write_source. Para servicios de solo lectura suele bastar una vista CDS con @OData.publish.
+
+| | |
+|---|---|
+| **Acceso** | Solo lectura |
+| **Créditos** | Desarrollo propio de DoZimple |
+
+| Parámetro | Tipo | Por defecto | Descripción |
+|---|---|---|---|
+| `system` | string |  | Sistema SAP configurado. Obligatorio si hay varios y ninguno por defecto. |
+| `namespace` * | string |  | Namespace del esquema; en SEGW suele ser el nombre del proyecto, p. ej. ZDEMO_SRV |
+| `entities` * | lista de { name, source, set, keys, fields } |  |  |
+| `associations` | lista de { name, from, to, multiplicity, on, navigation } | [] |  |
 
 \* obligatorio
 

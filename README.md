@@ -58,7 +58,7 @@ and **a failure is never presented as an empty result or as success**.
 |---|---|---|
 | [Code review and transports](#g-revision) | Know what a transport really changes and what it may break, before releasing it. | 6 |
 | [Quality, ATC and remediation](#g-calidad) | Find, understand and fix findings with SAP's real syntax check and quick fixes. | 6 |
-| [Repository exploration](#g-exploracion) | Read and understand any ABAP object and its relations, on ECC and S/4HANA. | 12 |
+| [Repository exploration](#g-exploracion) | Read and understand any ABAP object and its relations, on ECC and S/4HANA. | 13 |
 | [Data queries](#g-datos) | Query tables with ABAP SQL, read-only, with sensitive and personal data protected. | 2 |
 | [Incident diagnosis](#g-diagnostico) | One conversation for what used to take ST22, SM37, SLG1 and /IWFND/ERROR_LOG. | 4 |
 | [SAP documentation](#g-documentacion) | Answer from official documentation and check which syntax exists in each release. | 7 |
@@ -143,6 +143,7 @@ Summary per group; each tool's details — parameters, types, defaults, requirem
 | [`package_contents`](docs/TOOLS.md#exploracion) | **Package contents.** Objects of a development package grouped by type, with subpackages (TADIR/TDEVC, any release). | read |
 | [`ddic_type_info`](docs/TOOLS.md#exploracion) | **Data element, domain or table type.** Definition of a DDIC type: data element (domain, type, length, texts), domain (type, length, fixed values, value table) or table type (line type, key). | read |
 | [`ddic_plan`](docs/TOOLS.md#exploracion) | **Prepare dictionary objects (NW 7.50).** Where ADT cannot create or change tables, structures, domains, data elements or table types: validates a specification of new objects and changes against the system and returns the instruction file a person runs in SE38 with the generator program. Read-only: it never modifies SAP. | read |
+| [`odata_model`](docs/TOOLS.md#exploracion) | **OData model (EDMX) from the dictionary.** Generates an OData V2 model file (entity types, sets, associations, navigation) from DDIC tables, structures or views, with real types, lengths, keys and labels, to import into an SEGW project on ECC / NW 7.50. Read-only; creating the project, generating classes and registering the service stay manual. | read |
 | [`transaction_info`](docs/TOOLS.md#exploracion) | **What a transaction runs.** Program, screen and parameters of a transaction (TSTC/TSTCP), with its text. | read |
 | [`function_modules`](docs/TOOLS.md#exploracion) | **Function modules of a group.** Lists the function modules of a function group with their text and whether they are RFC or update modules; given a module, finds its group and siblings. Works with /XXX/ namespaces. | read |
 | [`text_elements`](docs/TOOLS.md#exploracion) | **Text symbols and selection texts.** Reads the text symbols (TEXT-001…), selection texts or headings of a program, class or function group. | read |
