@@ -1,6 +1,6 @@
 # Referencia de tools — abap-adt-doZimple
 
-Generado desde el código con `npm run docs`. 53 tools en 9 grupos y 3 flujos guiados.
+Generado desde el código con `npm run docs`. 54 tools en 9 grupos y 3 flujos guiados.
 Producto de [DoZimple](https://dozimple.cl).
 
 ## Índice
@@ -11,7 +11,7 @@ Producto de [DoZimple](https://dozimple.cl).
 - [Consulta de datos](#datos) — 2 tools: `sql_query`, `table_contents`
 - [Diagnóstico de incidentes](#diagnostico) — 4 tools: `dumps`, `jobs`, `application_log`, `gateway_errors`
 - [Documentación SAP](#documentacion) — 7 tools: `abap_feature_matrix`, `docs_search`, `docs_fetch`, `clean_core_objects`, `clean_core_object`, `abap_lint`, `docs_community_search`
-- [Escritura controlada](#escritura) — 6 tools: `create_object`, `write_source`, `revert_source`, `activate`, `write_text_elements`, `create_transport`
+- [Escritura controlada](#escritura) — 7 tools: `create_object`, `write_source`, `edit_source`, `revert_source`, `activate`, `write_text_elements`, `create_transport`
 - [DoZimple Transport Risk](#transport-risk) — 7 tools: `analyze_transport_risk`, `import_health`, `failure_ranking`, `change_audit`, `object_transport_history`, `remote_source`, `transport_source_check`
 - [Operación y crecimiento](#operacion) — 4 tools: `sap_systems`, `report_gap`, `close_gap`, `usage_stats`
 - [Flujos guiados](#flujos-guiados)
@@ -845,7 +845,7 @@ Crea un objeto ABAP nuevo en un sistema de desarrollo: programa, include, clase,
 
 ### `write_source` — Guardar fuente en SAP
 
-Sustituye la fuente COMPLETA de un objeto existente (o de un include de clase), en la orden indicada. Antes comprueba la sintaxis del código nuevo y, si hay errores, no escribe nada. Si el objeto está bloqueado en otra orden, se para y lo explica en vez de guardar donde SAP quiera. Luego activa (activate=false para no hacerlo). Para clases, escribe la clase entera en una sola llamada. Llama antes a edit_preflight.
+Sustituye la fuente COMPLETA de un objeto existente (o de un include de clase), en la orden indicada. Antes comprueba la sintaxis del código nuevo y, si hay errores, no escribe nada. Si el objeto está bloqueado en otra orden, se para y lo explica en vez de guardar donde SAP quiera. Luego activa (activate=false para no hacerlo). Para clases, escribe la clase entera en una sola llamada. Llama antes a edit_preflight. Para cambiar unas pocas líneas de un objeto grande, edit_source.
 
 | | |
 |---|---|
@@ -862,6 +862,28 @@ Sustituye la fuente COMPLETA de un objeto existente (o de un include de clase), 
 | `transport` | string |  | Orden (o tarea) donde debe ir el cambio. Obligatoria salvo objetos locales |
 | `activate` | boolean | true |  |
 | `skip_syntax_check` | boolean | false |  |
+| `confirm_token` | string |  | Token de la vista previa. Sin él la tool no escribe: devuelve qué va a cambiar y el token, que se usa tras la conformidad del usuario (un solo uso, 10 min). |
+
+\* obligatorio
+
+### `edit_source` — Editar un fragmento de la fuente
+
+Sustituye fragmentos concretos de la fuente de un objeto existente sin reenviarla entera: cada edición es el texto exacto que hay hoy y el que lo reemplaza. Úsala para cambios pequeños en objetos grandes; para reescribir un objeto, write_source. Mismas garantías que write_source: vista previa con la sintaxis de SAP sobre la fuente resultante y el diff, orden explícita, y no escribe si el objeto cambió desde la vista previa o está bloqueado en otra orden.
+
+| | |
+|---|---|
+| **Acceso** | Escribe (solo DEV con `allowWrite`; nunca QAS/PRD) |
+| **Créditos** | [abap-adt-api](https://github.com/marcellourbani/abap-adt-api) — Marcello Urbani (MIT, dependencia) |
+
+| Parámetro | Tipo | Por defecto | Descripción |
+|---|---|---|---|
+| `system` | string |  | Sistema SAP configurado. Obligatorio si hay varios y ninguno por defecto. |
+| `object_name` * | string |  |  |
+| `object_type` | string |  | Tipo corto: PROG, INCL, CLAS, INTF, FUGR, FUNC, DDLS, DDLX, DCLS, TABL, STRU, VIEW, DTEL, DOMA, TTYP, MSAG, XSLT, BDEF, SRVD, SRVB, ENHO. También vale el tipo ADT (p. ej. PROG/P). |
+| `include` | `main` \| `definitions` \| `implementations` \| `macros` \| `testclasses` | "main" |  |
+| `edits` * | lista de { old_text, new_text, replace_all } |  | Sustituciones, aplicadas en orden |
+| `transport` | string |  | Orden (o tarea) donde debe ir el cambio. Obligatoria salvo objetos locales |
+| `activate` | boolean | true |  |
 | `confirm_token` | string |  | Token de la vista previa. Sin él la tool no escribe: devuelve qué va a cambiar y el token, que se usa tras la conformidad del usuario (un solo uso, 10 min). |
 
 \* obligatorio

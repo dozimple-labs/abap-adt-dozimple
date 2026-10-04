@@ -4,6 +4,13 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Unreleased]
 
+### Añadido
+- **`edit_source`: cambiar un fragmento sin reenviar la fuente entera.** Cada edición es el texto exacto que hay hoy y
+  el que lo sustituye; el servidor lee la fuente de SAP, aplica las sustituciones y sigue el mismo camino que
+  `write_source` (sintaxis de SAP sobre la fuente resultante, diff, orden explícita, huella y bloqueo). No adivina: si
+  el fragmento no aparece o aparece varias veces (sin `replace_all`), no hace nada y lo dice. Pensada para cambios
+  pequeños en programas de miles de líneas, donde reproducir el objeto entero es lento y arriesga cambios no pedidos.
+
 ### Corregido
 - **Un módulo de función nuevo o sin activar ya se encuentra.** En NW 7.50 la búsqueda de SAP no devuelve un módulo
   recién creado, y `create_object` no guardaba su fuente inicial; `get_source`, `syntax_check` y `write_source`
