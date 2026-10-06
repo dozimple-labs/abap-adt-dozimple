@@ -720,7 +720,7 @@ Salida estructurada (`structuredContent`, además del texto):
 
 ### `diagnose_message` — Diagnosticar un mensaje
 
-Parte de un mensaje de pantalla (clase y número, o el texto tal como lo copió la persona: «E:ZDEMO:012», «ZDEMO 012») y devuelve su texto en el idioma de la conexión y en inglés, los marcadores (&1…) y qué programas, clases o funciones lo emiten (where-used de ADT). Primer paso de un ticket: del mensaje al código. No ve mensajes dinámicos (MESSAGE ID … NUMBER con variables): para eso, source_search en el paquete sospechoso.
+Parte de un mensaje de pantalla (clase y número, o el texto tal como lo copió la persona: «E:ZDEMO:012», «ZDEMO 012») y devuelve su texto en el idioma de la conexión y en inglés, los marcadores (&1…) y qué programas, clases o funciones lo emiten (índice de referencias cruzadas, el de SE91), más su texto largo (la ayuda del mensaje: causa, respuesta del sistema, qué hacer) si existe. Primer paso de un ticket: del mensaje al código. Los mensajes con número dinámico (MESSAGE ID … NUMBER variable) no están en el índice: se listan los programas que declaran la clase.
 
 | | |
 |---|---|
