@@ -43,7 +43,7 @@
     "test": "vitest run",
     "smoke": "node dist/scripts/smoke.js",
     "inspector": "npx @modelcontextprotocol/inspector node dist/index.js",
-    "security": "npm audit --omit=dev && npm audit signatures && node scripts/scan-sensitive.mjs && node scripts/scan-sensitive.mjs --history",
+    "security": "npm audit --omit=dev --audit-level=high && npm audit signatures && node scripts/scan-sensitive.mjs && node scripts/scan-sensitive.mjs --history",
     "check": "npm test && npm run build && npm run security",
     "docs": "npm run build && node dist/scripts/gen-docs.js",
     "audit:verify": "node dist/scripts/audit-verify.js",

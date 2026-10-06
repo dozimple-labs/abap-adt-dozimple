@@ -29,6 +29,15 @@ aplicaciones LLM, riesgos residuales): **[docs/THREAT_MODEL.md](docs/THREAT_MODE
 | Estado local | Lectura por otros usuarios del equipo | Carpetas `700`, archivos `600`; el registro de uso no guarda argumentos |
 | Repositorio | Credenciales, direcciones (IPs, hosts internos o de SAP) o datos de clientes en el código o en el historial | [Procedimiento en cada commit](docs/COMMIT_SECURITY.md): `pre-commit` revisa el código completo más lo preparado; `pre-push` y CI revisan todo el historial; `main` exige el CI; secret scanning con push protection. Los términos de clientes se leen de la configuración local, nunca se listan en el repo |
 
+### Hallazgos aceptados de `npm audit`
+
+CI falla con hallazgos **altos o críticos**; los moderados se aceptan solo con una justificación aquí, con fecha, y se
+revisan en cada versión.
+
+| Desde | Paquete | Hallazgo | Por qué se acepta |
+|---|---|---|---|
+| 2026-10-06 | `sprintf-js` ≤ 1.1.3 (vía `abap-adt-api`) | GHSA-hp3w-g68c-fv3c: `RangeError` con especificadores de precisión desmesurados **en la cadena de formato** | Sin versión corregida. `abap-adt-api` solo llama a `sprintf` con cadenas de formato fijas de su propia tabla de tipos de objeto; lo que viene del usuario (el nombre del paquete o grupo) entra como argumento ya codificado, nunca como formato. No es alcanzable desde este servidor |
+
 ## Recomendaciones de despliegue
 
 - **`scripts/set-password.sh --strict`** (macOS) en equipos compartidos y para las credenciales de productivo: el
