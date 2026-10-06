@@ -196,7 +196,7 @@ la **[referencia completa](docs/TOOLS.md)**.
 
 | Tool | Qué hace | Acceso |
 |---|---|---|
-| [`create_object`](docs/TOOLS.md#escritura) | **Crear objeto ABAP.** Crea un objeto ABAP nuevo en un sistema de desarrollo: programa, include, clase, interfaz, grupo de funciones, módulo de función, vista CDS o control de acceso CDS. | escribe (DEV autorizado) |
+| [`create_object`](docs/TOOLS.md#escritura) | **Crear objeto ABAP.** Crea un objeto ABAP nuevo en un sistema de desarrollo: programa, include, clase, interfaz, grupo de funciones, módulo de función, vista CDS, control de acceso CDS y, en S/4 o NW ≥ 7.51, tablas y estructuras de diccionario con su fuente DDL (en ECC 7.50 no hay API: ddic_plan). | escribe (DEV autorizado) |
 | [`write_source`](docs/TOOLS.md#escritura) | **Guardar fuente en SAP.** Sustituye la fuente COMPLETA de un objeto existente (o de un include de clase), en la orden indicada. | escribe (DEV autorizado) |
 | [`edit_source`](docs/TOOLS.md#escritura) | **Editar un fragmento de la fuente.** Sustituye fragmentos concretos de la fuente de un objeto existente sin reenviarla entera: cada edición es el texto exacto que hay hoy y el que lo reemplaza. | escribe (DEV autorizado) |
 | [`revert_source`](docs/TOOLS.md#escritura) | **Volver a una versión anterior.** Deshace un cambio escribiendo de nuevo una versión anterior del objeto: la última activa (para limpiar un borrador inactivo tras un write_source cuya activación falló), la anterior a la activa, o una concreta del historial de object_versions. | escribe (DEV autorizado) |

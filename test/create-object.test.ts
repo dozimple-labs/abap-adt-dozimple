@@ -32,7 +32,7 @@ function setup(o: { exists?: boolean; korrflag?: string; noPackage?: boolean; co
     capabilities: async () => ({ known: true, collections: o.collections ?? ALL, fetchedAt: "" }),
     query: async (sql: string) => {
       queries.push(sql);
-      if (/FROM trdir|FROM seoclass|FROM tfdir/.test(sql)) return { values: exists ? [{ NAME: "X" }] : [] };
+      if (/FROM trdir|FROM seoclass|FROM tfdir|FROM dd02l/.test(sql)) return { values: exists ? [{ NAME: "X" }] : [] };
       if (/object = 'FUGR'/.test(sql)) return { values: o.groupPkg ? [{ DEVCLASS: o.groupPkg }] : [] };
       if (/FROM tdevc/.test(sql)) return { values: o.noPackage ? [] : [{ DEVCLASS: "ZDEMO", KORRFLAG: o.korrflag ?? "X" }] };
       if (/FROM e070/.test(sql)) return { values: [{ TRKORR: "DEVK900123", TRFUNCTION: "K", TRSTATUS: "D", TARSYSTEM: "QAS", AS4USER: "DEV_ME", AS4DATE: "20260930", STRKORR: "" }] };
@@ -47,7 +47,11 @@ function setup(o: { exists?: boolean; korrflag?: string; noPackage?: boolean; co
         exists = true;
       },
       searchObject: async (name: string) =>
-        o.notFoundAfter || !exists ? [] : [{ "adtcore:name": name, "adtcore:type": "PROG/P", "adtcore:uri": `/sap/bc/adt/programs/programs/${name.toLowerCase()}`, "adtcore:packageName": "ZDEMO" }],
+        o.notFoundAfter || !exists
+          ? []
+          : name.startsWith("ZDEMO_T")
+            ? [{ "adtcore:name": name, "adtcore:type": "TABL/DT", "adtcore:uri": `/sap/bc/adt/ddic/tables/${name.toLowerCase()}`, "adtcore:packageName": "ZDEMO" }]
+            : [{ "adtcore:name": name, "adtcore:type": "PROG/P", "adtcore:uri": `/sap/bc/adt/programs/programs/${name.toLowerCase()}`, "adtcore:packageName": "ZDEMO" }],
       objectStructure: async () => { throw new Error("sin estructura"); },
     }),
     stateful: async (fn: any) =>
@@ -88,7 +92,7 @@ describe("create_object · reglas antes de crear", () => {
 
   it("si el sistema no publica la creación de ese tipo por ADT, lo dice (CAPABILITY)", async () => {
     const { ctx } = setup({ collections: ["/sap/bc/adt/programs/programs"] });
-    await expect(def.preview!(base, ctx())).rejects.toMatchObject({ kind: "CAPABILITY", message: expect.stringMatching(/SAP GUI/) });
+    await expect(def.preview!(base, ctx())).rejects.toMatchObject({ kind: "CAPABILITY", hint: expect.stringMatching(/SAP GUI/) });
   });
 
   it("la vista previa muestra idioma del sistema, validación de SAP y orden, y fija el estado «no existe»", async () => {
@@ -142,6 +146,25 @@ describe("create_object · creación", () => {
     const r: any = await def.run(base, ctx(stateOf("absent|PROG|ZDEMO_REPORT")));
     expect(created).toEqual([]);
     expect(r.text).toMatch(/No se creó nada: ya existe/);
+  });
+
+  it("tabla de diccionario: en un 7.50 sin la colección remite a ddic_plan; en S/4 se crea con su fuente DDL", async () => {
+    const ddl = "@EndUserText.label : 'Demo'\ndefine table zdemo_tlog {\n  key client : abap.clnt;\n  key id : abap.char(10);\n}";
+    const args = { object_type: "TABL", name: "ZDEMO_TLOG", description: "Demo", package: "ZDEMO", transport: "DEVK900123", source: ddl, activate: true };
+    const ecc = setup();
+    await expect(def.preview!(args, ecc.ctx())).rejects.toMatchObject({ kind: "CAPABILITY", hint: expect.stringMatching(/ddic_plan/) });
+    const s4 = setup({ collections: [...ALL, "/sap/bc/adt/ddic/tables", "/sap/bc/adt/ddic/tables/validation"] });
+    const p: any = await def.preview!(args, s4.ctx());
+    expect(p.text).toMatch(/Crear tabla de diccionario ZDEMO_TLOG/);
+    const r: any = await def.run(args, s4.ctx(p.state));
+    expect(s4.created[0]).toMatchObject({ objtype: "TABL/DT", name: "ZDEMO_TLOG", parentName: "ZDEMO", transport: "DEVK900123" });
+    expect(s4.written[0]).toBe(`DEVK900123:${ddl}`);
+    expect(typeof r === "string" ? r : r.text).toMatch(/creado en el paquete ZDEMO.*Fuente inicial guardada/s);
+  });
+
+  it("una tabla transparente admite 16 caracteres; una estructura, 30", () => {
+    expect(() => checkName("TABL", "ZDEMO_TABLA_MUY_LARGA")).toThrow(/hasta 16/);
+    expect(checkName("STRU", "ZDEMO_ESTRUCTURA_MUY_LARGA_X")).toBe("ZDEMO_ESTRUCTURA_MUY_LARGA_X");
   });
 
   it("es una tool de escritura con vista previa: el registro exige confirmación", () => {
