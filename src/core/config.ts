@@ -60,10 +60,15 @@ const SidecarSchema = z.object({
   blockTerms: z.array(z.string()).default([]),
 });
 
+/** Nombres de tool, grupos del catálogo (p. ej. "exploracion") o tipos de acceso ("read", "write", "exec"). */
+const ToolListSchema = z.array(z.string().min(1));
+
 const ConfigSchema = z.object({
   defaultSystem: z.string().optional(),
   systems: z.array(SystemSchema).min(1),
   sidecars: z.record(SidecarSchema).default({}),
+  /** Exposición selectiva: `only` deja solo lo listado, `except` quita lo listado. ABAP_DZ_TOOLS (coma) es otro `only`. */
+  tools: z.object({ only: ToolListSchema.optional(), except: ToolListSchema.default([]) }).default({}),
 });
 
 export type SystemConfig = z.infer<typeof SystemSchema>;

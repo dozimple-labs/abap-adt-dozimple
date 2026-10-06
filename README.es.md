@@ -275,6 +275,10 @@ Diseñado para poder presentarse ante Seguridad y Basis sin excepciones. Detalle
 - **Sin superficie de red:** solo stdio; no abre puertos.
 - **Credenciales en el llavero del sistema operativo,** nunca en archivos, logs ni respuestas.
 - **Política por rol:** calidad y productivo nunca se escriben; en desarrollo, solo con autorización explícita.
+- **Exposición selectiva de tools:** `"tools": { "only": [...], "except": [...] }` en `systems.json`, o `ABAP_DZ_TOOLS`
+  (lista separada por comas) en la configuración del cliente MCP de un proyecto. Se nombran tools, grupos del catálogo
+  (`exploracion`, `escritura`…) o tipos de acceso (`read`, `write`, `exec`). El entorno nunca amplía lo que la
+  configuración permite; una tool no publicada no existe para el cliente. Una errata se avisa al arrancar.
 - **Parámetros estrictos:** un parámetro desconocido o mal escrito es un error con la lista de los admitidos, nunca se ignora en silencio.
 - **Ninguna escritura sin confirmación humana:** vista previa con la sintaxis de SAP y el diff real, y confirmación
   por elicitación o con un token de un solo uso atado a esos argumentos exactos.

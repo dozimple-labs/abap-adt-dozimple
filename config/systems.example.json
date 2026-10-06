@@ -25,6 +25,9 @@
       "maxRows": 200
     }
   ],
+  "tools": {
+    "except": ["exec"]
+  },
   "sidecars": {
     "docs": {
       "command": "/ruta/a/vendor/mcp-sap-docs-run.sh",
