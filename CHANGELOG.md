@@ -5,6 +5,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 ## [Unreleased]
 
 ### Añadido
+- **`edit_preflight` compara la versión de DEV con calidad y productivo** (deriva de versión, el paso 2 del flujo de
+  modificación): con el módulo dz-transport-risk y los `targets` del sistema en `systems.json` (o `compare_with`),
+  dice por destino si la fuente es idéntica, distinta (con el diff destino → DEV y lo que el pase arrastraría o
+  pisaría) o si el objeto no existe allí. Programas, includes y módulos de función; otros tipos se indican como no
+  comparados. Sin verificar en vivo todavía.
 - **Exposición selectiva de tools.** `"tools": { "only": [...], "except": [...] }` en `systems.json` y `ABAP_DZ_TOOLS`
   (lista por comas) en la configuración MCP de un proyecto; se nombran tools, grupos del catálogo o tipos de acceso. El
   entorno se cruza con la configuración, nunca la amplía; `sap_systems` se ve siempre; una errata se avisa al arrancar.

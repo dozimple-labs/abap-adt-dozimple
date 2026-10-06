@@ -128,7 +128,7 @@ Objetos con versión inactiva (guardados sin activar) del usuario de la conexió
 
 ### `edit_preflight` — Antes de editar: ¿a qué orden irá?
 
-Dice, ANTES de modificar un objeto, en qué orden acabará el cambio y por qué: bloqueo del CTS (TLOCK) de otra orden, objeto local ($TMP), reparación (sistema original distinto), o si está libre y qué órdenes tienes abiertas. Úsala siempre antes de write_source o de editar a mano en un sistema ajeno.
+Dice, ANTES de modificar un objeto, en qué orden acabará el cambio y por qué: bloqueo del CTS (TLOCK) de otra orden, objeto local ($TMP), reparación (sistema original distinto), o si está libre y qué órdenes tienes abiertas. Con el módulo dz-transport-risk compara además la fuente de DEV con la de calidad y productivo (deriva de versión: lo que el pase arrastraría o pisaría). Úsala siempre antes de write_source o de editar a mano en un sistema ajeno.
 
 | | |
 |---|---|
@@ -141,6 +141,7 @@ Dice, ANTES de modificar un objeto, en qué orden acabará el cambio y por qué:
 | `object_name` * | string |  |  |
 | `object_type` | string |  | Tipo corto: PROG, INCL, CLAS, INTF, FUGR, FUNC, DDLS, DDLX, DCLS, TABL, STRU, VIEW, DTEL, DOMA, TTYP, MSAG, XSLT, BDEF, SRVD, SRVB, ENHO. También vale el tipo ADT (p. ej. PROG/P). |
 | `transport` | string |  | Orden en la que QUIERES guardar, para comprobar si es posible |
+| `compare_with` | lista de string |  | SIDs con los que comparar la versión de DEV (por defecto, los «targets» del sistema en la configuración; solo con el módulo dz-transport-risk) |
 
 \* obligatorio
 

@@ -24,6 +24,8 @@ const SystemSchema = z.object({
   allowWrite: z.boolean().default(false),
   /** Módulos de cliente habilitados en este sistema, p. ej. "dz-transport-risk". */
   modules: z.array(z.string()).default([]),
+  /** SIDs de calidad y productivo con los que comparar versiones antes de editar (necesita dz-transport-risk). */
+  targets: z.array(z.string().regex(/^[A-Z0-9]{3}$/)).default([]),
   /** Certificado (PEM) de la CA o del servidor, para verificar TLS en sistemas con certificado propio. */
   caFile: z.string().optional(),
   /** Último recurso: desactiva la verificación TLS. Preferir caFile. */

@@ -21,7 +21,7 @@ export const TOOLS_EN: Record<string, string> = {
   transport_contents: "**Transport contents.** Header, tasks (owner and status) and objects of a transport request, read from E070/E07T/E071.",
   co_change: "**What usually travels with this object?** Looks at the transports that touched an object and counts which other objects travelled with it, most frequent first.",
   inactive_objects: "**Inactive objects.** Objects saved but not activated by the connection user, with their transport.",
-  edit_preflight: "**Before editing: which transport will it land in?** Tells, BEFORE changing an object, which transport the change will end up in and why: CTS lock by another transport, local object ($TMP), repair (different original system), or free with your open transports.",
+  edit_preflight: "**Before editing: which transport will it land in?** Tells, BEFORE changing an object, which transport the change will end up in and why: CTS lock by another transport, local object ($TMP), repair (different original system), or free with your open transports. With the dz-transport-risk module it also compares the DEV source with QA and production (version drift).",
   run_atc: "**Run ATC.** Runs the ABAP Test Cockpit on an object or a transport and lists numbered findings (priority, line, check, message) with SAP's P1/P2/P3 totals.",
   atc_quickfix: "**SAP-proposed fixes.** The fixes SAP offers (the same as Ctrl+1 in Eclipse) for an ATC finding or a line: create text symbol, extract constant, etc.",
   api_release_state: "**Is this API released? What is its successor?** Release state of an SAP object (class, function module/BAPI, table, CDS…) by contract C0–C4 and its released successor, read from the system itself.",
