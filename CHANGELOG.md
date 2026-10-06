@@ -13,6 +13,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
   - **`foreign_keys`**: claves externas en las dos direcciones, campo a campo, con la condición de JOIN lista.
   - **`count_rows`**: recuento con condición y agrupación opcionales, sin traer datos y con la política de `sql_query`.
 
+### Seguridad
+- `proxy-addr` (transitiva de `@modelcontextprotocol/sdk` → `express`) actualizada a 2.0.8 por GHSA-jqcg-44mw-7w3h (crítica).
+- CI y `npm run security` fallan a partir de **alto**; el único hallazgo moderado (`sprintf-js` vía `abap-adt-api`, sin
+  corrección disponible, formato fijo, no alcanzable) queda documentado en `SECURITY.md` → «Hallazgos aceptados».
+
 ### Añadido
 - **`edit_source`: cambiar un fragmento sin reenviar la fuente entera.** Cada edición es el texto exacto que hay hoy y
   el que lo sustituye; el servidor lee la fuente de SAP, aplica las sustituciones y sigue el mismo camino que
