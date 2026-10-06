@@ -5,6 +5,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 ## [Unreleased]
 
 ### Añadido
+- **`create_object` crea tablas y estructuras de diccionario en S/4 (y NW ≥ 7.51)** con su fuente DDL de ADT
+  (`object_type` TABL o STRU), con la misma vista previa, validación de SAP, orden y confirmación. En ECC 7.50 la
+  colección no existe y la respuesta remite a `ddic_plan`. Sin verificar en vivo todavía.
 - Plantilla de issue «Lo estoy usando» (`.github/ISSUE_TEMPLATE/uso.yml`) y sección «¿Lo usas?» en el README (EN y ES):
   país, release, cliente MCP y tipo de uso, sin identificar empresa ni sistemas. Enlace de seguridad al aviso privado.
 - **`docs/PARIDAD.md`**: matriz de capacidades frente al MCP oficial de SAP (ADT 3.60) y a los servidores estudiados,
