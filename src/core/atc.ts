@@ -24,6 +24,40 @@ export interface AtcRunOutcome {
   findings: AtcFindingRef[];
   /** Veredictos que devolvió SAP, exentos incluidos (comparable con stats); findings puede tener menos por el filtro. */
   received?: number;
+  /** Con qué opciones se ejecutó: un resultado solo sirve de caché para una petición igual o más estrecha. */
+  includeExempted?: boolean;
+  maxFindings?: number;
+  /** Marca de cambio del objeto (adtcore:changedAt) en el momento de ejecutar; sin ella no se reutiliza. */
+  changedAt?: number;
+  /** true cuando la respuesta viene de la memoria en vez de una ejecución nueva. */
+  fromCache?: boolean;
+}
+
+/**
+ * Un ATC sobre un objeto se reutiliza durante una hora si el objeto no cambió (misma marca `changedAt`), misma
+ * variante y una petición igual o más estrecha. Motivo: la telemetría muestra la misma tool sobre el mismo objeto
+ * una y otra vez a 10 s por ejecución, casi siempre sin haber tocado el objeto entre medias.
+ */
+export const ATC_CACHE_TTL_MS = 60 * 60_000;
+
+export function reusable(prev: AtcRunOutcome, variant: string, o: { max_findings: number; include_exempted: boolean }, now = Date.now()): boolean {
+  if (prev.changedAt === undefined) return false; // sin marca de cambio no se puede saber si el objeto sigue igual
+  if (now - Date.parse(prev.at) > ATC_CACHE_TTL_MS) return false;
+  if (prev.variant !== variant) return false;
+  if (prev.includeExempted !== o.include_exempted) return false;
+  if ((prev.maxFindings ?? 0) < o.max_findings) return false;
+  return true;
+}
+
+/** Marca de cambio del objeto según ADT, o undefined si ese tipo no la expone (entonces no hay caché). */
+export async function objectChangedAt(c: ADTClient, uri: string): Promise<number | undefined> {
+  try {
+    const v: unknown = (await c.objectStructure(uri)).metaData?.["adtcore:changedAt"];
+    // abap-adt-api convierte la fecha con `Date.parse(...) || 0`: un tipo sin marca llega como 0, no como undefined.
+    return typeof v === "number" && Number.isFinite(v) && v > 0 ? v : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 /**

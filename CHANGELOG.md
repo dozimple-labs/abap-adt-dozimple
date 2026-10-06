@@ -73,6 +73,14 @@ ECC / NW 7.50 sin abrir ningún servicio de escritura en SAP.
 - **`remote_source` admite el nombre de un módulo de función**: lo traduce a su include (`L<grupo>Unn`) con el
   directorio de funciones de desarrollo, y lo indica en la respuesta. Antes respondía «No hay versión activa».
 
+### Cambiado
+- **`run_atc` reutiliza el resultado de un objeto sin cambios**: si hay un ATC del mismo objeto de menos de una hora,
+  con la misma variante, una petición igual o más estrecha y la marca de cambio del objeto (`changedAt` de ADT) no
+  varió, devuelve ese resultado y lo dice («resultado de hace N min, objeto sin cambios»); `refresh=true` fuerza la
+  ejecución. Las órdenes de transporte nunca se reutilizan. Motivo: 786 ejecuciones en 14 días a 10 s de media,
+  la mayoría repetidas sobre el mismo objeto sin haberlo tocado.
+  Pendiente de comprobar en vivo que la marca cambia también con un guardado inactivo.
+
 ## [1.5.0] - 2026-10-04
 
 Activar varios objetos juntos y, en sistemas con datos productivos, el usuario SAP de las personas sale enmascarado.

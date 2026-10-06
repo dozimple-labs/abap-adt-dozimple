@@ -152,7 +152,7 @@ Dice, ANTES de modificar un objeto, en qué orden acabará el cambio y por qué:
 
 ### `run_atc` — Ejecutar ATC
 
-Ejecuta el ATC sobre un objeto o una orden de transporte y lista los hallazgos numerados (prioridad, línea, check, mensaje), con los totales P1/P2/P3 que da SAP. El resultado queda recordado POR OBJETO U ORDEN: explain=N con object_name (o transport) trae la documentación del hallazgo N de ESE objeto (nota SAP, supresión) sin re-ejecutar si ya se analizó, y lo ejecuta si no. atc_quickfix(finding=N) usa la misma memoria.
+Ejecuta el ATC sobre un objeto o una orden de transporte y lista los hallazgos numerados (prioridad, línea, check, mensaje), con los totales P1/P2/P3 que da SAP. El resultado queda recordado POR OBJETO U ORDEN: explain=N con object_name (o transport) trae la documentación del hallazgo N de ESE objeto (nota SAP, supresión) sin re-ejecutar si ya se analizó, y lo ejecuta si no. atc_quickfix(finding=N) usa la misma memoria. Sobre un objeto sin cambios desde el último ATC (menos de 1 h, misma variante) devuelve ese resultado y lo dice; refresh=true fuerza una ejecución nueva.
 
 | | |
 |---|---|
@@ -170,6 +170,7 @@ Ejecuta el ATC sobre un objeto o una orden de transporte y lista los hallazgos n
 | `priorities` | lista de number |  | Filtrar la lista, p. ej. [1,2] |
 | `max_findings` | number | 200 |  |
 | `include_exempted` | boolean | false |  |
+| `refresh` | boolean | false | Ejecutar aunque haya un resultado reciente del mismo objeto sin cambios |
 | `explain` | number |  | Documentación del hallazgo N del ATC del objeto u orden indicados (sin ellos: del último ATC, y lo dice) |
 
 \* obligatorio
