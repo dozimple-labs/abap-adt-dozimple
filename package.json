@@ -63,7 +63,7 @@
     "@types/node": "22.20.2",
     "fast-check": "4.10.2",
     "typescript": "5.9.3",
-    "vitest": "5.0.0"
+    "vitest": "5.0.3"
   },
   "license": "Apache-2.0",
   "author": "DoZimple (https://dozimple.cl)"
