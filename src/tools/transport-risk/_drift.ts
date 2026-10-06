@@ -64,7 +64,8 @@ export async function versionDrift(
       continue;
     }
     // Los finales de línea y las líneas vacías del final no son diferencias.
-    const norm = (s: string) => s.replace(/\r\n/g, "\n").replace(/[ \t]+$/gm, "").replace(/\n+$/, "");
+    const isFunc = obj.type.toUpperCase() === "FUGR/FF";
+    const norm = (s: string) => (isFunc ? functionBody(s) : s).replace(/\r\n/g, "\n").replace(/[ \t]+$/gm, "").replace(/\n+$/, "");
     const ops = diffLines(norm(json.lines.join("\n")), norm(devSource));
     if (!ops) {
       out.push({ target, status: "distinta", detail: `DIFERENTE de ${target}: demasiadas diferencias para mostrarlas` });
@@ -84,6 +85,30 @@ export async function versionDrift(
     });
   }
   return out;
+}
+
+/**
+ * Cuerpo de un módulo de función sin su cabecera de interfaz: ADT la muestra como sentencia FUNCTION … TABLES … LIKE …,
+ * y el include U<nn> del destino trae la generada por SE37 (FUNCTION x. + bloque de comentarios *"). Son el mismo
+ * módulo con dos pintas distintas; comparar la cabecera daría «diferente» siempre.
+ */
+export function functionBody(text: string): string {
+  const lines = text.replace(/\r\n/g, "\n").split("\n");
+  let i = 0;
+  while (i < lines.length && lines[i].trim() === "") i++;
+  if (/^\s*FUNCTION\b/i.test(lines[i] ?? "")) {
+    if (/\.\s*$/.test(lines[i])) {
+      // Forma de SE37: «FUNCTION x.» seguida del bloque *" de la interfaz
+      i++;
+      while (i < lines.length && /^\*"/.test(lines[i])) i++;
+    } else {
+      // Forma de ADT: la sentencia FUNCTION termina en la primera línea acabada en punto
+      while (i < lines.length && !/\.\s*$/.test(lines[i])) i++;
+      i++;
+    }
+  }
+  while (i < lines.length && lines[i].trim() === "") i++;
+  return lines.slice(i).join("\n");
 }
 
 /** Cómo contarlo en un veredicto: lo que implica para el cambio que se va a hacer. */

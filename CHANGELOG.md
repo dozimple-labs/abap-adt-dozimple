@@ -4,6 +4,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Unreleased]
 
+### Corregido
+- **`edit_preflight` comparaba la cabecera de interfaz de los módulos de función** y los daba por «diferentes» en
+  calidad y productivo aunque fueran iguales: ADT muestra la interfaz como sentencia `FUNCTION … TABLES … LIKE …` y el
+  include del destino trae la generada por SE37 (`FUNCTION x.` + bloque `*"`). Ahora se compara solo el cuerpo.
+  Verificado en vivo: una función transportada da «idéntica» en QA y PRD; un programa solo de DEV, «ausente».
+
 ## [1.6.0] - 2026-10-06
 
 Editar un fragmento sin reenviar la fuente, cambiar un objeto de paquete, exposición selectiva de tools, deriva de versión

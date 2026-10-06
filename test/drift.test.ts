@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { driftVerdict, remoteName, versionDrift } from "../src/tools/transport-risk/_drift.js";
+import { driftVerdict, functionBody, remoteName, versionDrift } from "../src/tools/transport-risk/_drift.js";
 
 const sys = { id: "DEV", sid: "DEV", modules: ["dz-transport-risk"], targets: ["QAS", "PRO"] } as any;
 const prog = { name: "ZDEMO_REP", type: "PROG/P", uri: "/x" };
@@ -42,3 +42,20 @@ describe("deriva de versión antes de editar", () => {
     expect(d[0].detail).toMatch(/no cubre CLAS\/OC/);
   });
 });
+
+describe("módulos de función: la cabecera de interfaz no cuenta", () => {
+  const adt = "FUNCTION zdemo_fm\n  TABLES\n    it_x LIKE ddtrkorr\n  EXCEPTIONS\n    system_error.\n\n\n* cuerpo\n  CLEAR it_x.\nENDFUNCTION.";
+  const se37 = "FUNCTION zdemo_fm.\n*\"----------------------------------------------------------------------\n*\"*\"Local Interface:\n*\"  TABLES\n*\"      IT_X STRUCTURE  DDTRKORR\n*\"  EXCEPTIONS\n*\"      SYSTEM_ERROR\n*\"----------------------------------------------------------------------\n* cuerpo\n  CLEAR it_x.\nENDFUNCTION.";
+
+  it("quita la cabecera en las dos formas y deja el mismo cuerpo", () => {
+    expect(functionBody(adt)).toBe("* cuerpo\n  CLEAR it_x.\nENDFUNCTION.");
+    expect(functionBody(se37)).toBe(functionBody(adt));
+    expect(functionBody("REPORT z.\nWRITE 1.")).toBe("REPORT z.\nWRITE 1.");
+  });
+
+  it("la misma función en DEV (ADT) y en el destino (include de SE37) es «idéntica»", async () => {
+    const d = await versionDrift(sap, sys, { name: "ZDEMO_FM", type: "FUGR/FF", uri: "/y" }, adt, ["QAS"], async () => JSON.stringify({ subrc: 0, lines: se37.split("\n") }));
+    expect(d[0].status).toBe("igual");
+  });
+});
+
