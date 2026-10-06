@@ -21,6 +21,7 @@ export const CREDITS = {
   marioAdt: { what: "mcp-abap-adt", by: "mario-andreschak", url: "https://github.com/mario-andreschak/mcp-abap-adt", license: "MIT", kind: "idea" },
   arc1: { what: "ARC-1", by: "arc-mcp (Marian Zeis y contribuidores)", url: "https://github.com/arc-mcp/arc-1", license: "MIT", kind: "idea" },
   vsp: { what: "vibing-steampunk", by: "oisee y contribuidores", url: "https://github.com/oisee/vibing-steampunk", license: "MIT", kind: "idea" },
+  abapilot: { what: "ABAPilot MCP connector (catálogo de tools)", by: "Crimson Consulting SL (NicoHern)", url: "https://github.com/NicoHern/abapilot-mcp", license: "MIT", kind: "idea" },
   awsAccel: { what: "ABAP Accelerator for Amazon Q Developer", by: "AWS Solutions Library Samples", url: "https://github.com/aws-solutions-library-samples/guidance-for-deploying-sap-abap-accelerator-for-amazon-q-developer", license: "MIT-0", kind: "idea" },
   sapDocsMcp: { what: "mcp-sap-docs", by: "Marian Zeis (marianfoo)", url: "https://github.com/marianfoo/mcp-sap-docs", license: "Apache-2.0", kind: "dependencia" },
   abapDocs: { what: "ABAP Keyword Documentation", by: "SAP SE", url: "https://help.sap.com/doc/abapdocu_latest_index_htm/latest/en-US/index.htm", license: "© SAP SE", kind: "datos" },
@@ -101,6 +102,9 @@ export const GROUPS: Group[] = [
     tools: [
       { name: "sql_query", credits: ADT },
       { name: "table_contents", credits: ["abapAdtApi", "marioAdt"] },
+      { name: "count_rows", credits: ["abapilot"] },
+      { name: "search_tables", credits: ["abapilot"] },
+      { name: "foreign_keys", credits: ["abapilot"] },
     ],
   },
   {
@@ -109,6 +113,7 @@ export const GROUPS: Group[] = [
     pitch: "Reunir en una conversación lo que antes exigía ST22, SM37, SLG1 y /IWFND/ERROR_LOG.",
     tools: [
       { name: "dumps", credits: ADT },
+      { name: "diagnose_message", credits: ["abapilot"] },
       { name: "jobs", credits: ["vsp"] },
       { name: "application_log", credits: ["vsp"] },
       { name: "gateway_errors", credits: ["abapAdtApi", "arc1"] },

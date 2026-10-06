@@ -59,8 +59,8 @@ and **a failure is never presented as an empty result or as success**.
 | [Code review and transports](#g-revision) | Know what a transport really changes and what it may break, before releasing it. | 6 |
 | [Quality, ATC and remediation](#g-calidad) | Find, understand and fix findings with SAP's real syntax check and quick fixes. | 6 |
 | [Repository exploration](#g-exploracion) | Read and understand any ABAP object and its relations, on ECC and S/4HANA. | 13 |
-| [Data queries](#g-datos) | Query tables with ABAP SQL, read-only, with sensitive and personal data protected. | 2 |
-| [Incident diagnosis](#g-diagnostico) | One conversation for what used to take ST22, SM37, SLG1 and /IWFND/ERROR_LOG. | 4 |
+| [Data queries](#g-datos) | Query tables with ABAP SQL, read-only, with sensitive and personal data protected. | 5 |
+| [Incident diagnosis](#g-diagnostico) | One conversation for what used to take ST22, SM37, SLG1 and /IWFND/ERROR_LOG. | 5 |
 | [SAP documentation](#g-documentacion) | Answer from official documentation and check which syntax exists in each release. | 7 |
 | [Controlled writes](#g-escritura) | Save changes only in development, in the right transport, previewed and confirmed by a human. | 8 |
 | [DoZimple Transport Risk](#g-transport-risk) | Decide whether a whole release can go to QA or production, with the why in business terms. | 7 |
@@ -158,6 +158,9 @@ Summary per group; each tool's details — parameters, types, defaults, requirem
 |---|---|---|
 | [`sql_query`](docs/TOOLS.md#datos) | **ABAP SQL query.** Runs an ABAP SQL SELECT (WHERE, JOIN, ORDER BY, subqueries) through ADT data preview, with personal columns masked and row caps on production-data systems. | read |
 | [`table_contents`](docs/TOOLS.md#datos) | **Table contents.** Rows of a table, view or CDS, with optional columns and filter. | read |
+| [`count_rows`](docs/TOOLS.md#datos) | **Count rows.** Counts the rows of a table or view, with optional condition and grouping, without fetching data; same policy as sql_query. | read |
+| [`search_tables`](docs/TOOLS.md#datos) | **Search tables by description.** Finds tables, structures and views by a word in their description or name; metadata only. | read |
+| [`foreign_keys`](docs/TOOLS.md#datos) | **Foreign keys of a table.** Check tables a table uses and tables that use it as check table, field by field, with the JOIN condition ready for sql_query. | read |
 
 <a id="g-diagnostico"></a>
 ### Incident diagnosis
@@ -167,6 +170,7 @@ Summary per group; each tool's details — parameters, types, defaults, requirem
 | Tool | What it does | Access |
 |---|---|---|
 | [`dumps`](docs/TOOLS.md#diagnostico) | **Dumps (ST22).** Lists runtime dumps: date, error, program, user and short text. | read |
+| [`diagnose_message`](docs/TOOLS.md#diagnostico) | **Diagnose a message.** From a screen message (class and number, or the text as copied) to its texts, placeholders and the objects that raise it (ADT where-used). | read |
 | [`jobs`](docs/TOOLS.md#diagnostico) | **Background jobs (SM37).** Background jobs by name (supports *), user, status and date, with their steps (program and variant). | read |
 | [`application_log`](docs/TOOLS.md#diagnostico) | **Application log (SLG1) headers.** Application log headers (BALHDR) by object/subobject, external number, user and date, with error and warning counts. | read |
 | [`gateway_errors`](docs/TOOLS.md#diagnostico) | **SAP Gateway errors (/IWFND/ERROR_LOG).** Lists SAP Gateway (OData) errors: service, error, user, date. | read |
@@ -370,6 +374,7 @@ abap-adt-doZimple is built on other people's work, and says so: each tool lists 
 | [mcp-abap-adt](https://github.com/mario-andreschak/mcp-abap-adt) | mario-andreschak | MIT | idea | `search_objects`, `get_source`, `package_contents`, `ddic_type_info`, `transaction_info`, `table_contents` |
 | [ARC-1](https://github.com/arc-mcp/arc-1) | arc-mcp (Marian Zeis and contributors) | MIT | idea | `transport_diff`, `atc_quickfix`, `gateway_errors` |
 | [vibing-steampunk](https://github.com/oisee/vibing-steampunk) | oisee and contributors | MIT | idea | `co_change`, `api_release_state`, `source_search`, `enhancements`, `jobs`, `application_log` |
+| [ABAPilot MCP connector (catálogo de tools)](https://github.com/NicoHern/abapilot-mcp) | Crimson Consulting SL (NicoHern) | MIT | idea | `count_rows`, `search_tables`, `foreign_keys`, `diagnose_message` |
 | [ABAP Accelerator for Amazon Q Developer](https://github.com/aws-solutions-library-samples/guidance-for-deploying-sap-abap-accelerator-for-amazon-q-developer) | AWS Solutions Library Samples | MIT-0 | idea | all (core), `my_transports`, `create_object`, `usage_stats` |
 | [An O(ND) Difference Algorithm and Its Variations (1986)](https://doi.org/10.1007/BF01840446) | Eugene W. Myers | published algorithm | algorithm | `transport_diff`, `atc_quickfix` |
 <!-- credits:end -->

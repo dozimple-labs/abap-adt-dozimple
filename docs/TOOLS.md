@@ -1,6 +1,6 @@
 # Referencia de tools — abap-adt-doZimple
 
-Generado desde el código con `npm run docs`. 57 tools en 9 grupos y 3 flujos guiados.
+Generado desde el código con `npm run docs`. 61 tools en 9 grupos y 3 flujos guiados.
 Producto de [DoZimple](https://dozimple.cl).
 
 ## Índice
@@ -8,8 +8,8 @@ Producto de [DoZimple](https://dozimple.cl).
 - [Revisión de código y pases](#revision) — 6 tools: `transport_diff`, `transport_contents`, `my_transports`, `co_change`, `inactive_objects`, `edit_preflight`
 - [Calidad, ATC y remediación](#calidad) — 6 tools: `run_atc`, `atc_quickfix`, `api_release_state`, `sap_notes`, `syntax_check`, `run_unit_tests`
 - [Exploración del repositorio](#exploracion) — 13 tools: `search_objects`, `get_source`, `where_used`, `source_search`, `object_versions`, `package_contents`, `ddic_type_info`, `ddic_plan`, `odata_model`, `transaction_info`, `function_modules`, `text_elements`, `enhancements`
-- [Consulta de datos](#datos) — 2 tools: `sql_query`, `table_contents`
-- [Diagnóstico de incidentes](#diagnostico) — 4 tools: `dumps`, `jobs`, `application_log`, `gateway_errors`
+- [Consulta de datos](#datos) — 5 tools: `sql_query`, `table_contents`, `count_rows`, `search_tables`, `foreign_keys`
+- [Diagnóstico de incidentes](#diagnostico) — 5 tools: `dumps`, `diagnose_message`, `jobs`, `application_log`, `gateway_errors`
 - [Documentación SAP](#documentacion) — 7 tools: `abap_feature_matrix`, `docs_search`, `docs_fetch`, `clean_core_objects`, `clean_core_object`, `abap_lint`, `docs_community_search`
 - [Escritura controlada](#escritura) — 8 tools: `create_object`, `write_source`, `edit_source`, `revert_source`, `change_package`, `activate`, `write_text_elements`, `create_transport`
 - [DoZimple Transport Risk](#transport-risk) — 7 tools: `analyze_transport_risk`, `import_health`, `failure_ranking`, `change_audit`, `object_transport_history`, `remote_source`, `transport_source_check`
@@ -623,6 +623,61 @@ Filas de una tabla, vista o CDS, con columnas y filtro opcionales. Atajo de sql_
 
 \* obligatorio
 
+### `count_rows` — Contar filas
+
+Cuenta las filas de una tabla o vista, con condición opcional y agrupación opcional (p. ej. por año o por estado), sin traer datos. Úsala antes de sql_query o table_contents para saber el tamaño real de lo que vas a pedir. Misma política que sql_query: tablas vetadas y columnas personales en WHERE se bloquean.
+
+| | |
+|---|---|
+| **Acceso** | Solo lectura |
+| **Créditos** | [ABAPilot MCP connector (catálogo de tools)](https://github.com/NicoHern/abapilot-mcp) — Crimson Consulting SL (NicoHern) (MIT, idea) |
+
+| Parámetro | Tipo | Por defecto | Descripción |
+|---|---|---|---|
+| `system` | string |  | Sistema SAP configurado. Obligatorio si hay varios y ninguno por defecto. |
+| `table` * | string |  |  |
+| `where` | string |  | Condición ABAP SQL sin WHERE, literales entre comillas simples |
+| `group_by` | string |  | Columnas por las que agrupar, separadas por coma |
+| `max_groups` | number | 50 |  |
+
+\* obligatorio
+
+### `search_tables` — Buscar tablas por descripción
+
+Busca tablas, estructuras y vistas del diccionario por una palabra de su descripción o de su nombre («partición», «garantía», «ZDZ_TICKET»). Sirve cuando se sabe qué dato se busca pero no la tabla. Devuelve nombre, tipo (tabla, estructura, vista…), descripción y clase de entrega. Solo metadatos: no lee datos.
+
+| | |
+|---|---|
+| **Acceso** | Solo lectura |
+| **Créditos** | [ABAPilot MCP connector (catálogo de tools)](https://github.com/NicoHern/abapilot-mcp) — Crimson Consulting SL (NicoHern) (MIT, idea) |
+
+| Parámetro | Tipo | Por defecto | Descripción |
+|---|---|---|---|
+| `system` | string |  | Sistema SAP configurado. Obligatorio si hay varios y ninguno por defecto. |
+| `text` * | string |  | Palabra o fragmento; sin comodines |
+| `kind` | `TRANSP` \| `INTTAB` \| `VIEW` \| `all` | "all" | TRANSP tablas, INTTAB estructuras, VIEW vistas |
+| `only_custom` | boolean | false | Solo objetos Z/Y |
+| `max` | number | 50 |  |
+
+\* obligatorio
+
+### `foreign_keys` — Claves externas de una tabla
+
+Claves externas de una tabla en las dos direcciones: las tablas de verificación que usa (campo a campo) y las tablas que la usan a ella como verificación. Con cada una viene la condición de JOIN lista para sql_query. Útil para unir tablas sin adivinar campos y para saber qué depende de un registro. Solo metadatos.
+
+| | |
+|---|---|
+| **Acceso** | Solo lectura |
+| **Créditos** | [ABAPilot MCP connector (catálogo de tools)](https://github.com/NicoHern/abapilot-mcp) — Crimson Consulting SL (NicoHern) (MIT, idea) |
+
+| Parámetro | Tipo | Por defecto | Descripción |
+|---|---|---|---|
+| `system` | string |  | Sistema SAP configurado. Obligatorio si hay varios y ninguno por defecto. |
+| `table` * | string |  |  |
+| `direction` | `from` \| `to` \| `both` | "both" | from: las que usa esta tabla; to: las que la usan a ella |
+
+\* obligatorio
+
 <a id="diagnostico"></a>
 ## Diagnóstico de incidentes
 
@@ -662,6 +717,23 @@ Salida estructurada (`structuredContent`, además del texto):
 | `group_by` | `error` \| `program` \| `error_program` \| `user` \| `day` |  |
 | `groups` | lista de { key, count, first, last, users, where } |  |
 | `dumps` | lista de { n, error, program, user } |  |
+
+### `diagnose_message` — Diagnosticar un mensaje
+
+Parte de un mensaje de pantalla (clase y número, o el texto tal como lo copió la persona: «E:ZDEMO:012», «ZDEMO 012») y devuelve su texto en el idioma de la conexión y en inglés, los marcadores (&1…) y qué programas, clases o funciones lo emiten (where-used de ADT). Primer paso de un ticket: del mensaje al código. No ve mensajes dinámicos (MESSAGE ID … NUMBER con variables): para eso, source_search en el paquete sospechoso.
+
+| | |
+|---|---|
+| **Acceso** | Solo lectura |
+| **Créditos** | [ABAPilot MCP connector (catálogo de tools)](https://github.com/NicoHern/abapilot-mcp) — Crimson Consulting SL (NicoHern) (MIT, idea) |
+
+| Parámetro | Tipo | Por defecto | Descripción |
+|---|---|---|---|
+| `system` | string |  | Sistema SAP configurado. Obligatorio si hay varios y ninguno por defecto. |
+| `message` * | string |  | «CLASE NNN», «E:CLASE:NNN» o el texto copiado de la barra de estado |
+| `max_usages` | number | 50 |  |
+
+\* obligatorio
 
 ### `jobs` — Jobs de fondo (SM37)
 

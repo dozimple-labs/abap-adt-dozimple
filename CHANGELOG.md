@@ -5,6 +5,15 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 ## [Unreleased]
 
 ### Añadido
+- **Cuatro tools para la Mesa de Servicios**, ideas tomadas del catálogo de ABAPilot (Crimson Consulting, MIT):
+  - **`diagnose_message`**: de un mensaje de pantalla (clase y número, o el texto tal como se copió) a sus textos,
+    marcadores y los objetos que lo emiten (where-used de ADT); si no hay usos estáticos, lo dice y propone
+    `source_search` (los mensajes dinámicos no se ven).
+  - **`search_tables`**: tablas, estructuras y vistas por una palabra de su descripción o de su nombre.
+  - **`foreign_keys`**: claves externas en las dos direcciones, campo a campo, con la condición de JOIN lista.
+  - **`count_rows`**: recuento con condición y agrupación opcionales, sin traer datos y con la política de `sql_query`.
+
+### Añadido
 - **`edit_source`: cambiar un fragmento sin reenviar la fuente entera.** Cada edición es el texto exacto que hay hoy y
   el que lo sustituye; el servidor lee la fuente de SAP, aplica las sustituciones y sigue el mismo camino que
   `write_source` (sintaxis de SAP sobre la fuente resultante, diff, orden explícita, huella y bloqueo). No adivina: si
