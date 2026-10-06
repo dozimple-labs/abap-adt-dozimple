@@ -27,7 +27,8 @@ jobs:
       - run: npm test
       - run: npm run build
       - name: Auditoría de dependencias de producción
-        run: npm audit --omit=dev --audit-level=moderate
+        # high: los hallazgos moderados aceptados están documentados en SECURITY.md («Hallazgos aceptados»).
+        run: npm audit --omit=dev --audit-level=high
       - name: Firmas y procedencia de los paquetes del registro
         run: npm audit signatures
       - name: SBOM CycloneDX de las dependencias de producción
