@@ -5,6 +5,9 @@ import { assertTrkorr } from "../../core/policy.js";
 import { describeOrder, isOpen, orderHeaders, transportWarnings } from "../../core/transport.js";
 import { defineTool } from "../../core/tool.js";
 import type { SapConnection } from "../../core/connection.js";
+import { sourceUrl } from "../../core/objects.js";
+import { driftVerdict, versionDrift } from "../transport-risk/_drift.js";
+import { RISK_MODULE } from "../transport-risk/_service.js";
 
 /** Entrada de TADIR que manda sobre el objeto (un FM pertenece a su grupo). */
 async function tadirKey(sap: SapConnection, obj: ResolvedObject): Promise<{ object: string; name: string }> {
@@ -24,14 +27,17 @@ export default defineTool({
   description:
     "Dice, ANTES de modificar un objeto, en qué orden acabará el cambio y por qué: bloqueo del CTS (TLOCK) de otra " +
     "orden, objeto local ($TMP), reparación (sistema original distinto), o si está libre y qué órdenes tienes abiertas. " +
-    "Úsala siempre antes de write_source o de editar a mano en un sistema ajeno.",
+    "Con el módulo dz-transport-risk compara además la fuente de DEV con la de calidad y productivo (deriva de versión: " +
+    "lo que el pase arrastraría o pisaría). Úsala siempre antes de write_source o de editar a mano en un sistema ajeno.",
   access: "read",
   input: {
     object_name: z.string().min(1),
     object_type: z.string().optional().describe(TYPE_HELP),
     transport: z.string().optional().describe("Orden en la que QUIERES guardar, para comprobar si es posible"),
+    compare_with: z.array(z.string().regex(/^[A-Za-z0-9]{3}$/)).optional().describe("SIDs con los que comparar la versión de DEV (por defecto, los «targets» del sistema en la configuración; solo con el módulo dz-transport-risk)"),
   },
-  async run({ object_name, object_type, transport }, { sap, system }) {
+  async run({ object_name, object_type, transport, compare_with }, ctx) {
+    const { sap, system } = ctx;
     const c = await sap.adt();
     const obj = await resolveObject(c, object_name, object_type);
     const wanted = transport ? assertTrkorr(transport) : undefined;
@@ -108,8 +114,22 @@ export default defineTool({
       }
     }
     for (const m of info?.MESSAGES ?? []) verdict.push(`CTS ${m.SEVERITY}: ${m.TEXT}`);
+
+    // 5. Deriva de versión frente a calidad y productivo (paso 2 del flujo de modificación).
+    const targets = (compare_with ?? system.targets).map((s) => s.toUpperCase());
+    const drifts: string[] = [];
+    if (targets.length && system.modules.includes(RISK_MODULE)) {
+      ctx.progress?.(`Comparando con ${targets.join(", ")}…`);
+      const dev = await c.getObjectSource(await sourceUrl(c, obj));
+      for (const d of await versionDrift(sap, system, obj, dev, targets)) {
+        verdict.push(driftVerdict(d));
+        if (d.diff) drifts.push(`--- ${d.target} → DEV ---`, d.diff);
+      }
+    } else if (targets.length) {
+      verdict.push(`Sin comparar con ${targets.join(", ")}: este sistema no tiene el módulo ${RISK_MODULE}. Compara con object_versions o remote_source.`);
+    }
     if (!sid) verdict.push(`(No se pudo determinar el SID del sistema para comprobar reparaciones: añade "sid" en systems.json.)`);
 
-    return [...out, "", "Veredicto:", ...verdict.map((v) => "  • " + v)].join("\n");
+    return [...out, "", "Veredicto:", ...verdict.map((v) => "  • " + v), ...(drifts.length ? ["", ...drifts] : [])].join("\n");
   },
 });

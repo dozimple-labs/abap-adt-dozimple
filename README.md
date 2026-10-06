@@ -112,7 +112,7 @@ Summary per group; each tool's details — parameters, types, defaults, requirem
 | [`my_transports`](docs/TOOLS.md#revision) | **My transports.** Transports of a user (by default the connection user): their own and those where they have a task, with tasks, status, target and objects; flags transports without a target and own tasks in someone else's transport. | read |
 | [`co_change`](docs/TOOLS.md#revision) | **What usually travels with this object?** Looks at the transports that touched an object and counts which other objects travelled with it, most frequent first. | read |
 | [`inactive_objects`](docs/TOOLS.md#revision) | **Inactive objects.** Objects saved but not activated by the connection user, with their transport. | read |
-| [`edit_preflight`](docs/TOOLS.md#revision) | **Before editing: which transport will it land in?** Tells, BEFORE changing an object, which transport the change will end up in and why: CTS lock by another transport, local object ($TMP), repair (different original system), or free with your open transports. | read |
+| [`edit_preflight`](docs/TOOLS.md#revision) | **Before editing: which transport will it land in?** Tells, BEFORE changing an object, which transport the change will end up in and why: CTS lock by another transport, local object ($TMP), repair (different original system), or free with your open transports. With the dz-transport-risk module it also compares the DEV source with QA and production (version drift). | read |
 
 <a id="g-calidad"></a>
 ### Quality, ATC and remediation

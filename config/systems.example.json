@@ -11,7 +11,9 @@
       "language": "ES",
       "role": "DEV",
       "allowWrite": false,
-      "modules": []
+      "modules": [],
+      "$comment_targets": "Con el módulo dz-transport-risk: SIDs de calidad y productivo que edit_preflight compara con DEV",
+      "targets": []
     },
     {
       "id": "MI_PRD",
