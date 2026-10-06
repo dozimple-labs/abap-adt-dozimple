@@ -4,6 +4,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-10-06
+
+Editar un fragmento sin reenviar la fuente, cambiar un objeto de paquete, exposición selectiva de tools, deriva de versión
+en `edit_preflight`, cuatro tools para la Mesa de Servicios (del mensaje al código), y diccionario y modelos OData en
+ECC / NW 7.50 sin abrir ningún servicio de escritura en SAP.
+
 ### Añadido
 - **`edit_preflight` compara la versión de DEV con calidad y productivo** (deriva de versión, el paso 2 del flujo de
   modificación): con el módulo dz-transport-risk y los `targets` del sistema en `systems.json` (o `compare_with`),
