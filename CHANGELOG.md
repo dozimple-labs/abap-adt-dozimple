@@ -4,6 +4,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Unreleased]
 
+### Añadido
+- **`create_object` crea tablas y estructuras de diccionario en S/4 (y NW ≥ 7.51)** con su fuente DDL de ADT
+  (`object_type` TABL o STRU), con la misma vista previa, validación de SAP, orden y confirmación. En ECC 7.50 la
+  colección no existe y la respuesta remite a `ddic_plan`. Sin verificar en vivo todavía.
+
 ## [1.6.0] - 2026-10-06
 
 Editar un fragmento sin reenviar la fuente, cambiar un objeto de paquete, exposición selectiva de tools, deriva de versión

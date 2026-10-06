@@ -35,6 +35,9 @@ const KINDS = {
   FUNC: { adt: "FUGR/FF", label: "módulo de función", maxLen: 30 },
   DDLS: { adt: "DDLS/DF", label: "vista CDS (DDL)", maxLen: 30 },
   DCLS: { adt: "DCLS/DL", label: "control de acceso CDS (DCL)", maxLen: 30 },
+  /** Solo donde ADT expone el diccionario con fuente (S/4 y NW ≥ 7.51): en ECC 7.50 no existe la colección y se remite a ddic_plan. */
+  TABL: { adt: "TABL/DT", label: "tabla de diccionario", maxLen: 16 },
+  STRU: { adt: "TABL/DS", label: "estructura de diccionario", maxLen: 30 },
 } as const;
 type Kind = keyof typeof KINDS;
 
@@ -48,6 +51,8 @@ const COLLECTIONS: Record<Kind, string[]> = {
   FUNC: ["/sap/bc/adt/functions/groups", "/sap/bc/adt/functions/validation"],
   DDLS: ["/sap/bc/adt/ddic/ddl/sources", "/sap/bc/adt/ddic/ddl/validation"],
   DCLS: ["/sap/bc/adt/acm/dcl/sources", "/sap/bc/adt/acm/dcl/validation"],
+  TABL: ["/sap/bc/adt/ddic/tables", "/sap/bc/adt/ddic/tables/validation"],
+  STRU: ["/sap/bc/adt/ddic/structures", "/sap/bc/adt/ddic/structures/validation"],
 };
 
 /** Espacio de nombres de cliente: Z o Y, o un namespace /XXX/ registrado. */
@@ -72,6 +77,8 @@ export async function existingObject(sap: SapConnection, kind: Kind, name: strin
     FUNC: [`SELECT funcname FROM tfdir WHERE funcname = ${lit}`, "módulo de función"],
     DDLS: [`SELECT obj_name FROM tadir WHERE pgmid = 'R3TR' AND object = 'DDLS' AND obj_name = ${lit}`, "vista CDS"],
     DCLS: [`SELECT obj_name FROM tadir WHERE pgmid = 'R3TR' AND object = 'DCLS' AND obj_name = ${lit}`, "control de acceso CDS"],
+    TABL: [`SELECT tabname FROM dd02l WHERE tabname = ${lit}`, "tabla o estructura de diccionario"],
+    STRU: [`SELECT tabname FROM dd02l WHERE tabname = ${lit}`, "tabla o estructura de diccionario"],
   };
   const [sql, what] = probe[kind];
   return (await sap.query(sql, 1)).values.length ? what : undefined;
@@ -118,14 +125,14 @@ async function resolveTarget(sap: SapConnection, a: Args): Promise<Target> {
 
 const input = {
   object_type: z.enum(Object.keys(KINDS) as [Kind, ...Kind[]]).describe(
-    "PROG programa · INCL include · CLAS clase · INTF interfaz · FUGR grupo de funciones · FUNC módulo de función · DDLS vista CDS · DCLS control de acceso CDS",
+    "PROG programa · INCL include · CLAS clase · INTF interfaz · FUGR grupo de funciones · FUNC módulo de función · DDLS vista CDS · DCLS control de acceso CDS · TABL tabla · STRU estructura (estas dos solo en S/4 o NW ≥ 7.51)",
   ),
   name: z.string().min(1).max(40),
   description: z.string().min(1).max(60).describe("Texto breve (en el idioma del sistema)"),
   package: z.string().optional().describe("Paquete de desarrollo. Obligatorio salvo FUNC (usa el del grupo). $TMP solo si se pide expresamente"),
   function_group: z.string().optional().describe("Solo FUNC: grupo de funciones donde se crea"),
   transport: z.string().optional().describe("Orden (o tarea). Obligatoria si el paquete es transportable"),
-  source: z.string().optional().describe("Fuente inicial completa. Se comprueba la sintaxis antes de guardarla; una clase, entera"),
+  source: z.string().optional().describe("Fuente inicial completa. Se comprueba la sintaxis antes de guardarla; una clase, entera. Tablas y estructuras: en la sintaxis DDL de ADT (@EndUserText.label … define table ztab { key client : abap.clnt; … })"),
   activate: z.boolean().default(true).describe("Activar tras guardar la fuente inicial"),
 };
 type Args = z.objectOutputType<typeof input, z.ZodTypeAny>;
@@ -167,7 +174,8 @@ export default defineTool({
   title: "Crear objeto ABAP",
   description:
     "Crea un objeto ABAP nuevo en un sistema de desarrollo: programa, include, clase, interfaz, grupo de funciones, " +
-    "módulo de función, vista CDS o control de acceso CDS. Exige paquete y, si es transportable, la orden (nunca elige " +
+    "módulo de función, vista CDS, control de acceso CDS y, en S/4 o NW ≥ 7.51, tablas y estructuras de diccionario " +
+    "con su fuente DDL (en ECC 7.50 no hay API: ddic_plan). Exige paquete y, si es transportable, la orden (nunca elige " +
     "una por su cuenta). Opcional: fuente inicial, que se comprueba con la sintaxis de SAP antes de guardarse, y " +
     "activación. Primero muestra una vista previa (validación de SAP, orden, idioma) y solo crea tras la confirmación. " +
     "Para modificar objetos que ya existen, write_source.",
@@ -178,7 +186,11 @@ export default defineTool({
     const t = await resolveTarget(sap, a);
     const miss = await missingCollections(sap, t.kind);
     if (miss.length) {
-      throw new ToolError("CAPABILITY", `${system.id} no permite crear un ${KINDS[t.kind].label} por ADT (faltan ${miss.join(", ")}). Hay que crearlo en el SAP GUI.`);
+      throw new ToolError(
+        "CAPABILITY",
+        `${system.id} no permite crear un ${KINDS[t.kind].label} por ADT (faltan ${miss.join(", ")}).`,
+        t.kind === "TABL" || t.kind === "STRU" ? "En ECC / NW 7.50 el diccionario no se crea por ADT: usa ddic_plan y el generador en SE38." : "Hay que crearlo en el SAP GUI.",
+      );
     }
     const exists = await existingObject(sap, t.kind, t.name);
     if (exists) throw new ToolError("INPUT", `Ya existe un ${exists} llamado ${t.name}: para cambiarlo usa write_source.`);
