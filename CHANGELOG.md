@@ -4,6 +4,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Unreleased]
 
+## [1.6.1] - 2026-10-06
+
+Corrección de la deriva de versión en módulos de función y reutilización del ATC de un objeto sin cambios.
+
 ### Corregido
 - **`edit_preflight` comparaba la cabecera de interfaz de los módulos de función** y los daba por «diferentes» en
   calidad y productivo aunque fueran iguales: ADT muestra la interfaz como sentencia `FUNCTION … TABLES … LIKE …` y el
