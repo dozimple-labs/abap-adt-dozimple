@@ -35,7 +35,7 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: npm test
       - run: npm run build
-      - run: npm audit --omit=dev --audit-level=moderate
+      - run: npm audit --omit=dev --audit-level=high  # moderados aceptados: SECURITY.md «Hallazgos aceptados»
       - run: npm audit signatures
       - run: node scripts/scan-sensitive.mjs
       - name: Empaquetar
