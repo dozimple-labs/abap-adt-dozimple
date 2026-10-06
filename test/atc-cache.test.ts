@@ -108,6 +108,13 @@ describe("run_atc reutiliza el resultado de un objeto sin cambios", () => {
     expect(runs).toEqual(["ZDEMO_A", "ZDEMO_A"]);
   });
 
+  it("marca 0 (así llega de abap-adt-api cuando el tipo no la expone) tampoco es marca: siempre ejecuta", async () => {
+    const x = ctx(fakeClient({ ZDEMO_A: 0 }));
+    await runAtcTool.run({ object_name: "ZDEMO_A", ...base }, x);
+    await runAtcTool.run({ object_name: "ZDEMO_A", ...base }, x);
+    expect(runs).toEqual(["ZDEMO_A", "ZDEMO_A"]);
+  });
+
   it("dos objetos distintos no se confunden entre sí", async () => {
     const x = ctx(fakeClient({ ZDEMO_A: 1000, ZDEMO_B: 1000 }));
     await runAtcTool.run({ object_name: "ZDEMO_A", ...base }, x);
