@@ -9,6 +9,7 @@ import { clearPasswords } from "./core/credentials.js";
 import { ConnectionPool } from "./core/connection.js";
 import { registerPrompts } from "./core/prompts.js";
 import { loadTools, registerAll } from "./core/registry.js";
+import { filterWarnings, resolveToolFilter } from "./core/toolfilter.js";
 import { SidecarPool } from "./core/sidecar.js";
 
 // stdout es el canal MCP: cualquier log va a stderr.
@@ -47,6 +48,7 @@ async function main() {
   for (const w of startupWarnings(config)) log(`⚠ ${w}`);
 
   const defs = await loadTools(join(here, "tools"));
+  for (const w of filterWarnings(resolveToolFilter(config), defs)) log(`ℹ ${w}`);
   const sidecars = new SidecarPool(config);
   const published = registerAll(server, defs, config, new ConnectionPool(), sidecars);
   // Los componentes auxiliares son procesos hijo: se cierran con el servidor.

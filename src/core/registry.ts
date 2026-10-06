@@ -1,3 +1,4 @@
+import { resolveToolFilter, toolAllowed } from "./toolfilter.js";
 import { readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -47,6 +48,7 @@ export async function loadTools(dir: string): Promise<ToolDef<any>[]> {
 
 /** ¿Tiene sentido publicar la tool con esta configuración? */
 export function isVisible(def: ToolDef<any>, cfg: Config): boolean {
+  if (!toolAllowed(def, resolveToolFilter(cfg))) return false;
   const sc = def.requires?.sidecar;
   if (sc && !cfg.sidecars[sc]) return false;
   if (sc && def.requires?.online && !cfg.sidecars[sc].allowOnline) return false;

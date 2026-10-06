@@ -5,6 +5,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 ## [Unreleased]
 
 ### Añadido
+- **Exposición selectiva de tools.** `"tools": { "only": [...], "except": [...] }` en `systems.json` y `ABAP_DZ_TOOLS`
+  (lista por comas) en la configuración MCP de un proyecto; se nombran tools, grupos del catálogo o tipos de acceso. El
+  entorno se cruza con la configuración, nunca la amplía; `sap_systems` se ve siempre; una errata se avisa al arrancar.
+  Idea de `ABAPILOT_TOOLS` (ABAPilot).
 - **Cuatro tools para la Mesa de Servicios**, ideas tomadas del catálogo de ABAPilot (Crimson Consulting, MIT):
   - **`diagnose_message`**: de un mensaje de pantalla (clase y número, o el texto tal como se copió) a sus textos,
     marcadores y los objetos que lo emiten (where-used de ADT); si no hay usos estáticos, lo dice y propone

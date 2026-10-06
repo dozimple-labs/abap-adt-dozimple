@@ -276,6 +276,10 @@ Designed to pass a Security and Basis review without exceptions. Details: **[SEC
 - **No network surface:** stdio only; no ports are opened.
 - **Credentials in the OS keychain** (macOS Keychain or Linux Secret Service), never in files, logs or responses.
 - **Policy per role:** QA and production are never written; development only with explicit authorization.
+- **Selective tool exposure:** `"tools": { "only": [...], "except": [...] }` in `systems.json`, or `ABAP_DZ_TOOLS`
+  (comma-separated) in a project's MCP client configuration. Entries are tool names, catalog groups (`exploracion`,
+  `escritura`…) or access kinds (`read`, `write`, `exec`). The environment never widens what the configuration allows;
+  an unpublished tool does not exist for the client. A typo is reported at startup.
 - **Strict parameters:** an unknown or misspelled parameter is an error listing the accepted ones, never silently ignored.
 - **No write without human confirmation:** a preview with SAP's syntax check and the real diff, confirmed through MCP
   elicitation or a single-use token bound to those exact arguments.
