@@ -11,8 +11,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
   Idea de `ABAPILOT_TOOLS` (ABAPilot).
 - **Cuatro tools para la Mesa de Servicios**, ideas tomadas del catálogo de ABAPilot (Crimson Consulting, MIT):
   - **`diagnose_message`**: de un mensaje de pantalla (clase y número, o el texto tal como se copió) a sus textos,
-    marcadores y los objetos que lo emiten (where-used de ADT); si no hay usos estáticos, lo dice y propone
-    `source_search` (los mensajes dinámicos no se ven).
+    marcadores, su **texto largo** (la ayuda del mensaje: causa, respuesta del sistema, qué hacer, leída de DOKTL y
+    convertida de ITF a texto) y los includes que lo emiten, por el índice de referencias cruzadas de SE91 (CROSS): el
+    where-used de mensajes de ADT devuelve vacío en 7.50. Sin usos estáticos, lista los programas que declaran la
+    clase (candidatos a emitirlo con número dinámico) o remite a `source_search`.
   - **`search_tables`**: tablas, estructuras y vistas por una palabra de su descripción o de su nombre.
   - **`foreign_keys`**: claves externas en las dos direcciones, campo a campo, con la condición de JOIN lista.
   - **`count_rows`**: recuento con condición y agrupación opcionales, sin traer datos y con la política de `sql_query`.

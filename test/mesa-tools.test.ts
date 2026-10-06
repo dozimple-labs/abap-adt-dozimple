@@ -19,35 +19,32 @@ describe("diagnose_message", () => {
     expect(parseMessage("hola")).toBeUndefined();
   });
 
-  function ctx(texts: Array<[string, string]>, usages?: Array<Record<string, unknown>> | "error") {
+  function ctx(texts: Array<[string, string]>, includes: string[] = [], declaring: string[] = []) {
     const sap = {
       query: async (sql: string) => {
         if (/FROM t100 WHERE arbgb = 'ZDEMO' AND msgnr/.test(sql)) return { values: texts.map(([SPRSL, TEXT]) => ({ SPRSL, TEXT })) };
         if (/FROM t100 WHERE arbgb = 'ZDEMO'/.test(sql)) return { values: [{ MSGNR: "001" }] };
+        if (/FROM cross WHERE type = 'N' AND name = 'ZDEMO               012'/.test(sql)) return { values: includes.map((INCLUDE) => ({ INCLUDE })) };
+        if (/FROM cross WHERE type = 'N' AND name = 'ZDEMO'/.test(sql)) return { values: declaring.map((INCLUDE) => ({ INCLUDE })) };
         return { values: [] };
       },
-      adt: async () => ({
-        usageReferences: async (uri: string) => {
-          expect(uri).toBe("/sap/bc/adt/messageclass/zdemo/messages/012");
-          if (usages === "error") throw new Error("404");
-          return (usages ?? []).map((u) => ({ isResult: true, ...u }));
-        },
-      }),
+      adt: async () => ({}),
     };
     return { sap, system: sys, progress: () => {} };
   }
 
   it("texto en el idioma de la conexión y en inglés, marcadores y quién lo emite", async () => {
-    const r = await run(diagnoseMessage, { message: "ZDEMO 012", max_usages: 50 }, ctx([["S", "Pedido &1 sin tarea &2"], ["E", "Order &1 without task &2"]], [{ "adtcore:name": "ZDEMO_REP", "adtcore:type": "PROG/P", packageRef: { "adtcore:name": "ZDEMO" }, usageInformation: "FORM check" }]));
+    const r = await run(diagnoseMessage, { message: "ZDEMO 012", max_usages: 50 }, ctx([["S", "Pedido &1 sin tarea &2"], ["E", "Order &1 without task &2"]], ["ZDEMO_REP", "LZDEMO_APIU01"]));
     expect(r).toMatch(/S: Pedido &1 sin tarea &2/);
     expect(r).toMatch(/E: Order &1 without task &2/);
     expect(r).toMatch(/Marcadores: &1 &2/);
-    expect(r).toMatch(/Lo emiten 1 objetos:\nobjeto\ttipo\tpaquete\tdónde\nZDEMO_REP\tPROG\/P\tZDEMO\tFORM check/);
+    expect(r).toMatch(/Sin texto largo/);
+    expect(r).toMatch(/Lo emiten 2 includes: ZDEMO_REP, LZDEMO_APIU01/);
   });
 
-  it("sin usos estáticos o sin where-used: lo dice y propone source_search", async () => {
-    expect(await run(diagnoseMessage, { message: "ZDEMO 012", max_usages: 50 }, ctx([["S", "x"]], []))).toMatch(/no encontró usos estáticos[\s\S]*source_search/);
-    expect(await run(diagnoseMessage, { message: "ZDEMO 012", max_usages: 50 }, ctx([["S", "x"]], "error"))).toMatch(/no disponible para mensajes[\s\S]*source_search\(text="012\(ZDEMO\)"\)/);
+  it("sin usos estáticos: lista los programas que declaran la clase, o remite a source_search", async () => {
+    expect(await run(diagnoseMessage, { message: "ZDEMO 012", max_usages: 50 }, ctx([["S", "x"]], [], ["ZDEMO_DYN"]))).toMatch(/Ningún include lo emite de forma estática[\s\S]*declaran MESSAGE-ID ZDEMO[\s\S]*ZDEMO_DYN/);
+    expect(await run(diagnoseMessage, { message: "ZDEMO 012", max_usages: 50 }, ctx([["S", "x"]]))).toMatch(/Ningún programa declara MESSAGE-ID ZDEMO[\s\S]*source_search\(text="ZDEMO"\)/);
   });
 
   it("mensaje o clase inexistentes", async () => {
@@ -122,5 +119,31 @@ describe("count_rows", () => {
     const sap = { query: async () => ({ columns: [{ name: "N" }], values: [{ N: 1 }] }) };
     await expect(run(countRows, { table: "USR02", max_groups: 50 }, { sap, system: sys })).rejects.toThrow();
     await expect(run(countRows, { table: "VBAK", where: "ernam = 'X'", max_groups: 50 }, { sap, system: { ...sys, role: "PRD", dataClass: "prod" } })).rejects.toThrow();
+  });
+});
+
+describe("diagnose_message · texto largo", () => {
+  it("convierte el ITF de DOKTL en texto legible: títulos, párrafos partidos, viñetas e includes", async () => {
+    const { renderDocu } = await import("../src/tools/core/diagnose_message.js");
+    const txt = renderDocu([
+      { format: "U1", text: "&CAUSE&" },
+      { format: "AS", text: "No es posible facturar la clase de entrega &V1& con la clase de factura" },
+      { format: "", text: "&V2&." },
+      { format: "U1", text: "&WHAT_TO_DO&" },
+      { format: "AS", text: "Verifique y corrija:" },
+      { format: "B1", text: "la clase de pedido" },
+      { format: "", text: "por defecto." },
+      { format: "B1", text: "la clase de factura." },
+      { format: "/:", text: "INCLUDE 'NA_CUST_MAINTAIN_3' OBJECT DOKU ID TX LANGUAGE S" },
+    ]);
+    expect(txt.split("\n")).toEqual([
+      "Causa:",
+      "No es posible facturar la clase de entrega &V1& con la clase de factura &V2&.",
+      "Qué hacer:",
+      "Verifique y corrija:",
+      "• la clase de pedido por defecto.",
+      "• la clase de factura.",
+      "[texto estándar incluido: NA_CUST_MAINTAIN_3]",
+    ]);
   });
 });
