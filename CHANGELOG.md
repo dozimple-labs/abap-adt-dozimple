@@ -12,6 +12,19 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
   compactación de contexto. `tools.profile: "expert"` o `ABAP_DZ_PROFILE=expert` recupera el
   comportamiento anterior. Las tools fuera del catálogo se publican siempre; el filtro `only`/`except` manda sobre
   el perfil. `sap_systems` y el arranque dicen qué perfil está activo.
+- **`activate` con `main_program`** para un include que usan varios programas principales (SAP: «REPS … se utiliza en
+  varios programas marco»). Con un solo programa principal se usa solo; con varios y sin `main_program`, la tool
+  devuelve la lista para elegir en vez del error de SAP. Vale nombre o URI. Mismo criterio al activar tras
+  `write_source` y `edit_source`.
+
+### Corregido
+- **Activación conjunta rechazada con «Verificación de condición fallida»** (412 o 400 con ese texto) en algún
+  release aunque la misma lista se active en Eclipse: se repite una vez con referencias mínimas (uri y nombre), que es
+  la forma que SAP acepta para un objeto. Pendiente de verificar en vivo.
+- El reintento con los subobjetos inactivos del propio objeto ignoraba la lista si SAP incluía entradas sin objeto
+  (ocurre al activar un grupo de funciones): ahora esas entradas no cuentan.
+- `npm run build` deja `dist/index.js` ejecutable: una copia manual de `dist` sobre una instalación (caché de npx) dejaba
+  el binario sin el bit de ejecución y el servidor no arrancaba («Permission denied»).
 
 ## [1.6.1] - 2026-10-06
 
