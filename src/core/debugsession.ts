@@ -65,27 +65,26 @@ export async function openSession(sap: SapConnection, system: SystemConfig): Pro
   return s;
 }
 
-/** Cierra la sesión: desengancha si hacía falta, quita el listener y cierra la conexión. Nunca lanza. */
-export async function closeSession(systemId: string, how: "detachDebugger" | "terminateDebuggee" = "detachDebugger"): Promise<string[]> {
+const withLimit = <T>(p: Promise<T>, ms: number): Promise<T | "timeout"> => Promise.race([p.catch(() => "timeout" as const), new Promise<"timeout">((r) => setTimeout(() => r("timeout"), ms))]);
+
+/**
+ * Cierra la sesión: desengancha si hacía falta, quita el listener y cierra la conexión. Nunca lanza ni se queda
+ * esperando: la sesión stateful puede estar ocupada con la escucha larga (verificado en vivo: un DELETE por esa misma
+ * sesión esperaba 2 minutos), así que el listener se retira por la conexión de lectura y el logout tiene tope.
+ */
+export async function closeSession(systemId: string, how: "detachDebugger" | "terminateDebuggee" = "detachDebugger", via?: ADTClient): Promise<string[]> {
   const s = sessions.get(systemId.toUpperCase());
   if (!s) return [];
+  sessions.delete(systemId.toUpperCase());
   const done: string[] = [];
   if (s.attached) {
-    try {
-      await s.client.debuggerStep(how);
-      done.push(how === "terminateDebuggee" ? "programa depurado terminado" : "depurador desenganchado");
-    } catch (e) {
-      done.push(`no se pudo ${how === "terminateDebuggee" ? "terminar" : "desenganchar"}: ${(e as Error).message}`);
-    }
+    const r = await withLimit(s.client.debuggerStep(how), 20_000);
+    done.push(r === "timeout" ? `no se pudo ${how === "terminateDebuggee" ? "terminar" : "desenganchar"} (sin respuesta)` : how === "terminateDebuggee" ? "programa depurado terminado" : "depurador desenganchado");
   }
-  try {
-    await s.client.debuggerDeleteListener("user", s.terminalId, IDE_ID, s.user);
-    done.push("listener retirado");
-  } catch {
-    done.push("listener: no había ninguno activo");
-  }
-  await s.client.logout().catch(() => undefined);
-  sessions.delete(systemId.toUpperCase());
+  const lister = via ?? s.client;
+  const d = await withLimit(lister.debuggerDeleteListener("user", s.terminalId, IDE_ID, s.user), 15_000);
+  done.push(d === "timeout" ? "listener: sin respuesta al retirarlo (caduca solo)" : "listener retirado");
+  await withLimit(s.client.logout(), 3_000);
   return done;
 }
 

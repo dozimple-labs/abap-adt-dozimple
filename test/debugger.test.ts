@@ -39,6 +39,7 @@ function ctx(system = DEV, fake = fakeClient()) {
   const reader = {
     searchObject: async (name: string) => [{ "adtcore:name": name.toUpperCase(), "adtcore:type": "PROG/P", "adtcore:uri": `/sap/bc/adt/programs/programs/${name.toLowerCase()}`, "adtcore:packageName": "ZDEMO" }],
     objectStructure: async () => { throw new Error("sin estructura"); },
+    debuggerDeleteListener: async () => void fake.calls.push("deleteListener:reader"),
   };
   return { ctx: { sap: { adt: async () => reader, openStateful: async () => fake.client }, system } as any, ...fake };
 }
@@ -88,8 +89,9 @@ describe("depurador · flujo completo con cliente falso", () => {
   it("listen: sin programa en el tiempo dado lo dice y retira la escucha; con conflicto de otro depurador avisa", async () => {
     const t = ctx(DEV, fakeClient());
     const r = String(await listen.run({ timeout_s: 5, max_variables: 10 }, { ...t.ctx }));
-    expect(r).toMatch(/sin que ningún programa/);
-    expect(t.calls).toContain("deleteListener");
+    expect(r).toMatch(/sin que ningún programa.*listener retirado/);
+    expect(t.calls).toContain("deleteListener:reader");
+    expect(t.calls).toContain("logout");
     await expect(listen.run({ timeout_s: 5, max_variables: 10 }, ctx(DEV_MASK, fakeClient({ conflict: true })).ctx)).rejects.toThrow(/Otro depurador ya escucha/);
     await expect(vars.run({ stack: true, max_variables: 10 }, ctx(DEV_MASK).ctx)).rejects.toThrow(/debug_listen primero/);
     expect(String(await stop.run({ terminate: false }, t.ctx))).toMatch(/cerrada|No había/);

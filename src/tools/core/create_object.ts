@@ -248,8 +248,12 @@ export default defineTool({
     if (miss.length) {
       throw new ToolError(
         "CAPABILITY",
-        `${system.id} no permite crear un ${KINDS[t.kind].label} por ADT (faltan ${miss.join(", ")}).`,
-        t.kind === "TABL" || t.kind === "STRU" ? "En ECC / NW 7.50 el diccionario no se crea por ADT: usa ddic_plan y el generador en SE38." : "Hay que crearlo en el SAP GUI.",
+        `${system.id} no permite crear ${KINDS[t.kind].label} por ADT (faltan ${miss.join(", ")}).`,
+        DDIC_KINDS.has(t.kind)
+          ? "En ECC / NW 7.50 el diccionario no se crea por ADT: usa ddic_plan y el generador en SE38."
+          : ["DDLX", "SRVD", "SRVB", "BDEF"].includes(t.kind)
+            ? "Los objetos RAP solo existen en S/4HANA (NW ≥ 7.51)."
+            : "Hay que crearlo en el SAP GUI.",
       );
     }
     const exists = await existingObject(sap, t.kind, t.name);

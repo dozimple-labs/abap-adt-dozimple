@@ -5,6 +5,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 ## [Unreleased]
 
 ### Corregido
+- **`debug_listen` tardaba dos minutos en volver tras el tiempo de espera y `debug_stop` se colgaba**: la sesión
+  stateful seguía ocupada con la escucha larga y cualquier petición por ella esperaba a SAP. Ahora el listener se
+  retira por la conexión de lectura, el cierre tiene tope y la sesión se cierra al agotar el tiempo. Verificado en
+  vivo (10 s de espera → 15 s en total). La vista previa de las tools `exec` dice «ejecutado», no «escrito».
+- `create_object` explica por familia por qué un release no expone un tipo (diccionario en 7.50 → `ddic_plan`; RAP
+  solo en S/4).
 - **`system_messages` leía columnas que no existen**: en un NW 7.50 real TEMSI es solo un contador y TEMSG trae todo
   (ID, EMTEXT, DATCRE/TIMCRE, DATDEL/TIMDEL, AUTHOR, APPLSERVER, CLIENT, LANGU). Ahora lee TEMSG. Verificado en vivo.
 - **La vista previa de `sql_query` en sistemas con datos productivos fallaba en el cliente** («Output validation error»):

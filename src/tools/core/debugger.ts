@@ -127,11 +127,17 @@ const debugListen = defineTool({
       throw new ToolError("SAP", `Otro depurador ya escucha a ${s.user} en ${ctx.system.id}: ${conflict.localizedMessage?.text ?? conflict.message?.text ?? conflict.conflictText}.`, "Cierra el depurador de Eclipse o ADT de esa persona, o espera a que termine.");
     }
     ctx.progress?.(`Escuchando a ${s.user} en ${ctx.system.id} hasta ${timeout_s} s…`);
-    const timer = new Promise<"timeout">((r) => setTimeout(() => r("timeout"), timeout_s * 1000));
-    const hit = await Promise.race([s.client.debuggerListen("user", s.terminalId, IDE_ID, s.user, true, true), timer]);
+    let timer: NodeJS.Timeout | undefined;
+    const limit = new Promise<"timeout">((r) => (timer = setTimeout(() => r("timeout"), timeout_s * 1000)));
+    const poll = s.client.debuggerListen("user", s.terminalId, IDE_ID, s.user, true, true);
+    poll.catch(() => undefined); // si se abandona por tiempo, su rechazo posterior no debe quedar sin manejar
+    const hit = await Promise.race([poll, limit]);
+    clearTimeout(timer);
     if (hit === "timeout") {
-      await s.client.debuggerDeleteListener("user", s.terminalId, IDE_ID, s.user).catch(() => undefined);
-      return `Pasaron ${timeout_s} s sin que ningún programa de ${s.user} parase en un punto de parada en ${ctx.system.id}. Comprueba con debug_breakpoints que están puestos y vuelve a escuchar.`;
+      // La sesión stateful sigue ocupada con la escucha: el listener se retira por la conexión de lectura y la
+      // sesión se cierra sin esperar a que SAP responda (verificado en vivo).
+      const done = await closeSession(ctx.system.id, "detachDebugger", await ctx.sap.adt());
+      return `Pasaron ${timeout_s} s sin que ningún programa de ${s.user} parase en un punto de parada en ${ctx.system.id} (${done.join("; ")}). Comprueba con debug_breakpoints que están puestos y vuelve a escuchar.`;
     }
     if (!hit) return `SAP cerró la escucha sin un programa parado (${timeout_s} s). Vuelve a intentarlo.`;
     if (isDebugListenerError(hit)) throw new ToolError("SAP", `La escucha terminó con error: ${hit.localizedMessage?.text ?? hit.message?.text}`);
@@ -203,12 +209,12 @@ const debugStep = defineTool({
       const te = normalizeError(e);
       // Tras continue, si el programa acabó SAP responde que ya no hay debuggee: la sesión se cierra.
       s.attached = false;
-      await closeSession(ctx.system.id);
+      await closeSession(ctx.system.id, "detachDebugger", await ctx.sap.adt());
       return `El programa terminó o SAP soltó la sesión tras «${step}» (${te.message}). Sesión cerrada en ${ctx.system.id}.`;
     }
     if (r.isDebuggeeChanged || !r.isSteppingPossible && r.isTerminationPossible === false) {
       s.attached = false;
-      await closeSession(ctx.system.id);
+      await closeSession(ctx.system.id, "detachDebugger", await ctx.sap.adt());
       return `Tras «${step}» el programa terminó: sesión cerrada en ${ctx.system.id}.`;
     }
     const snap = await snapshot(ctx, max_variables);
@@ -225,7 +231,7 @@ const debugStop = defineTool({
   confirm: false,
   input: { terminate: z.boolean().default(false).describe("true: termina el programa depurado en vez de dejarlo seguir") },
   async run({ terminate }, ctx) {
-    const done = await closeSession(ctx.system.id, terminate ? "terminateDebuggee" : "detachDebugger");
+    const done = await closeSession(ctx.system.id, terminate ? "terminateDebuggee" : "detachDebugger", await ctx.sap.adt());
     return done.length ? `Sesión de depuración cerrada en ${ctx.system.id}: ${done.join("; ")}.` : `No había sesión de depuración en ${ctx.system.id}.`;
   },
 });

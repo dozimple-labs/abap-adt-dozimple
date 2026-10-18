@@ -232,7 +232,7 @@ export async function invoke(def: ToolDef<any>, rawArgs: Record<string, unknown>
     // Confirmación: toda escritura, y toda ejecución que la declare. Atada al efecto, no solo al valor "write".
     if ((def.access === "write" || (def.access === "exec" && def.confirm === true) || prodRead || confirmedRead) && audit) {
       const base = audit;
-      const what = confirmedRead ? (def.confirmWhat ?? "acción confirmada") : prodRead && def.access !== "write" ? "lectura de datos productivos" : "escritura en SAP";
+      const what = confirmedRead ? (def.confirmWhat ?? "acción confirmada") : prodRead && def.access !== "write" ? "lectura de datos productivos" : def.access === "exec" ? (def.confirmWhat ?? "ejecución en SAP") : "escritura en SAP";
       gate = await confirmWrite(def, args, ctx, typeof confirm_token === "string" ? confirm_token : undefined, env, (reason) =>
         appendAudit({ ...base, phase: "denied", reason }), what,
       );
