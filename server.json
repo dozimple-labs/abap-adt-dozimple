@@ -7,13 +7,13 @@
     "url": "https://github.com/dozimple-labs/abap-adt-dozimple",
     "source": "github"
   },
-  "version": "1.8.0",
+  "version": "2.0.0",
   "packages": [
     {
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "@dozimple/abap-adt",
-      "version": "1.8.0",
+      "version": "2.0.0",
       "runtimeHint": "npx",
       "transport": { "type": "stdio" },
       "environmentVariables": [
