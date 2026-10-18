@@ -345,7 +345,7 @@ Designed to pass a Security and Basis review without exceptions. Details: **[SEC
 ### Quick start
 
 ```sh
-npm install -g --ignore-scripts @dozimple/abap-adt@2.0.2
+npm install -g --ignore-scripts @dozimple/abap-adt@2.0.3
 abap-adt-dozimple init --client claude-code      # or claude-desktop · kiro · cursor · vscode
 ```
 
@@ -360,7 +360,7 @@ thing is:
 Pinned to an exact version, without install scripts, like the project's own dependencies:
 
 ```sh
-npm install -g --ignore-scripts @dozimple/abap-adt@2.0.2
+npm install -g --ignore-scripts @dozimple/abap-adt@2.0.3
 PKG="$(npm root -g)/@dozimple/abap-adt"
 mkdir -p ~/.config/abap-adt-dozimple && chmod 700 ~/.config/abap-adt-dozimple
 cp "$PKG/config/systems.example.json" ~/.config/abap-adt-dozimple/systems.json   # systems, roles and permissions
@@ -376,9 +376,9 @@ MCP client registration:
 ```
 
 Every release is published from CI with [npm provenance](https://docs.npmjs.com/generating-provenance-statements):
-`npm view @dozimple/abap-adt@2.0.2 dist.attestations` shows the attestation, and the GitHub release carries the
+`npm view @dozimple/abap-adt@2.0.3 dist.attestations` shows the attestation, and the GitHub release carries the
 tarball, its Sigstore bundle (`.sigstore.json`), the same bundle as in-toto provenance (`.intoto.jsonl`) and the
-SBOM. To check it: `gh attestation verify dozimple-abap-adt-2.0.2.tgz --repo <owner>/abap-adt-dozimple`.
+SBOM. To check it: `gh attestation verify dozimple-abap-adt-2.0.3.tgz --repo <owner>/abap-adt-dozimple`.
 
 ### Team mode over HTTP (identity per person)
 

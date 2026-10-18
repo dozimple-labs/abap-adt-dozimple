@@ -4,6 +4,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Unreleased]
 
+## [2.0.3] - 2026-10-18
+
+Diccionario y RAP con escritura verificados en vivo en un S/4HANA 758: dominios y elementos con propiedades, tipo tabla,
+definición de servicio y definición de comportamiento creados de verdad.
+
 ### Corregido
 - **`create_object` con DTEL y DOMA fallaba al escribir las propiedades** («Verificación de condición fallida»): los
   metadatos se construían a mano con un sistema maestro vacío; ahora se toman de lo que SAP acaba de crear.
