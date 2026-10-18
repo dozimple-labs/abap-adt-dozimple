@@ -4,7 +4,7 @@ Qué cubre `abap-adt-doZimple` frente al MCP oficial de SAP (ADT) y a los servid
 para el plan de mejoras. Es un documento vivo: se revisa en cada release nuestra y cada vez que SAP publica una
 versión nueva de ADT. Marca con honestidad lo verificado y lo supuesto.
 
-**Última revisión:** 2026-10-18 · **Nuestra versión:** 2.0.2 · **MCP de SAP:** el que trae ADT 3.60 (Eclipse y
+**Última revisión:** 2026-10-18 · **Nuestra versión:** 2.0.3 · **MCP de SAP:** el que trae ADT 3.60 (Eclipse y
 VS Code), según documentación pública y pruebas de terceros; **no se ha ejecutado todavía contra un sistema propio.**
 
 ## 1. Qué se puede garantizar y qué no
@@ -58,10 +58,10 @@ Estado: **V** verificado en vivo en un sistema real · **S** supuesto por docume
 | Diff de lo que cambia una orden | No consta | `transport_diff` | V | Igual |
 | Riesgo de pase, cola, colisiones, auditoría de cambios | No | Módulo transport-risk (7 tools) | V (un cliente) | Igual |
 | Deriva DEV vs QAS/PRD antes de editar | No | `edit_preflight` con `targets` | V | Igual |
-| Diccionario: tablas y estructuras (S/4) | Sí (generadores) | `create_object` TABL/STRU/TTYP | S: sin verificar en vivo | Verificar en vivo |
-| Diccionario: dominios, elementos, tipos tabla | Sí (generadores) | `create_object` DTEL/DOMA con propiedades, `write_ddic_properties`; `ddic_type_info` | V lectura y vista previa en 758; creación S (pendiente de OK) | Crear en vivo |
+| Diccionario: tablas y estructuras (S/4) | Sí (generadores) | `create_object` TABL/STRU/TTYP | V TTYP en 758; TABL/STRU S | Verificar TABL/STRU |
+| Diccionario: dominios, elementos, tipos tabla | Sí (generadores) | `create_object` DTEL/DOMA con propiedades, `write_ddic_properties`; `ddic_type_info` | V (758: creación, propiedades y activación) | Igual |
 | Diccionario en ECC 7.50 | No aplica | `ddic_plan` + programa generador; RFC `ddic_apply` en curso | V (plan), P (apply) | Sí |
-| RAP: BDEF, SRVD, SRVB, DDLX, business services | Sí (`business_services`, generadores) | `create_object` BDEF/SRVD/SRVB(V2)/DDLX + `write_source` | V vista previa y validación en 758; creación S (pendiente de OK) | Crear en vivo; generadores RAP |
+| RAP: BDEF, SRVD, SRVB, DDLX, business services | Sí (`business_services`, generadores) | `create_object` BDEF/SRVD/SRVB(V2)/DDLX + `write_source` | V (758: SRVD y BDEF creados; SRVB validado) | Generadores RAP |
 | OData clásico (SEGW) | No | `odata_model` (EDMX) | S: importación en SEGW sin verificar | Sí |
 | Consulta de datos con política (veto, masking, tope por sistema) | No | `sql_query`, `table_contents`, `count_rows`, `search_tables`, `foreign_keys` | V | Igual |
 | Diagnóstico: dumps, mensajes, jobs, SLG1, gateway, notas, ampliaciones | Parcial | `dumps`, `diagnose_message`, `jobs`, `application_log`, `gateway_errors`, `sap_notes`, `enhancements` | V | Igual |
