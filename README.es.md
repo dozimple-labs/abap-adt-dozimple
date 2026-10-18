@@ -182,7 +182,7 @@ la **[referencia completa](docs/TOOLS.md)**.
 | [`application_log`](docs/TOOLS.md#diagnostico) | **Log de aplicación (SLG1), cabeceras.** Cabeceras del log de aplicación (BALHDR) por objeto/subobjeto, nº externo, usuario y fecha, con el recuento de errores y avisos. | lectura |
 | [`gateway_errors`](docs/TOOLS.md#diagnostico) | **Errores de SAP Gateway (/IWFND/ERROR_LOG).** Lista los errores del log de SAP Gateway (servicios OData): servicio, error, usuario, fecha. | lectura |
 | [`abap_traces`](docs/TOOLS.md#diagnostico) | **Trazas ABAP (SAT).** Trazas de rendimiento ABAP (SAT) ya grabadas en el sistema: lista las del usuario (o de otro) con tiempos de ABAP, sistema y base de datos; con trace=<id> muestra la hit list (qué consume tiempo), los accesos a base de datos o las sentencias. | lectura |
-| [`sql_traces`](docs/TOOLS.md#diagnostico) | **Trazas SQL (ST05).** Directorio y estado de las trazas SQL de ST05 que expone ADT (S/4HANA y NW ≥ 7.51): qué trazas hay, de quién, cuándo y si la grabación está activa. | lectura |
+| [`sql_traces`](docs/TOOLS.md#diagnostico) | **Trazas SQL (ST05).** Estado de la traza de ST05 por instancia (SQL, buffer, enqueue, RFC, HTTP: activa o no, quién la cambió y con qué filtro) y el enlace a la app de análisis, por ADT en S/4HANA y NW ≥ 7.51. | lectura |
 | [`system_messages`](docs/TOOLS.md#diagnostico) | **Mensajes de sistema (SM02).** Mensajes de sistema de SM02 (aviso de parada, mantenimiento…): texto, mandante, servidor, vigencia y quién lo creó, leídos de la tabla TEMSG. | lectura |
 
 <a id="g-depuracion"></a>

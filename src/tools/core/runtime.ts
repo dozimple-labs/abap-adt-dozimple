@@ -79,6 +79,18 @@ const abapTraces = defineTool({
   },
 });
 
+/** Elementos hoja con texto de un XML (<ts:sqlOn>false</ts:sqlOn>): nombre sin prefijo → texto. Agrupa por elemento contenedor repetido. */
+export function xmlLeafGroups(xml: string, groupTag: string): Array<Record<string, string>> {
+  const groups: Array<Record<string, string>> = [];
+  const re = new RegExp(`<(?:[\\w-]+:)?${groupTag}(?:\\s[^>]*)?>([\\s\\S]*?)</(?:[\\w-]+:)?${groupTag}>`, "g");
+  for (const g of xml.matchAll(re)) {
+    const leaf: Record<string, string> = {};
+    for (const m of g[1].matchAll(/<(?:[\w-]+:)?([\w-]+)(?:\s[^>]*)?>([^<]*)<\/(?:[\w-]+:)?\1>/g)) leaf[m[1]] = decodeEntities(m[2]).trim();
+    groups.push(leaf);
+  }
+  return groups;
+}
+
 /** Elementos con atributos de un XML cuyo esquema no conocemos de antemano: una fila por elemento. */
 export function xmlRows(xml: string): Array<{ tag: string; attrs: Record<string, string> }> {
   const out: Array<{ tag: string; attrs: Record<string, string> }> = [];
@@ -94,9 +106,9 @@ const sqlTraces = defineTool({
   name: "sql_traces",
   title: "Trazas SQL (ST05)",
   description:
-    "Directorio y estado de las trazas SQL de ST05 que expone ADT (S/4HANA y NW ≥ 7.51): qué trazas hay, de quién, " +
-    "cuándo y si la grabación está activa. Solo lectura: no activa ni desactiva la traza. En ECC 7.50 no existe el " +
-    "endpoint y la tool lo dice.",
+    "Estado de la traza de ST05 por instancia (SQL, buffer, enqueue, RFC, HTTP: activa o no, quién la cambió y con " +
+    "qué filtro) y el enlace a la app de análisis, por ADT en S/4HANA y NW ≥ 7.51. Solo lectura: no activa ni " +
+    "desactiva la traza. En ECC 7.50 no existe y la tool lo dice.",
   access: "read",
   requires: { adt: ["/sap/bc/adt/st05/trace/directory"] },
   input: {
@@ -105,14 +117,25 @@ const sqlTraces = defineTool({
   },
   async run({ show, top }, { sap, system }) {
     const c = await sap.adt();
-    const path = show === "state" ? "/sap/bc/adt/st05/trace/state" : "/sap/bc/adt/st05/trace/directory";
-    const r = await c.httpClient.request(path, { method: "GET", headers: { Accept: "application/xml, */*" } });
-    const rows = xmlRows(String(r.body));
-    if (!rows.length) return `${system.id}: ST05 respondió sin elementos en ${show} (respuesta vacía o sin atributos).`;
-    const cols = [...new Set(rows.flatMap((x) => Object.keys(x.attrs)))].slice(0, 14);
-    const shown = rows.slice(0, top);
-    return `ST05 ${show} en ${system.id}: ${rows.length} elementos${rows.length > top ? ` (se muestran ${top})` : ""}\n\n` +
-      tsv(["elemento", ...cols], shown.map((x) => [x.tag, ...cols.map((k) => x.attrs[k] ?? "")]));
+    const get = async (path: string) => String((await c.httpClient.request(path, { method: "GET", headers: { Accept: "application/xml, */*" } })).body);
+    if (show === "directory") {
+      // Verificado en un S/4 758: el directorio no lista trazas, solo el enlace a la app Fiori de análisis.
+      const xml = await get("/sap/bc/adt/st05/trace/directory");
+      const link = /<(?:\w+:)?uri>([^<]*)<\/(?:\w+:)?uri>/.exec(xml)?.[1];
+      const rows = xmlRows(xml);
+      if (link) return `ST05 en ${system.id}: ADT no lista las trazas grabadas; las analiza la app «SQL Trace Analysis»:\n${decodeEntities(link)}\nEl estado de la grabación por instancia: sql_traces(show="state").`;
+      if (!rows.length) return `${system.id}: ST05 respondió sin trazas ni enlace en el directorio.`;
+      const cols = [...new Set(rows.flatMap((x) => Object.keys(x.attrs)))].slice(0, 14);
+      return `ST05 directorio en ${system.id}: ${rows.length} elementos\n\n` + tsv(["elemento", ...cols], rows.slice(0, top).map((x) => [x.tag, ...cols.map((k) => x.attrs[k] ?? "")]));
+    }
+    const xml = await get("/sap/bc/adt/st05/trace/state");
+    const inst = xmlLeafGroups(xml, "traceStateInstance");
+    if (!inst.length) return `${system.id}: ST05 respondió sin instancias en el estado.`;
+    const on = (i: Record<string, string>) => ["sqlOn", "bufOn", "enqOn", "rfcOn", "httpOn", "apcOn", "amcOn", "authOn"].filter((k) => i[k] === "true").map((k) => k.replace(/On$/, "").toUpperCase());
+    const filt = (i: Record<string, string>) => ["traceUser", "transactionCode", "program", "rfcFunction", "url", "wpId"].filter((k) => i[k]).map((k) => `${k}=${i[k]}`).join(" ");
+    const rows = inst.slice(0, top).map((i) => [i.instance ?? "", i.host ?? "", on(i).join(",") || "ninguna", i.modificationUser || "", i.modificationDateTime || "", filt(i) || "sin filtro"]);
+    const active = inst.filter((i) => on(i).length).length;
+    return `ST05 en ${system.id}: ${inst.length} instancias, ${active} con traza activa\n\n` + tsv(["instancia", "host", "trazas activas", "cambiado por", "cuándo", "filtro"], rows);
   },
 });
 

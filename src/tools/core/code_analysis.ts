@@ -80,8 +80,10 @@ async function analyzeScope(ctx: ToolContext, a: { package?: string; include_sub
   const scopes = [a.package, a.objects?.length ? "x" : undefined].filter(Boolean).length;
   if (scopes !== 1) throw new ToolError("INPUT", "Indica exactamente un alcance: package u objects.");
   const { sap } = ctx;
-  const scope = await scopeRefs(sap, { package: a.package, include_subpackages: a.include_subpackages, objects: a.objects }, a.max_objects);
-  const refs = onlyClasses ? scope.refs.filter((r) => r.types.some((t) => t.startsWith("CLAS"))) : scope.refs;
+  // Solo clases: el tope se aplica a las clases, no al alcance completo (si no, 60 objetos podían contener 2 clases).
+  const scope = await scopeRefs(sap, { package: a.package, include_subpackages: a.include_subpackages, objects: a.objects }, onlyClasses ? 5000 : a.max_objects);
+  const classes = onlyClasses ? scope.refs.filter((r) => r.types.some((t) => t.startsWith("CLAS"))) : scope.refs;
+  const refs = classes.slice(0, a.max_objects);
   const c = await sap.adt();
   const parsed = new Map<string, { type: string; p: ParsedAbap }>();
   const skipped: Array<{ object: string; reason: string }> = [];
@@ -109,7 +111,7 @@ async function analyzeScope(ctx: ToolContext, a: { package?: string; include_sub
       ctx.progress?.(`${++done} de ${refs.length} objetos analizados`, done, refs.length);
     }
   });
-  return { parsed, skipped, label: scope.label, total: onlyClasses ? refs.length : scope.total, truncated: scope.total > scope.refs.length };
+  return { parsed, skipped, label: scope.label, total: onlyClasses ? classes.length : scope.total, truncated: onlyClasses ? classes.length > refs.length : scope.total > scope.refs.length };
 }
 
 const EDGE = z.object({ from: z.string(), to: z.string(), kind: z.enum(["table", "function", "class", "include", "form"]), internal: z.boolean() });

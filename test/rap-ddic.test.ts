@@ -104,7 +104,7 @@ describe("write_ddic_properties", () => {
     const { ctx, set } = setup("DOMA/DD", "/sap/bc/adt/ddic/domains", true);
     const args = { object_type: "DOMA", name: "ZDO_DEMO", properties: DOMA, transport: "DEVK900123", activate: true };
     const p: any = await wprops.preview!(args, ctx());
-    expect(p.text).toMatch(/Ahora: CHAR 5[\s\S]*Nuevo: CHAR 10[\s\S]*Cambio de propiedades: \+/);
+    expect(p.text).toMatch(/Ahora: CHAR 5[\s\S]*Nuevo: CHAR 10[\s\S]*Cambio de propiedades: \+[\s\S]*-\s+"length": 5[\s\S]*\+\s+"length": 10/);
     const r: any = await wprops.run(args, ctx(p.state));
     expect(r.isError).toBe(false);
     expect(set[0][0]).toBe("DOMA");

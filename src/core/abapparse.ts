@@ -119,7 +119,9 @@ export function parseAbap(name: string, type: string, source: string): ParsedAba
     if (kind === "Unknown") unknown++;
     if (OPEN.has(kind)) maxNesting = Math.max(maxNesting, ++depth);
     if (CLOSE.has(kind) && depth > 0) depth--;
-    for (const t of all(s, E.DatabaseTable)) if (/^[A-Za-z/]/.test(t)) tables.add(t.toUpperCase());
+    const stmt = s.concatTokens();
+    // «SELECT … FROM @lt_itab» (7.52+): la fuente es una tabla interna, no una tabla de base de datos.
+    for (const t of all(s, E.DatabaseTable)) if (/^[A-Za-z/]/.test(t) && !new RegExp(`@${t.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&")}\\b`, "i").test(stmt)) tables.add(t.toUpperCase());
     for (const f of all(s, E.FunctionName)) if (/^'.*'$/.test(f)) functions.add(f.slice(1, -1).toUpperCase());
     for (const c of all(s, E.ClassName)) if (!own.has(c.toUpperCase())) usedClasses.add(c.toUpperCase());
     // «TYPE REF TO zcl_x» es una referencia a clase aunque abaplint la tipe como nombre de tipo.

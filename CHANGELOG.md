@@ -4,6 +4,15 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Unreleased]
 
+### Corregido
+- **`sql_traces` con la forma real de ST05 en un S/4 758**: el directorio solo trae el enlace a la app «SQL Trace Analysis»
+  (se muestra) y el estado viene por instancia como elementos con texto: ahora lista instancia, host, trazas activas
+  (SQL, buffer, enqueue, RFC, HTTP…), quién la cambió y el filtro. Verificado en vivo.
+- **`write_ddic_properties` mostraba el diff de propiedades vacío** (las claves anidadas se perdían al serializar):
+  ahora se ordenan a todos los niveles. Verificado en vivo la lectura de propiedades de un dominio en 758.
+- `package_dependencies` y `code_structure` ya no cuentan `SELECT … FROM @itab` como tabla de base de datos;
+  `unused_methods` aplica el tope sobre las clases del paquete, no sobre todos sus objetos.
+
 ## [2.0.1] - 2026-10-18
 
 Correcciones de la primera verificación en vivo de la 2.0 contra un NW 7.50: depurador (cierre, puntos de parada), mensajes

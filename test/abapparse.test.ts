@@ -57,6 +57,10 @@ describe("parseAbap", () => {
     expect(p.metrics.statements).toBeGreaterThan(20);
     expect(p.unusedMethods).toEqual([{ class: "ZCL_DEMO", method: "HOOK", visibility: "protected" }, { class: "ZCL_DEMO", method: "UNUSED_ONE", visibility: "private" }]);
   });
+  it("SELECT FROM @itab no cuenta como tabla de base de datos", () => {
+    const q = parseAbap("ZDEMO", "PROG/P", "REPORT zdemo.\nSELECT * FROM @lt_fieldcat AS f INTO TABLE @DATA(lt).\nSELECT * FROM mara INTO TABLE @DATA(lm).");
+    expect(q.references.tables).toEqual(["MARA"]);
+  });
   it("un programa con forms y PERFORM", () => {
     const q = parseAbap("ZDEMO", "PROG/P", "REPORT zdemo.\nPERFORM init.\nSELECT * FROM t000 INTO TABLE @DATA(lt).\nFORM init.\nENDFORM.\nFORM nunca.\nENDFORM.");
     expect(q.symbols.forms).toEqual(["INIT", "NUNCA"]);

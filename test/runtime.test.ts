@@ -33,10 +33,14 @@ describe("sql_traces y xmlRows", () => {
     const rows = xmlRows('<st05:directory xmlns:st05="x"><st05:trace id="1" user="DEMO_USER" state="active &amp; running"/><st05:trace id="2" user="OTRO"/></st05:directory>');
     expect(rows).toEqual([{ tag: "trace", attrs: { id: "1", user: "DEMO_USER", state: "active & running" } }, { tag: "trace", attrs: { id: "2", user: "OTRO" } }]);
   });
-  it("muestra el directorio como tabla y avisa si viene vacío", async () => {
+  it("directorio = enlace a la app de análisis; estado por instancia con trazas activas y filtro (forma real de un 758)", async () => {
     const mk = (body: string) => ({ sap: { adt: async () => ({ httpClient: { request: async () => ({ body }) } }) }, system: sys }) as any;
-    expect(String(await sqlTraces.run({ show: "directory", top: 50 }, mk('<d><trace id="1" user="U"/></d>')))).toMatch(/1 elementos[\s\S]*trace\t1\tU/);
-    expect(String(await sqlTraces.run({ show: "state", top: 50 }, mk("<state/>")))).toMatch(/sin elementos/);
+    const dir = '<?xml version="1.0"?><td:traceDirectory xmlns:td="x"><td:uri>https://host:44300/ui#ABAPSystem-display?sap-client=100&amp;/domain_id=AS_ABAP</td:uri></td:traceDirectory>';
+    expect(String(await sqlTraces.run({ show: "directory", top: 50 }, mk(dir)))).toMatch(/app «SQL Trace Analysis»[\s\S]*sap-client=100&\/domain_id=AS_ABAP/);
+    const state = '<ts:traceStateInstanceTable xmlns:ts="x"><ts:traceStateInstance><ts:instance>host_DS4_00</ts:instance><ts:host>host</ts:host><ts:modificationUser>BASIS</ts:modificationUser><ts:modificationDateTime>2026-10-13T02:29:31Z</ts:modificationDateTime><ts:traceTypes><ts:sqlOn>true</ts:sqlOn><ts:bufOn>false</ts:bufOn><ts:rfcOn>true</ts:rfcOn></ts:traceTypes><ts:traceFilter><ts:traceUser>DEMO_USER</ts:traceUser><ts:program/></ts:traceFilter></ts:traceStateInstance></ts:traceStateInstanceTable>';
+    const r = String(await sqlTraces.run({ show: "state", top: 50 }, mk(state)));
+    expect(r).toMatch(/1 instancias, 1 con traza activa[\s\S]*host_DS4_00\thost\tSQL,RFC\tBASIS\t2026-10-13T02:29:31Z\ttraceUser=DEMO_USER/);
+    expect(String(await sqlTraces.run({ show: "state", top: 50 }, mk("<state/>")))).toMatch(/sin instancias/);
   });
 });
 

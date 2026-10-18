@@ -1001,7 +1001,7 @@ Trazas de rendimiento ABAP (SAT) ya grabadas en el sistema: lista las del usuari
 
 ### `sql_traces` — Trazas SQL (ST05)
 
-Directorio y estado de las trazas SQL de ST05 que expone ADT (S/4HANA y NW ≥ 7.51): qué trazas hay, de quién, cuándo y si la grabación está activa. Solo lectura: no activa ni desactiva la traza. En ECC 7.50 no existe el endpoint y la tool lo dice.
+Estado de la traza de ST05 por instancia (SQL, buffer, enqueue, RFC, HTTP: activa o no, quién la cambió y con qué filtro) y el enlace a la app de análisis, por ADT en S/4HANA y NW ≥ 7.51. Solo lectura: no activa ni desactiva la traza. En ECC 7.50 no existe y la tool lo dice.
 
 | | |
 |---|---|
