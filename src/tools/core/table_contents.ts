@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { guardedQuery } from "../../core/datapolicy.js";
+import { guardedQuery, readPreview } from "../../core/datapolicy.js";
 import { ToolError } from "../../core/errors.js";
 import { tsv } from "../../core/output.js";
 import { defineTool } from "../../core/tool.js";
@@ -48,6 +48,22 @@ export function assertSafeFragment(frag: string, label: string): void {
   if (depth !== 0) fail("paréntesis sin cerrar");
 }
 
+/** SELECT de la tool, validado por lista blanca; lo usan la vista previa y la ejecución. */
+export function buildSql(a: { table: string; columns?: string[]; where?: string; order_by?: string }): string {
+  const t = a.table.trim().toUpperCase();
+  if (!NAME_RE.test(t)) throw new ToolError("INPUT", `Nombre de tabla inválido: ${a.table}`);
+  const cols = a.columns?.map((c) => c.trim().toUpperCase()) ?? [];
+  for (const c of cols) if (!NAME_RE.test(c)) throw new ToolError("INPUT", `Columna inválida: ${c}`);
+  if (a.where) assertSafeFragment(a.where, "where");
+  if (a.order_by) {
+    assertSafeFragment(a.order_by, "order_by");
+    if (!/^[A-Za-z0-9_/~]+(\s+(asc|desc))?(\s*,\s*[A-Za-z0-9_/~]+(\s+(asc|desc))?)*$/i.test(a.order_by.trim())) {
+      throw new ToolError("INPUT", "order_by: columnas separadas por coma, con ASC/DESC opcional.");
+    }
+  }
+  return `SELECT ${cols.length ? cols.join(", ") : "*"} FROM ${t}` + (a.where ? ` WHERE ${a.where}` : "") + (a.order_by ? ` ORDER BY ${a.order_by}` : "");
+}
+
 export default defineTool({
   name: "table_contents",
   title: "Contenido de una tabla",
@@ -55,6 +71,7 @@ export default defineTool({
     "Filas de una tabla, vista o CDS, con columnas y filtro opcionales. Atajo de sql_query para el caso típico " +
     "«enséñame lo que hay en ZTABLA donde …». Para JOIN, subconsultas o agregados usa sql_query.",
   access: "read",
+  confirmReads: true,
   input: {
     table: z.string().min(1),
     columns: z.array(z.string()).optional().describe("Columnas; por defecto todas"),
@@ -62,22 +79,12 @@ export default defineTool({
     order_by: z.string().optional(),
     max_rows: z.number().int().min(1).max(5000).default(100),
   },
+  async preview(a, { system }) {
+    return readPreview(system, buildSql(a), a.max_rows);
+  },
   async run({ table, columns, where, order_by, max_rows }, { sap, system }) {
     const t = table.trim().toUpperCase();
-    if (!NAME_RE.test(t)) throw new ToolError("INPUT", `Nombre de tabla inválido: ${table}`);
-    const cols = columns?.map((c) => c.trim().toUpperCase()) ?? [];
-    for (const c of cols) if (!NAME_RE.test(c)) throw new ToolError("INPUT", `Columna inválida: ${c}`);
-    if (where) assertSafeFragment(where, "where");
-    if (order_by) {
-      assertSafeFragment(order_by, "order_by");
-      if (!/^[A-Za-z0-9_/~]+(\s+(asc|desc))?(\s*,\s*[A-Za-z0-9_/~]+(\s+(asc|desc))?)*$/i.test(order_by.trim())) {
-        throw new ToolError("INPUT", "order_by: columnas separadas por coma, con ASC/DESC opcional.");
-      }
-    }
-    const sql =
-      `SELECT ${cols.length ? cols.join(", ") : "*"} FROM ${t}` +
-      (where ? ` WHERE ${where}` : "") +
-      (order_by ? ` ORDER BY ${order_by}` : "");
+    const sql = buildSql({ table, columns, where, order_by });
     const r = await guardedQuery(sap, system, sql, max_rows);
     if (!r.values.length) return `${t}: la consulta se ejecutó y no devolvió filas${where ? " con ese filtro" : ""}.`;
     return `${t}: ${r.values.length} filas\n\n${tsv(r.columns, r.values.map((v) => r.columns.map((n) => v[n])))}${r.notes.length ? `\n\n${r.notes.join("\n")}` : ""}`;

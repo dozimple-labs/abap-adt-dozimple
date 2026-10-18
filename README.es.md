@@ -294,6 +294,10 @@ Diseñado para poder presentarse ante Seguridad y Basis sin excepciones. Detalle
 - **Material de credenciales y datos de personal de SAP bloqueados** en las consultas SQL, también a través de vistas
   y CDS, aunque el usuario tenga autorización.
 - **Datos personales enmascarados y tope de filas** en sistemas con datos productivos.
+- **SQL libre analizado, no por patrones**: FROM, JOIN, subconsultas y CTE se resuelven a tablas base; una consulta
+  cuyas fuentes no se puedan determinar (variables host, fuentes dinámicas) se rechaza. En sistemas con datos
+  productivos `sql_query` y `table_contents` leen en dos pasos: vista previa de tablas y tope, y confirmación humana,
+  como una escritura.
 - **Nada de datos del cliente hacia internet:** la búsqueda online de documentación está apagada por defecto y,
   si se habilita, se filtra toda consulta con objetos, órdenes, sistemas, usuarios o nombres de cliente.
 - **Terceros aislados** en su propio proceso y con entorno mínimo.

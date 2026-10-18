@@ -83,6 +83,11 @@ export interface ToolDef<S extends ZodRawShape = ZodRawShape> {
    * se puede desactivar); las exec tienen que declararlo expresamente: un test falla si una exec no lo decide.
    */
   confirm?: boolean;
+  /**
+   * Tool de lectura de datos de negocio: en sistemas con datos productivos (dataClass prod y confirmProdReads) pide
+   * confirmación con vista previa, igual que una escritura, y queda en el registro de auditoría con quién confirmó.
+   */
+  confirmReads?: boolean;
   /** Tiempo máximo de una ejecución (por defecto 60 s). Las lentas (ATC, where-used, diff) declaran el suyo. */
   timeoutMs?: number;
   /**

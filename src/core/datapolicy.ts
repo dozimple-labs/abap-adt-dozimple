@@ -1,6 +1,7 @@
 import type { SystemConfig } from "./config.js";
 import type { SapConnection } from "./connection.js";
-import { noteDataRead, tablesOf } from "./datareads.js";
+import { noteDataRead } from "./datareads.js";
+import { parseSources } from "./sqlparse.js";
 import { normalizeError, ToolError } from "./errors.js";
 import { adtPathName, sqlLiteral } from "./objects.js";
 import { assertNotSensitive, assertSelectOnly, rejectSensitive, SENSITIVE_COLUMNS, sensitiveHits, sqlWords } from "./policy.js";
@@ -109,10 +110,11 @@ const deepCache = new WeakMap<object, Map<string, string[]>>();
  * resuelve hasta 3 niveles: vistas de base de datos y de mantenimiento por
  * DD26S; CDS por DDLDEPENDENCY + palabras de su fuente DDL.
  */
-export async function assertNoSensitiveViews(sap: SapConnection, sql: string, depth = 3): Promise<void> {
+export async function assertNoSensitiveViews(sap: SapConnection, sql: string, depth = 3, names?: string[]): Promise<void> {
   let cache = deepCache.get(sap);
   if (!cache) deepCache.set(sap, (cache = new Map()));
-  let frontier = candidateNames(sql).filter((n) => !cache.has(n));
+  const roots = names ?? candidateNames(sql);
+  let frontier = roots.filter((n) => !cache.has(n));
   const origin = new Map<string, string>(); // nombre descubierto → nombre de la consulta que lo arrastra
   for (const n of frontier) origin.set(n, n);
 
@@ -177,7 +179,7 @@ export async function assertNoSensitiveViews(sap: SapConnection, sql: string, de
     frontier = next;
   }
   // Solo se recuerdan como limpios los nombres de la consulta: si algo hubiera saltado, ya habríamos lanzado.
-  for (const n of candidateNames(sql)) cache.set(n, []);
+  for (const n of roots) cache.set(n, []);
 }
 
 export interface GuardedResult {
@@ -188,11 +190,30 @@ export interface GuardedResult {
   notes: string[];
 }
 
-/** Toda consulta de datos del usuario pasa por aquí: veto, vistas, tope y enmascarado. */
+/**
+ * Vista previa de una lectura en un sistema con datos productivos: qué tablas, con qué tope y qué política, sin
+ * ejecutar nada. Es lo que la persona confirma antes de que sql_query o table_contents lean.
+ */
+export function readPreview(system: SystemConfig, sql: string, requestedRows: number): string {
+  const q = assertSelectOnly(sql);
+  assertNotSensitive(q);
+  const src = parseSources(q);
+  const cap = Math.min(requestedRows, rowCap(system));
+  return (
+    `Lectura de datos en ${system.id} (datos ${dataClassOf(system)}): ${src.tables.join(", ") || "sin tablas"}` +
+    `${src.ctes.length ? ` · CTE ${src.ctes.join(", ")}` : ""} · hasta ${cap} filas · columnas personales enmascaradas.\n` +
+    `Consulta: ${q.replace(/\s+/g, " ").slice(0, 600)}`
+  );
+}
+
+/** Toda consulta de datos del usuario pasa por aquí: análisis de fuentes, veto, vistas, tope y enmascarado. */
 export async function guardedQuery(sap: SapConnection, system: SystemConfig, sql: string, requestedRows: number): Promise<GuardedResult> {
   const q = assertSelectOnly(sql);
   assertNotSensitive(q);
-  await assertNoSensitiveViews(sap, q);
+  // Las fuentes se determinan por la estructura (FROM, JOIN, subconsultas, CTE); si no se pueden, no se ejecuta.
+  const src = parseSources(q);
+  rejectSensitive(sensitiveHits(src.tables));
+  await assertNoSensitiveViews(sap, q, 3, src.tables);
   const cls = dataClassOf(system);
   const cap = Math.min(requestedRows, rowCap(system));
   const r = await sap.query(q, cap);
@@ -212,7 +233,7 @@ export async function guardedQuery(sap: SapConnection, system: SystemConfig, sql
   if (masked.length) notes.push(`Columnas personales enmascaradas (sistema con datos ${cls === "prod" ? "productivos" : "enmascarados"}): ${masked.join(", ")}.`);
   const capped = r.values.length >= cap;
   // Queda en el registro de auditoría qué se leyó (tablas, columnas enmascaradas, filas), nunca qué valores.
-  noteDataRead({ tables: tablesOf(q), maskedColumns: masked, rows: r.values.length, capped });
+  noteDataRead({ tables: src.tables, maskedColumns: masked, rows: r.values.length, capped });
   if (capped) {
     notes.push(
       cap < requestedRows
