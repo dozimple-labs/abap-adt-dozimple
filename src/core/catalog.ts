@@ -109,6 +109,9 @@ export const GROUPS: Group[] = [
       { name: "count_rows", credits: ["abapilot"] },
       { name: "search_tables", credits: ["abapilot"] },
       { name: "foreign_keys", credits: ["abapilot"] },
+      { name: "elevate_access", credits: [] },
+      { name: "elevation_status", credits: [] },
+      { name: "revoke_access", credits: [] },
     ],
   },
   {

@@ -13,7 +13,9 @@
       "allowWrite": false,
       "modules": [],
       "$comment_targets": "Con el módulo dz-transport-risk: SIDs de calidad y productivo que edit_preflight compara con DEV",
-      "targets": []
+      "targets": [],
+      "$comment_elevation": "Acceso elevado: categorías que se pueden elevar aquí (SEG_ROLES, HCM_MAESTRO, HCM_NOMINA, PERSONAS_NEGOCIO; por defecto todas en DEV/QAS y solo SEG_ROLES y PERSONAS_NEGOCIO en PRD) y máximo de minutos por elevación",
+      "elevation": { "allowed": ["SEG_ROLES", "HCM_MAESTRO", "PERSONAS_NEGOCIO"], "maxMinutes": 60 }
     },
     {
       "id": "MI_PRD",

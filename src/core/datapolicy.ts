@@ -1,10 +1,11 @@
 import type { SystemConfig } from "./config.js";
 import type { SapConnection } from "./connection.js";
 import { noteDataRead } from "./datareads.js";
+import { BLOCKING, categorize, CATEGORY_LABEL, isElevated, type Elevable } from "./elevation.js";
 import { parseSources } from "./sqlparse.js";
 import { normalizeError, ToolError } from "./errors.js";
 import { adtPathName, sqlLiteral } from "./objects.js";
-import { assertNotSensitive, assertSelectOnly, rejectSensitive, SENSITIVE_COLUMNS, sensitiveHits, sqlWords } from "./policy.js";
+import { assertSelectOnly, rejectSensitive, SENSITIVE_COLUMNS, sensitiveHits, sqlWords } from "./policy.js";
 
 /**
  * Gobierno de los datos de negocio que devuelven sql_query y table_contents.
@@ -108,17 +109,22 @@ const deepCache = new WeakMap<object, Map<string, string[]>>();
 /**
  * Una vista (DD26S) o una entidad CDS puede leer USR02 sin nombrarla. Se
  * resuelve hasta 3 niveles: vistas de base de datos y de mantenimiento por
- * DD26S; CDS por DDLDEPENDENCY + palabras de su fuente DDL.
+ * DD26S; CDS por DDLDEPENDENCY + palabras de su fuente DDL. Devuelve todos los nombres examinados (los de la
+ * consulta y las tablas base descubiertas) para clasificarlos. Con allowHr, los datos de personal no se rechazan
+ * aquí: los decide el acceso elevado en guardedQuery.
  */
-export async function assertNoSensitiveViews(sap: SapConnection, sql: string, depth = 3, names?: string[]): Promise<void> {
+export async function assertNoSensitiveViews(sap: SapConnection, sql: string, depth = 3, names?: string[], allowHr = false): Promise<Set<string>> {
   let cache = deepCache.get(sap);
   if (!cache) deepCache.set(sap, (cache = new Map()));
   const roots = names ?? candidateNames(sql);
+  const seen = new Set<string>(roots.map((n) => n.toUpperCase()));
+  for (const n of roots) for (const base of cache.get(n) ?? []) seen.add(base);
   let frontier = roots.filter((n) => !cache.has(n));
   const origin = new Map<string, string>(); // nombre descubierto → nombre de la consulta que lo arrastra
   for (const n of frontier) origin.set(n, n);
 
   let examined = frontier.length;
+  const discovered = new Map<string, string[]>(); // nombre de la consulta → tablas base que arrastra
   for (let level = 0; level < depth && frontier.length; level++) {
     const found = new Map<string, Set<string>>(); // nombre → nombres base
     const add = (parent: string, child: string) => {
@@ -164,8 +170,11 @@ export async function assertNoSensitiveViews(sap: SapConnection, sql: string, de
     for (const [parent, children] of found) {
       const root = origin.get(parent) ?? parent;
       const hits = sensitiveHits(children);
-      if (hits.secrets.length || hits.hr.length) rejectSensitive(hits, `${root}${root !== parent ? ` → ${parent}` : ""}`);
+      if (hits.secrets.length || (hits.hr.length && !allowHr)) rejectSensitive(allowHr ? { secrets: hits.secrets, hr: [] } : hits, `${root}${root !== parent ? ` → ${parent}` : ""}`);
       for (const ch of children) {
+        seen.add(ch);
+        const r = origin.get(parent) ?? parent;
+        if (r !== ch) discovered.set(r, [...(discovered.get(r) ?? []), ch]);
         if (!origin.has(ch) && !cache.has(ch)) {
           origin.set(ch, root);
           next.push(ch);
@@ -178,8 +187,9 @@ export async function assertNoSensitiveViews(sap: SapConnection, sql: string, de
     }
     frontier = next;
   }
-  // Solo se recuerdan como limpios los nombres de la consulta: si algo hubiera saltado, ya habríamos lanzado.
-  for (const n of roots) cache.set(n, []);
+  // Se recuerdan los nombres de la consulta con sus tablas base: la clasificación de la próxima vez no consulta SAP.
+  for (const n of roots) cache.set(n, [...new Set(discovered.get(n) ?? [])]);
+  return seen;
 }
 
 export interface GuardedResult {
@@ -196,25 +206,49 @@ export interface GuardedResult {
  */
 export function readPreview(system: SystemConfig, sql: string, requestedRows: number): string {
   const q = assertSelectOnly(sql);
-  assertNotSensitive(q);
+  rejectSensitive({ secrets: sensitiveHits(sqlWords(q)).secrets, hr: [] });
   const src = parseSources(q);
   const cap = Math.min(requestedRows, rowCap(system));
+  const cats = [...categorize(src.tables)].map(([c, t]) => `${c} (${t.join(", ")})`);
   return (
     `Lectura de datos en ${system.id} (datos ${dataClassOf(system)}): ${src.tables.join(", ") || "sin tablas"}` +
-    `${src.ctes.length ? ` · CTE ${src.ctes.join(", ")}` : ""} · hasta ${cap} filas · columnas personales enmascaradas.\n` +
+    `${src.ctes.length ? ` · CTE ${src.ctes.join(", ")}` : ""} · hasta ${cap} filas · columnas personales enmascaradas` +
+    `${cats.length ? ` · categorías: ${cats.join("; ")}` : ""}.\n` +
     `Consulta: ${q.replace(/\s+/g, " ").slice(0, 600)}`
   );
 }
 
-/** Toda consulta de datos del usuario pasa por aquí: análisis de fuentes, veto, vistas, tope y enmascarado. */
+/** Categorías protegidas de la consulta frente a las elevaciones vigentes: bloquea lo no elevado y anota lo elevado. */
+export function assertElevations(system: SystemConfig, names: Iterable<string>): { categories: string[]; elevated: Elevable[] } {
+  const cats = categorize(names);
+  const elevated: Elevable[] = [];
+  for (const c of BLOCKING) {
+    const tables = cats.get(c);
+    if (!tables) continue;
+    if (isElevated(system.id, c)) elevated.push(c);
+    else {
+      throw new ToolError(
+        "POLICY",
+        `Consulta bloqueada: ${tables.join(", ")} ${tables.length > 1 ? "son" : "es"} de la categoría ${c} (${CATEGORY_LABEL[c]}) y ${system.id} no tiene esa elevación vigente.`,
+        `Si procede, pide elevate_access(system="${system.id}", category="${c}", minutes, reason) y, tras la conformidad del usuario, repite la consulta. SECRETOS no se eleva nunca.`,
+      );
+    }
+  }
+  if (isElevated(system.id, "PERSONAS_NEGOCIO")) elevated.push("PERSONAS_NEGOCIO");
+  return { categories: [...cats.keys()], elevated };
+}
+
+/** Toda consulta de datos del usuario pasa por aquí: análisis de fuentes, veto, vistas, categorías, tope y enmascarado. */
 export async function guardedQuery(sap: SapConnection, system: SystemConfig, sql: string, requestedRows: number): Promise<GuardedResult> {
   const q = assertSelectOnly(sql);
-  assertNotSensitive(q);
+  // SECRETOS (contraseñas, almacén seguro, dumps) se veta por nombre en toda la consulta, también como columna.
+  rejectSensitive({ secrets: sensitiveHits(sqlWords(q)).secrets, hr: [] });
   // Las fuentes se determinan por la estructura (FROM, JOIN, subconsultas, CTE); si no se pueden, no se ejecuta.
   const src = parseSources(q);
-  rejectSensitive(sensitiveHits(src.tables));
-  await assertNoSensitiveViews(sap, q, 3, src.tables);
-  const cls = dataClassOf(system);
+  const all = await assertNoSensitiveViews(sap, q, 3, src.tables, true);
+  // Categorías protegidas (seguridad, HCM): solo con elevación vigente; PERSONAS_NEGOCIO elevada quita el enmascarado.
+  const elev = assertElevations(system, all);
+  const cls = elev.elevated.includes("PERSONAS_NEGOCIO") ? "test" : dataClassOf(system);
   const cap = Math.min(requestedRows, rowCap(system));
   const r = await sap.query(q, cap);
   const columns = r.columns.map((c) => c.name);
@@ -231,9 +265,10 @@ export async function guardedQuery(sap: SapConnection, system: SystemConfig, sql
   const notes: string[] = [];
   const masked = maskPii(cls, q, columns, r.values, system.piiColumns ?? []);
   if (masked.length) notes.push(`Columnas personales enmascaradas (sistema con datos ${cls === "prod" ? "productivos" : "enmascarados"}): ${masked.join(", ")}.`);
+  if (elev.elevated.length) notes.push(`Lectura con acceso elevado (${elev.elevated.join(", ")}): queda anotada en el registro de auditoría.`);
   const capped = r.values.length >= cap;
-  // Queda en el registro de auditoría qué se leyó (tablas, columnas enmascaradas, filas), nunca qué valores.
-  noteDataRead({ tables: src.tables, maskedColumns: masked, rows: r.values.length, capped });
+  // Queda en el registro de auditoría qué se leyó (tablas, columnas enmascaradas, filas, categorías), nunca qué valores.
+  noteDataRead({ tables: src.tables, maskedColumns: masked, rows: r.values.length, capped, categories: elev.categories, elevated: elev.elevated });
   if (capped) {
     notes.push(
       cap < requestedRows

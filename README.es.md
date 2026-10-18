@@ -58,7 +58,7 @@ El agente elige las tools, las encadena y responde con evidencia. Cada respuesta
 | [Revisión de código y pases](#g-revision) | Saber qué cambia de verdad una orden y qué puede romper, antes de liberarla. | 6 |
 | [Calidad, ATC y remediación](#g-calidad) | Encontrar, entender y corregir hallazgos con la sintaxis y las correcciones reales de SAP. | 6 |
 | [Exploración del repositorio](#g-exploracion) | Leer y entender cualquier objeto ABAP y sus relaciones, en ECC y en S/4HANA. | 17 |
-| [Consulta de datos](#g-datos) | Preguntar a las tablas con ABAP SQL, de solo lectura y sin tocar material de credenciales. | 5 |
+| [Consulta de datos](#g-datos) | Preguntar a las tablas con ABAP SQL, de solo lectura y sin tocar material de credenciales. | 8 |
 | [Diagnóstico de incidentes](#g-diagnostico) | Reunir en una conversación lo que antes exigía ST22, SM37, SLG1 y /IWFND/ERROR_LOG. | 8 |
 | [Documentación SAP](#g-documentacion) | Responder con la documentación oficial y comprobar qué sintaxis existe en cada release. | 7 |
 | [Escritura controlada](#g-escritura) | Guardar cambios solo en desarrollo, en la orden correcta y con la sintaxis verificada antes. | 8 |
@@ -164,6 +164,9 @@ la **[referencia completa](docs/TOOLS.md)**.
 | [`count_rows`](docs/TOOLS.md#datos) | **Contar filas.** Cuenta las filas de una tabla o vista, con condición opcional y agrupación opcional (p. ej. por año o por estado), sin traer datos. | lectura |
 | [`search_tables`](docs/TOOLS.md#datos) | **Buscar tablas por descripción.** Busca tablas, estructuras y vistas del diccionario por una palabra de su descripción o de su nombre («partición», «garantía», «ZDZ_TICKET»). | lectura |
 | [`foreign_keys`](docs/TOOLS.md#datos) | **Claves externas de una tabla.** Claves externas de una tabla en las dos direcciones: las tablas de verificación que usa (campo a campo) y las tablas que la usan a ella como verificación. | lectura |
+| [`elevate_access`](docs/TOOLS.md#datos) | **Elevar acceso a una categoría de datos.** Pide acceso temporal a una categoría de datos protegida en un sistema: seguridad y roles, maestro de personal, nómina o datos personales en claro. | lectura |
+| [`elevation_status`](docs/TOOLS.md#datos) | **Elevaciones vigentes.** Qué categorías de datos están elevadas ahora en el sistema (o en todos), con motivo y minutos que quedan. | lectura |
+| [`revoke_access`](docs/TOOLS.md#datos) | **Revocar una elevación.** Cierra antes de tiempo una elevación de acceso en el sistema (una categoría o todas). | lectura |
 
 <a id="g-diagnostico"></a>
 ### Diagnóstico de incidentes
@@ -300,6 +303,10 @@ Diseñado para poder presentarse ante Seguridad y Basis sin excepciones. Detalle
 - **Material de credenciales y datos de personal de SAP bloqueados** en las consultas SQL, también a través de vistas
   y CDS, aunque el usuario tenga autorización.
 - **Datos personales enmascarados y tope de filas** en sistemas con datos productivos.
+- **Categorías de datos con acceso elevado**: seguridad y roles, maestro de personal, nómina y datos personales en claro
+  solo se leen con una elevación temporal que la persona confirma (`elevate_access`: sistema, categoría, minutos,
+  motivo), permitida por sistema en la configuración; cada concesión, uso y revocación es un evento `elevation_*`
+  del registro de auditoría.
 - **SQL libre analizado, no por patrones**: FROM, JOIN, subconsultas y CTE se resuelven a tablas base; una consulta
   cuyas fuentes no se puedan determinar (variables host, fuentes dinámicas) se rechaza. En sistemas con datos
   productivos `sql_query` y `table_contents` leen en dos pasos: vista previa de tablas y tope, y confirmación humana,

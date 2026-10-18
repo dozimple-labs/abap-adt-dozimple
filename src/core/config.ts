@@ -41,6 +41,16 @@ const SystemSchema = z.object({
   /** Con datos prod, sql_query y table_contents piden confirmación (vista previa + token) antes de leer. */
   confirmProdReads: z.boolean().default(true),
   /**
+   * Acceso elevado: qué categorías se pueden elevar en este sistema (por defecto todas en DEV/QAS; en PRD solo
+   * SEG_ROLES y PERSONAS_NEGOCIO) y el máximo de minutos por elevación (por defecto 60, tope 480).
+   */
+  elevation: z
+    .object({
+      allowed: z.array(z.enum(["SEG_ROLES", "HCM_MAESTRO", "HCM_NOMINA", "PERSONAS_NEGOCIO"])).optional(),
+      maxMinutes: z.number().int().min(5).max(480).optional(),
+    })
+    .optional(),
+  /**
    * Columnas personales propias de este cliente (campos Z o alias de CDS) que se enmascaran igual que las estándar
    * en sistemas masked/prod. El enmascarado es por nombre: lo que no esté aquí ni en la lista estándar sale en claro.
    */

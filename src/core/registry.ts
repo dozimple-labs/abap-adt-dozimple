@@ -98,7 +98,7 @@ async function confirmWrite(
   token: string | undefined,
   env: ToolEnv,
   deny: (reason: string) => void,
-  what: "escritura en SAP" | "lectura de datos productivos" = "escritura en SAP",
+  what = "escritura en SAP",
 ): Promise<Gate> {
   const sys = ctx.system.id;
   if (token) {
@@ -138,7 +138,7 @@ async function confirmWrite(
   return {
     proceed: false,
     text:
-      `VISTA PREVIA: todavía no se ha ${what === "escritura en SAP" ? "escrito" : "leído"} nada.\n` +
+      `VISTA PREVIA: todavía no se ha ${what === "escritura en SAP" ? "escrito" : what.startsWith("lectura") ? "leído" : "ejecutado"} nada.\n` +
       `Enséñale al usuario lo que sigue y, solo con su conformidad explícita, repite la llamada con los mismos ` +
       `argumentos y confirm_token="${t}" (un solo uso, 10 minutos).\n\n${budget(preview)}`,
   };
@@ -214,7 +214,9 @@ export async function invoke(def: ToolDef<any>, rawArgs: Record<string, unknown>
 
     // Lectura de datos en un sistema con datos productivos: misma confirmación y mismo rastro que una escritura.
     const prodRead = !!def.confirmReads && !!resolved && dataClassOf(resolved.system) === "prod" && resolved.system.confirmProdReads;
-    if (resolved && (def.access === "write" || def.access === "exec" || prodRead)) {
+    // Una lectura que declara confirm (elevate_access) pasa por la misma puerta y deja el mismo rastro que una escritura.
+    const confirmedRead = def.access === "read" && def.confirm === true;
+    if (resolved && (def.access === "write" || def.access === "exec" || prodRead || confirmedRead)) {
       audit = {
         tool: def.name,
         access: def.access,
@@ -228,10 +230,11 @@ export async function invoke(def: ToolDef<any>, rawArgs: Record<string, unknown>
 
     let gate: Gate = { proceed: true, by: "token" };
     // Confirmación: toda escritura, y toda ejecución que la declare. Atada al efecto, no solo al valor "write".
-    if ((def.access === "write" || (def.access === "exec" && def.confirm === true) || prodRead) && audit) {
+    if ((def.access === "write" || (def.access === "exec" && def.confirm === true) || prodRead || confirmedRead) && audit) {
       const base = audit;
+      const what = confirmedRead ? (def.confirmWhat ?? "acción confirmada") : prodRead && def.access !== "write" ? "lectura de datos productivos" : "escritura en SAP";
       gate = await confirmWrite(def, args, ctx, typeof confirm_token === "string" ? confirm_token : undefined, env, (reason) =>
-        appendAudit({ ...base, phase: "denied", reason }), prodRead && def.access !== "write" ? "lectura de datos productivos" : "escritura en SAP",
+        appendAudit({ ...base, phase: "denied", reason }), what,
       );
       if (gate.proceed) {
         audit.confirmedBy = gate.by;
@@ -256,16 +259,10 @@ export async function invoke(def: ToolDef<any>, rawArgs: Record<string, unknown>
       // (fail-closed, igual que las escrituras). Lo que queda es qué se leyó, nunca los valores.
       if (guarded.reads.length && resolved) {
         try {
-          appendAudit({
-            phase: "data_read",
-            tool: def.name,
-            access: def.access,
-            system: resolved.system.id,
-            sapUser: resolved.system.user,
-            client: resolved.system.client,
-            args,
-            read: mergeReads(guarded.reads),
-          });
+          const read = mergeReads(guarded.reads);
+          const common = { tool: def.name, access: def.access, system: resolved.system.id, sapUser: resolved.system.user, client: resolved.system.client, args };
+          appendAudit({ phase: "data_read", ...common, read });
+          for (const category of read.elevated) appendAudit({ phase: "elevation_used", ...common, elevation: { category } });
         } catch (e) {
           throw new ToolError("INTERNAL", `No se entregó el resultado: no se pudo anotar la lectura en el registro de auditoría (${(e as Error).message}).`, "Revisa el directorio de estado (ABAP_DZ_STATE_DIR o ~/.local/state/abap-adt-dozimple): permisos o disco.");
         }
@@ -368,6 +365,7 @@ function describe(def: ToolDef<any>, cfg: Config): string {
   if (def.access === "exec") notes.push(`Ejecuta código; solo en: ${where.join(", ")}.`);
   if (def.requires?.module) notes.push(`Módulo ${def.requires.module}; solo en: ${where.join(", ")}.`);
   if (def.requires?.online) notes.push("Envía la consulta a internet: sin nombres Z, órdenes, sistemas ni clientes (el servidor lo bloquea).");
+  if (def.access === "read" && def.confirm) notes.push("Dos pasos: sin confirm_token devuelve la vista previa; con el token, tras la conformidad del usuario, ejecuta.");
   if (def.confirmReads) notes.push("En sistemas con datos productivos (dataClass prod) lee en dos pasos: sin confirm_token devuelve qué va a leer y el token; con el token, tras la conformidad del usuario, lee.");
   return notes.length ? `${def.description}\n\n${notes.join(" ")}` : def.description;
 }
@@ -434,7 +432,7 @@ export function registerAll(
     const shape =
       def.access === "local"
         ? def.input
-        : { ...def.input, system: systemParam, ...(def.access === "write" || def.confirmReads ? { confirm_token: confirmParam } : {}) };
+        : { ...def.input, system: systemParam, ...(def.access === "write" || def.confirmReads || def.confirm ? { confirm_token: confirmParam } : {}) };
     const inputSchema = strictInput(def.name, shape);
     const tool = server.registerTool(
       def.name,

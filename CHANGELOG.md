@@ -5,6 +5,15 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 ## [Unreleased]
 
 ### Añadido
+- **Módulo de acceso elevado** (Ola 2, punto 7). Las tablas que lee una consulta (incluidas las base de vistas y
+  CDS) se clasifican en `SECRETOS` (nunca), `SEG_ROLES`, `HCM_MAESTRO`, `HCM_NOMINA`, `PERSONAS_NEGOCIO` (elevables)
+  y `NEGOCIO` (libre). Seguridad, maestro HCM y nómina solo se leen con una elevación vigente; `PERSONAS_NEGOCIO`
+  elevada quita el enmascarado. `elevate_access` (vista previa + confirmación, por sistema, categoría, minutos y
+  motivo; permitido por sistema con `elevation.allowed`/`maxMinutes`, en PRD solo seguridad y personas por defecto),
+  `elevation_status` y `revoke_access`. Eventos `elevation_granted`, `elevation_used` (por lectura),
+  `elevation_revoked` en el registro de auditoría; `data_read` lleva categorías y elevaciones. Cambio de
+  comportamiento: AGR_*/USR* (antes libres) requieren ahora `SEG_ROLES`, y los infotipos (antes vetados) se pueden
+  leer con `HCM_MAESTRO`/`HCM_NOMINA` en desarrollo. Las tools de lectura pueden declarar `confirm`.
 - **Análisis de código en local con abaplint** (Ola 2, puntos 9 y 11). Nueva dependencia `@abaplint/core` (MIT,
   versión fijada). `code_structure` (clases con métodos y visibilidad, interfaces, forms, tablas, funciones, clases
   e includes que usa, métricas y métodos privados sin uso, de un objeto o de un fragmento), `package_dependencies`

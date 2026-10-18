@@ -80,7 +80,8 @@ export interface ToolDef<S extends ZodRawShape = ZodRawShape> {
   };
   /**
    * Si la tool pide confirmación humana con vista previa antes de ejecutarse. Las tools write la piden SIEMPRE (no
-   * se puede desactivar); las exec tienen que declararlo expresamente: un test falla si una exec no lo decide.
+   * se puede desactivar); las exec tienen que declararlo expresamente: un test falla si una exec no lo decide. Una
+   * read puede pedirla también (elevate_access): entonces queda con intención y resultado en el registro de auditoría.
    */
   confirm?: boolean;
   /**
@@ -88,6 +89,8 @@ export interface ToolDef<S extends ZodRawShape = ZodRawShape> {
    * confirmación con vista previa, igual que una escritura, y queda en el registro de auditoría con quién confirmó.
    */
   confirmReads?: boolean;
+  /** Con confirm en una tool de lectura: cómo se llama la acción en la pregunta («elevación de acceso»). */
+  confirmWhat?: string;
   /** Tiempo máximo de una ejecución (por defecto 60 s). Las lentas (ATC, where-used, diff) declaran el suyo. */
   timeoutMs?: number;
   /**

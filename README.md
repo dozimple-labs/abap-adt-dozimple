@@ -59,7 +59,7 @@ and **a failure is never presented as an empty result or as success**.
 | [Code review and transports](#g-revision) | Know what a transport really changes and what it may break, before releasing it. | 6 |
 | [Quality, ATC and remediation](#g-calidad) | Find, understand and fix findings with SAP's real syntax check and quick fixes. | 6 |
 | [Repository exploration](#g-exploracion) | Read and understand any ABAP object and its relations, on ECC and S/4HANA. | 17 |
-| [Data queries](#g-datos) | Query tables with ABAP SQL, read-only, with sensitive and personal data protected. | 5 |
+| [Data queries](#g-datos) | Query tables with ABAP SQL, read-only, with sensitive and personal data protected. | 8 |
 | [Incident diagnosis](#g-diagnostico) | One conversation for what used to take ST22, SM37, SLG1 and /IWFND/ERROR_LOG. | 8 |
 | [SAP documentation](#g-documentacion) | Answer from official documentation and check which syntax exists in each release. | 7 |
 | [Controlled writes](#g-escritura) | Save changes only in development, in the right transport, previewed and confirmed by a human. | 8 |
@@ -165,6 +165,9 @@ Summary per group; each tool's details — parameters, types, defaults, requirem
 | [`count_rows`](docs/TOOLS.md#datos) | **Count rows.** Counts the rows of a table or view, with optional condition and grouping, without fetching data; same policy as sql_query. | read |
 | [`search_tables`](docs/TOOLS.md#datos) | **Search tables by description.** Finds tables, structures and views by a word in their description or name; metadata only. | read |
 | [`foreign_keys`](docs/TOOLS.md#datos) | **Foreign keys of a table.** Check tables a table uses and tables that use it as check table, field by field, with the JOIN condition ready for sql_query. | read |
+| [`elevate_access`](docs/TOOLS.md#datos) | **Elevate access to a data category.** Temporary, human-confirmed access on one system to a protected category (security and roles, HCM master data, payroll, personal data in clear); expires by itself; every use is audited. SECRETOS is never elevated. | read |
+| [`elevation_status`](docs/TOOLS.md#datos) | **Active elevations.** Which data categories are elevated now, with reason and minutes left. | read |
+| [`revoke_access`](docs/TOOLS.md#datos) | **Revoke an elevation.** Closes an elevation early; audited. | read |
 
 <a id="g-diagnostico"></a>
 ### Incident diagnosis
@@ -298,7 +301,10 @@ Designed to pass a Security and Basis review without exceptions. Details: **[SEC
 - **Hash-chained audit log** of every write and execution, and of every business-data read (`data_read`: tables,
   masked columns, row count; never the values), fail-closed (no log, no write and no result), verifiable with
   `npm run audit:verify`.
-- **SAP credential material and HR data blocked** in SQL queries, also through views and CDS, even if the SAP user is
+- **Data categories with elevated access**: security and roles, HCM master data, payroll and personal data in clear
+  are read only under a temporary elevation the person confirms (`elevate_access`: system, category, minutes,
+  reason), allowed per system in the configuration; every grant, use and revocation is an `elevation_*` audit event.
+- **SAP credential material blocked** in SQL queries, also through views and CDS, even if the SAP user is
   authorized. Validated against a real S/4HANA 2023 system, where standard views and CDS read USR02 without naming it.
 - **Personal data masked and row caps** on systems with production data.
 - **Free SQL parsed, not pattern-matched**: FROM, JOIN, subqueries and CTEs are resolved to base tables; a query

@@ -355,7 +355,7 @@ describe("datos sensibles", () => {
       if (/ddldependency/.test(sql)) throw new AdtErrorException(400, {}, "", "Cannot find 'DDLDEPENDENCY'");
       return q(sql, rows);
     };
-    await expect(assertNoSensitiveViews(sap, "SELECT * FROM t000")).resolves.toBeUndefined();
+    await expect(assertNoSensitiveViews(sap, "SELECT * FROM t000")).resolves.toBeInstanceOf(Set);
   });
 
   it("cualquier otro fallo al resolver CDS cierra la consulta", async () => {
@@ -386,7 +386,7 @@ describe("datos sensibles", () => {
       if (long) throw new AdtErrorException(400, {}, "", `'${long}' is not a valid value for C(30,0)`);
       return q(sql, rows);
     };
-    await expect(assertNoSensitiveViews(sap, "SELECT * FROM i_user")).resolves.toBeUndefined();
+    await expect(assertNoSensitiveViews(sap, "SELECT * FROM i_user")).resolves.toBeInstanceOf(Set);
     expect(queried.some((x) => /USR21/.test(x))).toBe(true);
   });
 

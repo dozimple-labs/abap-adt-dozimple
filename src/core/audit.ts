@@ -18,7 +18,7 @@ const GENESIS = "0".repeat(64);
 const INLINE_MAX = 120;
 
 /** intent/result/denied: escrituras y ejecuciones. data_read: una tool devolvió datos de negocio (qué tablas, cuántas filas; nunca los valores). */
-export type AuditPhase = "intent" | "result" | "denied" | "data_read";
+export type AuditPhase = "intent" | "result" | "denied" | "data_read" | "elevation_granted" | "elevation_used" | "elevation_revoked" | "elevation_denied";
 
 export interface AuditInput {
   phase: AuditPhase;
@@ -33,7 +33,9 @@ export interface AuditInput {
   kind?: string;
   reason?: string;
   /** Solo en data_read. */
-  read?: { tables: string[]; maskedColumns: string[]; rows: number; capped: boolean; queries: number };
+  read?: { tables: string[]; maskedColumns: string[]; rows: number; capped: boolean; queries: number; categories?: string[]; elevated?: string[] };
+  /** Solo en elevation_*. */
+  elevation?: { category: string; until?: string; reason?: string };
 }
 
 export interface AuditEntry extends Omit<AuditInput, "args"> {
