@@ -16,7 +16,7 @@ documentación oficial y, donde se autorice, guardar cambios en la orden correct
 **45 tools · 9 grupos funcionales · 3 flujos guiados · ECC 6.0 (NW 7.50) y S/4HANA**
 
 [Funcionalidades](#funcionalidades-por-grupo) · [Referencia completa de tools](docs/TOOLS.md) ·
-[Seguridad](SECURITY.md) · [DoZimple Transport Risk](#dozimple-transport-risk) · [Créditos](#créditos) · [Contacto](https://dozimple.cl)
+[Seguridad](SECURITY.md) · [Paridad con otros MCP](docs/PARIDAD.md) · [DoZimple Transport Risk](#dozimple-transport-risk) · [Créditos](#créditos) · [Contacto](https://dozimple.cl)
 
 </div>
 

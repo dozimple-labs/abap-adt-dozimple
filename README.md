@@ -16,7 +16,7 @@ changes in the right transport after a human confirms them.
 **45 tools · 9 functional groups · 3 guided flows · ECC 6.0 (NW 7.50) and S/4HANA**
 
 [Features](#features-by-group) · [Full tool reference](docs/TOOLS.md) ·
-[Security](SECURITY.md) · [Threat model](docs/THREAT_MODEL.md) · [DoZimple Transport Risk](#dozimple-transport-risk) · [Credits](#credits) · [Contact](https://dozimple.cl)
+[Security](SECURITY.md) · [Threat model](docs/THREAT_MODEL.md) · [Parity with other SAP MCPs](docs/PARIDAD.md) · [DoZimple Transport Risk](#dozimple-transport-risk) · [Credits](#credits) · [Contact](https://dozimple.cl)
 
 </div>
 
