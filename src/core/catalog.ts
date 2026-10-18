@@ -94,6 +94,9 @@ export const GROUPS: Group[] = [
       { name: "function_modules", credits: ADT },
       { name: "text_elements", credits: ADT },
       { name: "enhancements", credits: ["abapAdtApi", "vsp"] },
+      { name: "code_structure", credits: ["abaplint", "vsp"] },
+      { name: "package_dependencies", credits: ["abaplint", "vsp"] },
+      { name: "unused_methods", credits: ["abaplint", "vsp"] },
     ],
   },
   {

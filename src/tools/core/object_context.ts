@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { ADTClient, type AbapClassStructure } from "abap-adt-api";
+import { parseAbap, summarize } from "../../core/abapparse.js";
 import { objectScope, recallRun, runAge } from "../../core/atc.js";
 import { normalizeError } from "../../core/errors.js";
 import { resolveObject, sourceUrl, TYPE_HELP } from "../../core/objects.js";
@@ -41,6 +42,18 @@ export default defineTool({
     local: z.boolean(),
     locks: z.array(z.object({ order: z.string(), description: z.string() })).describe("Órdenes con bloqueo CTS: cualquier cambio irá ahí"),
     source: z.object({ lines: z.number().int(), includes: z.array(z.string()) }).nullable(),
+    summary: z.object({
+      text: z.string(),
+      classes: z.array(z.object({ name: z.string(), methods: z.number().int(), public: z.number().int() })),
+      forms: z.number().int(),
+      statements: z.number().int(),
+      max_nesting: z.number().int(),
+      tables: z.array(z.string()),
+      functions: z.array(z.string()),
+      classes_used: z.array(z.string()),
+      includes: z.array(z.string()),
+      unused_methods: z.number().int(),
+    }).nullable().describe("Resumen local de la fuente (abaplint): qué hay y qué toca, sin la fuente"),
     versions: z.array(z.object({ date: z.string(), author: z.string(), transport: z.string(), title: z.string() })),
     usages: z.object({ total: z.number().int(), shown: z.array(z.object({ name: z.string(), type: z.string(), package: z.string() })) }).nullable(),
     drift: z.array(z.object({ target: z.string(), status: z.string(), detail: z.string() })).nullable(),
@@ -79,6 +92,30 @@ export default defineTool({
       }
       return { lines: devSource.replace(/\r\n/g, "\n").split("\n").length, includes };
     });
+
+    // Resumen local de la fuente (depth 1): sustituye a leer la fuente entera para entender el objeto.
+    let summary: {
+      text: string; classes: Array<{ name: string; methods: number; public: number }>; forms: number; statements: number; max_nesting: number;
+      tables: string[]; functions: string[]; classes_used: string[]; includes: string[]; unused_methods: number;
+    } | null = null;
+    if (depth >= 1 && devSource !== undefined) {
+      summary =
+        (await attempt("resumen", async () => {
+          const p = parseAbap(obj.name, obj.type, devSource!);
+          return {
+            text: summarize(p),
+            classes: p.symbols.classes.map((c) => ({ name: c.name, methods: c.methods.length, public: c.methods.filter((m) => m.visibility === "public").length })),
+            forms: p.symbols.forms.length,
+            statements: p.metrics.statements,
+            max_nesting: p.metrics.maxNesting,
+            tables: p.references.tables,
+            functions: p.references.functions,
+            classes_used: p.references.classes,
+            includes: p.references.includes,
+            unused_methods: p.unusedMethods.length,
+          };
+        })) ?? null;
+    }
 
     // Versiones y usos (depth 1)
     let versions: Array<{ date: string; author: string; transport: string; title: string }> = [];
@@ -123,6 +160,7 @@ export default defineTool({
       local,
       locks,
       source,
+      summary,
       versions,
       usages,
       drift,
@@ -139,6 +177,7 @@ export default defineTool({
     else if (locks.length) out.push(`BLOQUEADO en ${locks.map((l) => l.order).join(", ")}: cualquier cambio irá ahí.`, ...locks.map((l) => `  ${l.description}`));
     else out.push("Sin bloqueo del CTS: se puede elegir la orden (edit_preflight con transport para comprobarla).");
     if (source) out.push(`Fuente: ${source.lines} líneas${source.includes.length ? ` · includes: ${source.includes.join(", ")}` : ""}`);
+    if (summary) out.push(`Resumen: ${summary.text}`);
     if (depth >= 1) {
       out.push("", versions.length ? `Versiones (últimas ${versions.length}):` : "Versiones: SAP no devuelve ninguna.");
       for (const v of versions) out.push(`  ${v.date}  ${v.author}  ${v.transport}  ${v.title}`);

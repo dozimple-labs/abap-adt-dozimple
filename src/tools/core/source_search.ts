@@ -47,7 +47,7 @@ async function expandGroup(sap: SapConnection, group: string): Promise<SourceObj
   ];
 }
 
-async function scopeRefs(sap: SapConnection, a: { package?: string; include_subpackages: boolean; transport?: string; objects?: string[] }, max: number) {
+export async function scopeRefs(sap: SapConnection, a: { package?: string; include_subpackages: boolean; transport?: string; objects?: string[] }, max: number) {
   let rows: Array<{ PGMID: string; OBJECT: string; OBJ_NAME: string }>;
   let label: string;
   if (a.package) {
@@ -75,7 +75,7 @@ async function scopeRefs(sap: SapConnection, a: { package?: string; include_subp
 }
 
 /** Fuentes de un objeto: una sola, salvo clases (main y sus includes locales, los que existan). */
-async function sourcesOf(c: ADTClient, uri: string, type: string): Promise<Array<{ include: string; text: string }>> {
+export async function sourcesOf(c: ADTClient, uri: string, type: string): Promise<Array<{ include: string; text: string }>> {
   if (!type.startsWith("CLAS")) {
     const url = ADTClient.isMainInclude(uri) ? uri : `${uri}/source/main`;
     return [{ include: "main", text: await c.getObjectSource(url) }];

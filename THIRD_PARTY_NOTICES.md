@@ -4,11 +4,12 @@ abap-adt-doZimple (© DoZimple, https://dozimple.cl) usa en producción los sigu
 
 | Paquete | Versión | Licencia |
 |---|---|---|
+| @abaplint/core | 2.120.81 | MIT |
 | @hono/node-server | 2.1.1 | MIT |
-| @modelcontextprotocol/sdk | 1.30.0 | MIT |
+| @modelcontextprotocol/sdk | 1.32.1 | MIT |
 | @nodable/entities | 3.0.0 | MIT |
 | @scarf/scarf | 1.4.0 | Apache-2.0 |
-| abap-adt-api | 8.4.3 | MIT |
+| abap-adt-api | 8.5.0 | MIT |
 | accepts | 2.0.0 | MIT |
 | agent-base | 6.0.2 | MIT |
 | ajv | 8.20.0 | MIT |
@@ -45,7 +46,7 @@ abap-adt-doZimple (© DoZimple, https://dozimple.cl) usa en producción los sigu
 | express | 5.2.1 | MIT |
 | express-rate-limit | 8.7.0 | MIT |
 | fast-deep-equal | 3.1.3 | MIT |
-| fast-uri | 3.1.7 | BSD-3-Clause |
+| fast-uri | 3.1.8 | BSD-3-Clause |
 | fast-xml-builder | 1.3.1 | MIT |
 | fast-xml-parser | 5.11.1 | MIT |
 | finalhandler | 2.1.1 | MIT |
@@ -69,7 +70,7 @@ abap-adt-doZimple (© DoZimple, https://dozimple.cl) usa en producción los sigu
 | inherits | 2.0.4 | ISC |
 | io-ts | 2.2.22 | MIT |
 | io-ts-reporters | 2.0.1 | MIT |
-| ip-address | 10.7.0 | MIT |
+| ip-address | 10.7.2 | MIT |
 | ipaddr.js | 1.9.1 | MIT |
 | is-promise | 4.0.0 | MIT |
 | is-unsafe | 2.0.2 | MIT |
@@ -77,13 +78,14 @@ abap-adt-doZimple (© DoZimple, https://dozimple.cl) usa en producción los sigu
 | jose | 6.2.12 | MIT |
 | json-schema-traverse | 1.0.0 | MIT |
 | json-schema-typed | 8.0.2 | BSD-2-Clause |
+| json5 | 2.2.3 | MIT |
 | math-intrinsics | 1.1.0 | MIT |
 | media-typer | 1.1.1 | MIT |
 | merge-descriptors | 2.0.0 | MIT |
-| mime-db | 1.54.0 | MIT |
 | mime-db | 1.52.0 | MIT |
-| mime-types | 3.0.2 | MIT |
+| mime-db | 1.54.0 | MIT |
 | mime-types | 2.1.35 | MIT |
+| mime-types | 3.0.2 | MIT |
 | ms | 2.1.3 | MIT |
 | negotiator | 1.1.0 | MIT |
 | object-assign | 4.1.1 | MIT |
@@ -95,7 +97,7 @@ abap-adt-doZimple (© DoZimple, https://dozimple.cl) usa en producción los sigu
 | path-key | 3.1.1 | MIT |
 | path-to-regexp | 8.4.2 | MIT |
 | pkce-challenge | 5.0.1 | MIT |
-| proxy-addr | 2.0.7 | MIT |
+| proxy-addr | 2.0.8 | MIT |
 | proxy-from-env | 2.1.0 | MIT |
 | qs | 6.16.0 | BSD-3-Clause |
 | range-parser | 1.3.0 | MIT |
@@ -119,6 +121,7 @@ abap-adt-doZimple (© DoZimple, https://dozimple.cl) usa en producción los sigu
 | type-is | 2.1.0 | MIT |
 | unpipe | 1.0.0 | MIT |
 | vary | 1.1.2 | MIT |
+| vscode-languageserver-types | 3.18.4 | MIT |
 | which | 2.0.2 | ISC |
 | wrappy | 1.0.2 | ISC |
 | xml-naming | 0.3.0 | MIT |

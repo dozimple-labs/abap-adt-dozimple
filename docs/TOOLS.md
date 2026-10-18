@@ -1,13 +1,13 @@
 # Referencia de tools — abap-adt-doZimple
 
-Generado desde el código con `npm run docs`. 65 tools en 9 grupos y 3 flujos guiados.
+Generado desde el código con `npm run docs`. 68 tools en 9 grupos y 3 flujos guiados.
 Producto de [DoZimple](https://dozimple.cl).
 
 ## Índice
 
 - [Revisión de código y pases](#revision) — 6 tools: `transport_diff`, `transport_contents`, `my_transports`, `co_change`, `inactive_objects`, `edit_preflight`
 - [Calidad, ATC y remediación](#calidad) — 6 tools: `run_atc`, `atc_quickfix`, `api_release_state`, `sap_notes`, `syntax_check`, `run_unit_tests`
-- [Exploración del repositorio](#exploracion) — 14 tools: `search_objects`, `get_source`, `object_context`, `where_used`, `source_search`, `object_versions`, `package_contents`, `ddic_type_info`, `ddic_plan`, `odata_model`, `transaction_info`, `function_modules`, `text_elements`, `enhancements`
+- [Exploración del repositorio](#exploracion) — 17 tools: `search_objects`, `get_source`, `object_context`, `where_used`, `source_search`, `object_versions`, `package_contents`, `ddic_type_info`, `ddic_plan`, `odata_model`, `transaction_info`, `function_modules`, `text_elements`, `enhancements`, `code_structure`, `package_dependencies`, `unused_methods`
 - [Consulta de datos](#datos) — 5 tools: `sql_query`, `table_contents`, `count_rows`, `search_tables`, `foreign_keys`
 - [Diagnóstico de incidentes](#diagnostico) — 8 tools: `dumps`, `diagnose_message`, `jobs`, `application_log`, `gateway_errors`, `abap_traces`, `sql_traces`, `system_messages`
 - [Documentación SAP](#documentacion) — 7 tools: `abap_feature_matrix`, `docs_search`, `docs_fetch`, `clean_core_objects`, `clean_core_object`, `abap_lint`, `docs_community_search`
@@ -369,6 +369,7 @@ Salida estructurada (`structuredContent`, además del texto):
 | `local` | boolean |  |
 | `locks` | lista de { order, description } | Órdenes con bloqueo CTS: cualquier cambio irá ahí |
 | `source` | nullable |  |
+| `summary` | nullable | Resumen local de la fuente (abaplint): qué hay y qué toca, sin la fuente |
 | `versions` | lista de { date, author, transport, title } |  |
 | `usages` | nullable |  |
 | `drift` | nullable |  |
@@ -611,6 +612,96 @@ Salida estructurada (`structuredContent`, además del texto):
 | `rows` | lista de record |  |
 | `total` | number |  |
 | `truncated` | boolean |  |
+
+### `code_structure` — Estructura y referencias de un objeto (análisis local)
+
+Analiza en local, con abaplint, la fuente de un objeto o un fragmento (source): clases con métodos y visibilidad, interfaces, forms, tablas que lee, funciones, clases e includes que usa, métricas y métodos privados sin uso. No ejecuta nada en SAP. Úsala para entender un objeto sin leer toda la fuente.
+
+| | |
+|---|---|
+| **Acceso** | Solo lectura |
+| **Créditos** | [abaplint](https://github.com/abaplint/abaplint) — Lars Hvam y contribuidores (MIT, dependencia)<br>[vibing-steampunk](https://github.com/oisee/vibing-steampunk) — oisee y contribuidores (MIT, idea) |
+
+| Parámetro | Tipo | Por defecto | Descripción |
+|---|---|---|---|
+| `system` | string |  | Sistema SAP configurado. Obligatorio si hay varios y ninguno por defecto. |
+| `object_name` | string |  |  |
+| `object_type` | string |  | Tipo corto: PROG, INCL, CLAS, INTF, FUGR, FUNC, DDLS, DDLX, DCLS, TABL, STRU, VIEW, DTEL, DOMA, TTYP, MSAG, XSLT, BDEF, SRVD, SRVB, ENHO. También vale el tipo ADT (p. ej. PROG/P). |
+| `include` | `main` \| `definitions` \| `implementations` \| `macros` \| `testclasses` | "main" |  |
+| `source` | string |  | Fuente a analizar en vez de leerla de SAP |
+
+\* obligatorio
+
+Salida estructurada (`structuredContent`, además del texto):
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `name` | string |  |
+| `symbols` | object |  |
+| `references` | object |  |
+| `metrics` | object |  |
+| `unused_methods` | lista de { class, method, visibility } |  |
+| `unknown_statements` | number |  |
+
+### `package_dependencies` — Dependencias de un paquete (análisis local)
+
+Grafo de dependencias de un paquete (con subpaquetes) o de una lista de objetos, analizando sus fuentes en local: qué tablas lee cada objeto, qué funciones y clases llama, qué includes usa; marca lo interno al alcance y lo externo, y ordena los destinos más usados. Tope de objetos; los no leídos se listan.
+
+| | |
+|---|---|
+| **Acceso** | Solo lectura |
+| **Créditos** | [abaplint](https://github.com/abaplint/abaplint) — Lars Hvam y contribuidores (MIT, dependencia)<br>[vibing-steampunk](https://github.com/oisee/vibing-steampunk) — oisee y contribuidores (MIT, idea) |
+
+| Parámetro | Tipo | Por defecto | Descripción |
+|---|---|---|---|
+| `system` | string |  | Sistema SAP configurado. Obligatorio si hay varios y ninguno por defecto. |
+| `package` | string |  |  |
+| `include_subpackages` | boolean | true |  |
+| `objects` | lista de string |  |  |
+| `max_objects` | number | 150 |  |
+| `top` | number | 30 | Destinos más usados que se muestran |
+
+\* obligatorio
+
+Salida estructurada (`structuredContent`, además del texto):
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `scope` | string |  |
+| `scanned` | number |  |
+| `truncated` | boolean |  |
+| `edges` | lista de { from, to, kind, internal } |  |
+| `most_used` | lista de { name, kind, count, internal } |  |
+| `skipped` | lista de { object, reason } |  |
+
+### `unused_methods` — Métodos sin uso (análisis local)
+
+Métodos privados o protegidos que ninguna sentencia de su propia clase llama, en las clases de un paquete (con subpaquetes) o de una lista; análisis local de la fuente con abaplint. Los protegidos pueden usarlos las subclases: se marcan aparte. No cuenta usos dinámicos. Tope de objetos; los no leídos se listan.
+
+| | |
+|---|---|
+| **Acceso** | Solo lectura |
+| **Créditos** | [abaplint](https://github.com/abaplint/abaplint) — Lars Hvam y contribuidores (MIT, dependencia)<br>[vibing-steampunk](https://github.com/oisee/vibing-steampunk) — oisee y contribuidores (MIT, idea) |
+
+| Parámetro | Tipo | Por defecto | Descripción |
+|---|---|---|---|
+| `system` | string |  | Sistema SAP configurado. Obligatorio si hay varios y ninguno por defecto. |
+| `package` | string |  |  |
+| `include_subpackages` | boolean | true |  |
+| `objects` | lista de string |  |  |
+| `max_objects` | number | 150 |  |
+
+\* obligatorio
+
+Salida estructurada (`structuredContent`, además del texto):
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `scope` | string |  |
+| `classes_scanned` | number |  |
+| `truncated` | boolean |  |
+| `findings` | lista de { class, method, visibility } |  |
+| `skipped` | lista de { object, reason } |  |
 
 <a id="datos"></a>
 ## Consulta de datos

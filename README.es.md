@@ -57,7 +57,7 @@ El agente elige las tools, las encadena y responde con evidencia. Cada respuesta
 |---|---|---|
 | [Revisión de código y pases](#g-revision) | Saber qué cambia de verdad una orden y qué puede romper, antes de liberarla. | 6 |
 | [Calidad, ATC y remediación](#g-calidad) | Encontrar, entender y corregir hallazgos con la sintaxis y las correcciones reales de SAP. | 6 |
-| [Exploración del repositorio](#g-exploracion) | Leer y entender cualquier objeto ABAP y sus relaciones, en ECC y en S/4HANA. | 14 |
+| [Exploración del repositorio](#g-exploracion) | Leer y entender cualquier objeto ABAP y sus relaciones, en ECC y en S/4HANA. | 17 |
 | [Consulta de datos](#g-datos) | Preguntar a las tablas con ABAP SQL, de solo lectura y sin tocar material de credenciales. | 5 |
 | [Diagnóstico de incidentes](#g-diagnostico) | Reunir en una conversación lo que antes exigía ST22, SM37, SLG1 y /IWFND/ERROR_LOG. | 8 |
 | [Documentación SAP](#g-documentacion) | Responder con la documentación oficial y comprobar qué sintaxis existe en cada release. | 7 |
@@ -148,6 +148,9 @@ la **[referencia completa](docs/TOOLS.md)**.
 | [`function_modules`](docs/TOOLS.md#exploracion) | **Módulos de función de un grupo.** Lista los módulos de función de un grupo de funciones, con su texto y si son RFC o de actualización. | lectura |
 | [`text_elements`](docs/TOOLS.md#exploracion) | **Símbolos de texto y textos de selección.** Lee los símbolos de texto (TEXT-001…), textos de selección o encabezados de un programa, clase o grupo de funciones. | lectura |
 | [`enhancements`](docs/TOOLS.md#exploracion) | **Ampliaciones y BAdI.** Qué ampliaciones hay y dónde. badi=NOMBRE: implementaciones de esa BAdI, nuevas y clásicas, activas o no. program + program_type (PROG, CLAS, FUGR): ampliaciones de código implementadas dentro de ese programa, clase o grupo, lo que cambia un estándar sin tocarlo. prefix (p. ej. Z): implementaciones de ese espacio de nombres, por tipo. | lectura |
+| [`code_structure`](docs/TOOLS.md#exploracion) | **Estructura y referencias de un objeto (análisis local).** Analiza en local, con abaplint, la fuente de un objeto o un fragmento (source): clases con métodos y visibilidad, interfaces, forms, tablas que lee, funciones, clases e includes que usa, métricas y métodos privados sin uso. | lectura |
+| [`package_dependencies`](docs/TOOLS.md#exploracion) | **Dependencias de un paquete (análisis local).** Grafo de dependencias de un paquete (con subpaquetes) o de una lista de objetos, analizando sus fuentes en local: qué tablas lee cada objeto, qué funciones y clases llama, qué includes usa; marca lo interno al alcance y lo externo, y ordena los destinos más usados. | lectura |
+| [`unused_methods`](docs/TOOLS.md#exploracion) | **Métodos sin uso (análisis local).** Métodos privados o protegidos que ninguna sentencia de su propia clase llama, en las clases de un paquete (con subpaquetes) o de una lista; análisis local de la fuente con abaplint. | lectura |
 
 <a id="g-datos"></a>
 ### Consulta de datos
@@ -392,7 +395,7 @@ abap-adt-doZimple se construye sobre el trabajo de otros, y lo reconoce: cada to
 | [abap-adt-api](https://github.com/marcellourbani/abap-adt-api) | Marcello Urbani | MIT | dependencia | todas (núcleo), `transport_diff`, `transport_contents`, `my_transports`, `inactive_objects`, `edit_preflight` y 33 más |
 | [Model Context Protocol TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk) | Model Context Protocol | MIT | dependencia | todas (núcleo) |
 | [mcp-sap-docs](https://github.com/marianfoo/mcp-sap-docs) | Marian Zeis (marianfoo) | Apache-2.0 | dependencia | `abap_feature_matrix`, `docs_search`, `docs_fetch`, `clean_core_objects`, `clean_core_object`, `abap_lint` y 1 más |
-| [abaplint](https://github.com/abaplint/abaplint) | Lars Hvam y contribuidores | MIT | dependencia | `abap_lint` |
+| [abaplint](https://github.com/abaplint/abaplint) | Lars Hvam y contribuidores | MIT | dependencia | `code_structure`, `package_dependencies`, `unused_methods`, `abap_lint` |
 | [zod](https://github.com/colinhacks/zod) | Colin McDonnell y contribuidores | MIT | dependencia | todas (núcleo) |
 | [ABAP Keyword Documentation](https://help.sap.com/doc/abapdocu_latest_index_htm/latest/en-US/index.htm) | SAP SE | © SAP SE | datos | `docs_search`, `docs_fetch` |
 | [ABAP Cheat Sheets](https://github.com/SAP-samples/abap-cheat-sheets) | SAP (SAP-samples) | Apache-2.0 | datos | `docs_search` |
@@ -404,7 +407,7 @@ abap-adt-doZimple se construye sobre el trabajo de otros, y lo reconoce: cada to
 | [ABAP Remote FS (vscode_abap_remote_fs)](https://github.com/marcellourbani/vscode_abap_remote_fs) | Marcello Urbani | MIT | idea | `syntax_check`, `create_object` |
 | [mcp-abap-adt](https://github.com/mario-andreschak/mcp-abap-adt) | mario-andreschak | MIT | idea | `search_objects`, `get_source`, `package_contents`, `ddic_type_info`, `transaction_info`, `table_contents` |
 | [ARC-1](https://github.com/arc-mcp/arc-1) | arc-mcp (Marian Zeis y contribuidores) | MIT | idea | `transport_diff`, `atc_quickfix`, `object_context`, `gateway_errors` |
-| [vibing-steampunk](https://github.com/oisee/vibing-steampunk) | oisee y contribuidores | MIT | idea | `co_change`, `api_release_state`, `source_search`, `enhancements`, `jobs`, `application_log` y 1 más |
+| [vibing-steampunk](https://github.com/oisee/vibing-steampunk) | oisee y contribuidores | MIT | idea | `co_change`, `api_release_state`, `source_search`, `enhancements`, `code_structure`, `package_dependencies` y 4 más |
 | [ABAPilot MCP connector (catálogo de tools)](https://github.com/NicoHern/abapilot-mcp) | Crimson Consulting SL (NicoHern) | MIT | idea | `count_rows`, `search_tables`, `foreign_keys`, `diagnose_message` |
 | [ABAP Accelerator for Amazon Q Developer](https://github.com/aws-solutions-library-samples/guidance-for-deploying-sap-abap-accelerator-for-amazon-q-developer) | AWS Solutions Library Samples | MIT-0 | idea | todas (núcleo), `my_transports`, `create_object`, `usage_stats` |
 | [An O(ND) Difference Algorithm and Its Variations (1986)](https://doi.org/10.1007/BF01840446) | Eugene W. Myers | algoritmo publicado | algoritmo | `transport_diff`, `atc_quickfix` |
