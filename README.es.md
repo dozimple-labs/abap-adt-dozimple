@@ -311,7 +311,20 @@ Modelo de amenazas con STRIDE y OWASP Top 10 para aplicaciones LLM: **[docs/THRE
 
 ## Instalación
 
-### Desde npm (recomendado)
+### Inicio rápido
+
+```sh
+npm install -g --ignore-scripts @dozimple/abap-adt@1.7.0
+abap-adt-dozimple init --client claude-code      # o claude-desktop · kiro · cursor · vscode
+```
+
+`init` pregunta el sistema (id, URL, mandante, usuario, rol), escribe `~/.config/abap-adt-dozimple/systems.json`
+con permisos 600, guarda la contraseña en el almacén de secretos del sistema operativo (la pide el propio almacén;
+no se escribe en ningún archivo) y registra el servidor en el cliente elegido sin tocar sus otras entradas.
+`--dry-run` muestra qué haría; `--force` sustituye un sistema o una entrada existente; `init --help` lista todas
+las opciones. Paso a paso, lo mismo es:
+
+### Desde npm, paso a paso
 
 Con la versión exacta y sin scripts de instalación, igual que las dependencias del propio proyecto:
 

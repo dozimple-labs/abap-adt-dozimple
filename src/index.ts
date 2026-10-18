@@ -25,7 +25,26 @@ function packageVersion(): string {
   }
 }
 
+/** Subcomandos de línea de órdenes; sin ninguno, arranca el servidor MCP por stdio. */
+async function cli(argv: string[]): Promise<boolean> {
+  const cmd = argv[0];
+  if (cmd === "init") {
+    const { runInit } = await import("./scripts/init.js");
+    process.exit(await runInit(argv.slice(1)));
+  }
+  if (cmd === "--version" || cmd === "-v") {
+    console.log(packageVersion());
+    return true;
+  }
+  if (cmd === "--help" || cmd === "-h") {
+    console.error("abap-adt-dozimple            arranca el servidor MCP (stdio)\nabap-adt-dozimple init …     configura sistemas, contraseña y cliente MCP (init --help)\nabap-adt-dozimple --version");
+    return true;
+  }
+  return false;
+}
+
 async function main() {
+  if (await cli(process.argv.slice(2))) return;
   const server = new McpServer({ name: "abap-adt-doZimple", version: packageVersion() });
 
   let config;
