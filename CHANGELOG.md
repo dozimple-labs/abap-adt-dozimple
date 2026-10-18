@@ -4,6 +4,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Unreleased]
 
+### Añadido
+- **`docs/PARIDAD.md`**: matriz de capacidades frente al MCP oficial de SAP (ADT 3.60) y a los servidores estudiados,
+  con estado verificado/supuesto/pendiente por capacidad, huecos conocidos y el procedimiento de comparación. Se
+  revisa en cada release y es compuerta de salida de la 2.0.0.
+
 ## [1.7.0] - 2026-10-18
 
 Menos tokens por conversación: perfil de tools `core` con carga diferida, descripciones compactas y línea base de
