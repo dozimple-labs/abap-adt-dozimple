@@ -1,6 +1,6 @@
 # Referencia de tools — abap-adt-doZimple
 
-Generado desde el código con `npm run docs`. 68 tools en 9 grupos y 3 flujos guiados.
+Generado desde el código con `npm run docs`. 71 tools en 9 grupos y 3 flujos guiados.
 Producto de [DoZimple](https://dozimple.cl).
 
 ## Índice
@@ -8,7 +8,7 @@ Producto de [DoZimple](https://dozimple.cl).
 - [Revisión de código y pases](#revision) — 6 tools: `transport_diff`, `transport_contents`, `my_transports`, `co_change`, `inactive_objects`, `edit_preflight`
 - [Calidad, ATC y remediación](#calidad) — 6 tools: `run_atc`, `atc_quickfix`, `api_release_state`, `sap_notes`, `syntax_check`, `run_unit_tests`
 - [Exploración del repositorio](#exploracion) — 17 tools: `search_objects`, `get_source`, `object_context`, `where_used`, `source_search`, `object_versions`, `package_contents`, `ddic_type_info`, `ddic_plan`, `odata_model`, `transaction_info`, `function_modules`, `text_elements`, `enhancements`, `code_structure`, `package_dependencies`, `unused_methods`
-- [Consulta de datos](#datos) — 5 tools: `sql_query`, `table_contents`, `count_rows`, `search_tables`, `foreign_keys`
+- [Consulta de datos](#datos) — 8 tools: `sql_query`, `table_contents`, `count_rows`, `search_tables`, `foreign_keys`, `elevate_access`, `elevation_status`, `revoke_access`
 - [Diagnóstico de incidentes](#diagnostico) — 8 tools: `dumps`, `diagnose_message`, `jobs`, `application_log`, `gateway_errors`, `abap_traces`, `sql_traces`, `system_messages`
 - [Documentación SAP](#documentacion) — 7 tools: `abap_feature_matrix`, `docs_search`, `docs_fetch`, `clean_core_objects`, `clean_core_object`, `abap_lint`, `docs_community_search`
 - [Escritura controlada](#escritura) — 8 tools: `create_object`, `write_source`, `edit_source`, `revert_source`, `change_package`, `activate`, `write_text_elements`, `create_transport`
@@ -807,6 +807,56 @@ Claves externas de una tabla en las dos direcciones: las tablas de verificación
 | `system` | string |  | Sistema SAP configurado. Obligatorio si hay varios y ninguno por defecto. |
 | `table` * | string |  |  |
 | `direction` | `from` \| `to` \| `both` | "both" | from: las que usa esta tabla; to: las que la usan a ella |
+
+\* obligatorio
+
+### `elevate_access` — Elevar acceso a una categoría de datos
+
+Pide acceso temporal a una categoría de datos protegida en un sistema: seguridad y roles, maestro de personal, nómina o datos personales en claro. Dos pasos: la vista previa dice qué se abre y por cuánto; con la conformidad del usuario queda concedido, caduca solo y todo uso se audita. SECRETOS nunca se eleva.
+
+| | |
+|---|---|
+| **Acceso** | Solo lectura |
+| **Créditos** | Desarrollo propio de DoZimple |
+
+| Parámetro | Tipo | Por defecto | Descripción |
+|---|---|---|---|
+| `system` | string |  | Sistema SAP configurado. Obligatorio si hay varios y ninguno por defecto. |
+| `category` * | `SEG_ROLES` \| `HCM_MAESTRO` \| `HCM_NOMINA` \| `PERSONAS_NEGOCIO` |  | SEG_ROLES: seguridad: usuarios, roles, perfiles y autorizaciones · HCM_MAESTRO: datos maestros de personal (infotipos, estructura organizativa, candidatos) · HCM_NOMINA: nómina y pagos a personas · PERSONAS_NEGOCIO: datos personales de clientes, proveedores e interlocutores (en claro) |
+| `minutes` | number | 60 |  |
+| `reason` * | string |  | Para qué: ticket, análisis, auditoría… queda en el registro |
+
+\* obligatorio
+
+### `elevation_status` — Elevaciones vigentes
+
+Qué categorías de datos están elevadas ahora en el sistema (o en todos), con motivo y minutos que quedan.
+
+| | |
+|---|---|
+| **Acceso** | Solo lectura |
+| **Créditos** | Desarrollo propio de DoZimple |
+
+| Parámetro | Tipo | Por defecto | Descripción |
+|---|---|---|---|
+| `system` | string |  | Sistema SAP configurado. Obligatorio si hay varios y ninguno por defecto. |
+| `all_systems` | boolean | false |  |
+
+\* obligatorio
+
+### `revoke_access` — Revocar una elevación
+
+Cierra antes de tiempo una elevación de acceso en el sistema (una categoría o todas). Queda en el registro de auditoría.
+
+| | |
+|---|---|
+| **Acceso** | Solo lectura |
+| **Créditos** | Desarrollo propio de DoZimple |
+
+| Parámetro | Tipo | Por defecto | Descripción |
+|---|---|---|---|
+| `system` | string |  | Sistema SAP configurado. Obligatorio si hay varios y ninguno por defecto. |
+| `category` | `SEG_ROLES` \| `HCM_MAESTRO` \| `HCM_NOMINA` \| `PERSONAS_NEGOCIO` |  | Sin categoría: todas las del sistema |
 
 \* obligatorio
 

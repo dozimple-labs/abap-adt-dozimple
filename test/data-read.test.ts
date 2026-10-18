@@ -25,7 +25,7 @@ describe("data_read · qué tablas nombra una consulta", () => {
   });
   it("une varias lecturas de una misma tool", () => {
     expect(mergeReads([{ tables: ["T000"], maskedColumns: [], rows: 3, capped: false }, { tables: ["KNA1", "T000"], maskedColumns: ["NAME1"], rows: 200, capped: true }])).toEqual({
-      tables: ["KNA1", "T000"], maskedColumns: ["NAME1"], rows: 203, capped: true, queries: 2,
+      tables: ["KNA1", "T000"], maskedColumns: ["NAME1"], rows: 203, capped: true, queries: 2, categories: [], elevated: [],
     });
   });
 });
@@ -41,7 +41,7 @@ describe("data_read · la política de datos anota cada consulta", () => {
   } as any;
   it("tablas, columnas enmascaradas, filas y tope; nunca los valores", async () => {
     const { reads } = await withDataReads(() => guardedQuery(sap, system, "SELECT kunnr, name1 FROM kna1", 100));
-    expect(reads).toEqual([{ tables: ["KNA1"], maskedColumns: ["NAME1"], rows: 2, capped: true }]);
+    expect(reads).toEqual([{ tables: ["KNA1"], maskedColumns: ["NAME1"], rows: 2, capped: true, categories: ["PERSONAS_NEGOCIO"], elevated: [] }]);
     expect(JSON.stringify(reads)).not.toMatch(/Alguien/);
   });
   it("fuera de una tool no anota nada y no falla", () => {

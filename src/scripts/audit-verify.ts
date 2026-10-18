@@ -30,6 +30,7 @@ const denied = entries.filter((e) => e.phase === "denied").length;
 const reads = entries.filter((e) => e.phase === "data_read");
 const readTables = new Set(reads.flatMap((e) => e.read?.tables ?? []));
 const readRows = reads.reduce((n, e) => n + (e.read?.rows ?? 0), 0);
+const elev = (p: string) => entries.filter((e) => e.phase === p).length;
 const last = entries.at(-1);
 console.log(`Registro íntegro: ${v.entries} entradas encadenadas (${path}).`);
 console.log(
@@ -42,4 +43,5 @@ console.log(
     `por token (garantía de aviso: el cliente debe no autoaprobar): ${by("token")} · denegadas: ${denied}.`,
 );
 console.log(`Lecturas de datos (data_read): ${reads.length} · tablas distintas: ${readTables.size} · filas entregadas: ${readRows} (el registro guarda qué se leyó, nunca los valores).`);
+console.log(`Acceso elevado: ${elev("elevation_granted")} concedidas · ${elev("elevation_used")} usos · ${elev("elevation_revoked")} revocadas · ${elev("elevation_denied")} denegadas.`);
 if (last) console.log(`Último hash (anótalo fuera del equipo para detectar una reescritura completa): ${last.hash} · seq ${last.seq} · ${last.ts}`);

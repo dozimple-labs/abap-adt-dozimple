@@ -10,6 +10,9 @@ export interface DataRead {
   maskedColumns: string[];
   rows: number;
   capped: boolean;
+  /** Categorías de datos presentes (SEG_ROLES, HCM_*, PERSONAS_NEGOCIO) y las que se leyeron con elevación. */
+  categories?: string[];
+  elevated?: string[];
 }
 
 const store = new AsyncLocalStorage<DataRead[]>();
@@ -27,18 +30,22 @@ export function noteDataRead(read: DataRead): void {
 }
 
 /** Una tool puede consultar varias veces: en el registro queda una sola entrada con la unión. */
-export function mergeReads(reads: DataRead[]): DataRead & { queries: number } {
+export function mergeReads(reads: DataRead[]): DataRead & { queries: number; categories: string[]; elevated: string[] } {
   const tables = new Set<string>();
   const masked = new Set<string>();
+  const categories = new Set<string>();
+  const elevated = new Set<string>();
   let rows = 0;
   let capped = false;
   for (const r of reads) {
     r.tables.forEach((t) => tables.add(t));
     r.maskedColumns.forEach((c) => masked.add(c));
+    r.categories?.forEach((c) => categories.add(c));
+    r.elevated?.forEach((c) => elevated.add(c));
     rows += r.rows;
     capped ||= r.capped;
   }
-  return { tables: [...tables].sort(), maskedColumns: [...masked].sort(), rows, capped, queries: reads.length };
+  return { tables: [...tables].sort(), maskedColumns: [...masked].sort(), rows, capped, queries: reads.length, categories: [...categories].sort(), elevated: [...elevated].sort() };
 }
 
 const NOT_A_TABLE = new Set(["SELECT", "WITH", "DISTINCT", "SINGLE", "FROM", "JOIN", "WHERE", "ON", "AS", "INNER", "LEFT", "RIGHT", "OUTER", "CROSS", "UNION", "ALL"]);
