@@ -75,7 +75,7 @@ const COLLECTIONS: Record<Kind, string[]> = {
 const SOURCE_KINDS = new Set<Kind>(["PROG", "INCL", "CLAS", "INTF", "FUGR", "FUNC", "DDLS", "DCLS", "TABL", "STRU", "TTYP", "DDLX", "SRVD", "BDEF"]);
 const PROPS_KINDS = new Set<Kind>(["DTEL", "DOMA"]);
 const DDIC_KINDS = new Set<Kind>(["TABL", "STRU", "TTYP", "DTEL", "DOMA"]);
-const IMPLEMENTATION_TYPES = ["managed", "unmanaged", "projection", "abstract", "interface"] as const;
+
 
 /** Espacio de nombres de cliente: Z o Y, o un namespace /XXX/ registrado. */
 const CUSTOMER_NAME = /^(?:[ZY][A-Z0-9_]*|\/[A-Z0-9_]{1,10}\/[A-Z0-9_]+)$/;
@@ -175,7 +175,6 @@ const input = {
   source: z.string().optional().describe("Fuente inicial completa. Se comprueba la sintaxis antes de guardarla; una clase, entera. Tablas, estructuras y tipos tabla: sintaxis DDL de ADT (@EndUserText.label … define table ztab { key client : abap.clnt; … }). BDEF/SRVD/DDLX: su fuente RAP"),
   ddic_properties: z.record(z.unknown()).optional().describe("Solo DTEL y DOMA: propiedades como en ADT. DOMA: { typeInformation: { datatype, length, decimals }, outputInformation: { length, conversionExit, lowercase, signExists }, valueInformation: { valueTableRef, fixValues: [{ low, high, text }] } }. DTEL: { dataType: 'DOMAIN'|'PREDEFINED', typeName, dataTypeLength, dataTypeDecimals, fieldLabels: { shortFieldLabel, mediumFieldLabel, longFieldLabel, headingFieldLabel }, searchHelp }"),
   service_definition: z.string().optional().describe("Solo SRVB: definición de servicio (SRVD) que publica"),
-  implementation_type: z.enum(IMPLEMENTATION_TYPES).default("managed").describe("Solo BDEF: managed, unmanaged, projection, abstract o interface"),
   activate: z.boolean().default(true).describe("Activar tras guardar la fuente inicial o las propiedades"),
 };
 type Args = z.objectOutputType<typeof input, z.ZodTypeAny>;
@@ -207,16 +206,18 @@ const absentState = (t: Target) => stateOf(`absent|${t.kind}|${t.name}`);
 const xmlEsc = (s: string) => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 /**
- * abap-adt-api no conoce las definiciones de comportamiento: se crean con la misma forma de petición que el resto
- * de objetos con fuente, con el tipo de implementación como atributo. Sin verificar en vivo todavía.
+ * abap-adt-api no conoce las definiciones de comportamiento: se crean como «blue source» (el formato genérico de
+ * objetos con fuente que anuncia el discovery: application/vnd.sap.adt.blues.v1+xml). El tipo de implementación
+ * (managed, unmanaged, projection…) lo declara la propia fuente. Verificado en vivo en un S/4 758 (HTTP 201).
  */
-export function behaviorDefinitionBody(o: { name: string; description: string; pkg: string; responsible: string; language: string; implementationType: string }): string {
+export const BDEF_CONTENT_TYPE = "application/vnd.sap.adt.blues.v1+xml";
+export function behaviorDefinitionBody(o: { name: string; description: string; pkg: string; responsible: string; language: string }): string {
   return (
     `<?xml version="1.0" encoding="UTF-8"?>` +
-    `<bdef:bdefSource xmlns:bdef="http://www.sap.com/adt/bo/behaviordefinitions" xmlns:adtcore="http://www.sap.com/adt/core" ` +
+    `<blue:blueSource xmlns:blue="http://www.sap.com/wbobj/blue" xmlns:adtcore="http://www.sap.com/adt/core" ` +
     `adtcore:description="${xmlEsc(o.description)}" adtcore:name="${xmlEsc(o.name)}" adtcore:type="BDEF/BDO" adtcore:language="${o.language}" ` +
-    `adtcore:masterLanguage="${o.language}" adtcore:responsible="${xmlEsc(o.responsible)}" bdef:implementationType="${xmlEsc(o.implementationType)}">` +
-    `<adtcore:packageRef adtcore:name="${xmlEsc(o.pkg)}"/></bdef:bdefSource>`
+    `adtcore:masterLanguage="${o.language}" adtcore:responsible="${xmlEsc(o.responsible)}">` +
+    `<adtcore:packageRef adtcore:name="${xmlEsc(o.pkg)}"/></blue:blueSource>`
   );
 }
 
@@ -272,7 +273,7 @@ export default defineTool({
       out.push(warn.length ? `⚠ AVISOS DE LA ORDEN ${t.transport}:\n${warn.map((w) => "  ⚠ " + w).join("\n")}` : `Orden ${t.transport}: modificable, con destino y del usuario de esta conexión.`);
     }
     if (t.kind === "SRVB") out.push(`Publica la definición de servicio ${a.service_definition!.trim().toUpperCase()} como OData V2 (categoría estándar). Publicarlo en el gateway (/IWFND/MAINT_SERVICE o «Publish» en Eclipse) es un paso aparte.`);
-    if (t.kind === "BDEF") out.push(`Tipo de implementación: ${a.implementation_type}. Creación por petición ADT directa (sin verificar en vivo): si SAP la rechaza, se devuelve su mensaje.`);
+    if (t.kind === "BDEF") out.push("El tipo de implementación (managed, unmanaged, projection…) lo declara la fuente: dala en source o escríbela después con write_source.");
     if (DDIC_KINDS.has(t.kind)) out.push("Objeto de diccionario: solo donde ADT lo expone (S/4 y NW ≥ 7.51); en 7.50 usa ddic_plan.");
     if (PROPS_KINDS.has(t.kind)) {
       if (a.ddic_properties) out.push(`Propiedades: ${describeDdicProps(t.kind as "DTEL" | "DOMA", parseDdicProps(t.kind as "DTEL" | "DOMA", a.ddic_properties))}.${a.activate ? " Después se activa." : ""}`);
@@ -312,8 +313,8 @@ export default defineTool({
         await c.httpClient.request("/sap/bc/adt/bo/behaviordefinitions", {
           method: "POST",
           qs: t.transport ? { corrNr: t.transport } : undefined,
-          headers: { "Content-Type": "application/vnd.sap.adt.bo.behaviordefinitions.v1+xml, application/xml", Accept: "application/xml, */*" },
-          body: behaviorDefinitionBody({ name: t.name, description: t.description, pkg: t.pkg, responsible: system.user, language: system.language, implementationType: a.implementation_type }),
+          headers: { "Content-Type": BDEF_CONTENT_TYPE, Accept: `${BDEF_CONTENT_TYPE}, application/xml, */*` },
+          body: behaviorDefinitionBody({ name: t.name, description: t.description, pkg: t.pkg, responsible: system.user, language: system.language }),
         });
       } else if (t.kind === "SRVB") {
         await c.createObject({ ...options, service: a.service_definition!.trim().toUpperCase(), bindingtype: "ODATA", category: "0" } as NewObjectOptions);
@@ -338,8 +339,11 @@ export default defineTool({
     if (PROPS_KINDS.has(t.kind)) {
       if (!a.ddic_properties) return `${lines.join("\n")}\nSin propiedades: queda vacío e inactivo. Complétalo con write_ddic_properties.`;
       const props = parseDdicProps(t.kind as "DTEL" | "DOMA", a.ddic_properties);
-      const meta = { name: obj.name, description: t.description, language: system.language, masterLanguage: system.language, masterSystem: system.sid ?? "", responsible: system.user, packageName: t.pkg };
+      // Los metadatos (sistema maestro, paquete con su URI…) se toman de lo que SAP acaba de crear: construirlos a
+      // mano con un sistema maestro vacío devuelve «Verificación de condición fallida» (verificado en un 758).
       await sap.stateful(async (s) => {
+        const cur = t.kind === "DOMA" ? await s.getDomainProperties(obj.uri) : await s.getDataElementProperties(obj.uri);
+        const meta = { ...cur.metaData, description: t.description || cur.metaData.description, responsible: cur.metaData.responsible || system.user };
         const lock = await s.lock(obj.uri);
         try {
           if (t.kind === "DOMA") await s.setDomainProperties(obj.uri, props as DomainProperties, meta, lock.LOCK_HANDLE, t.transport || undefined);

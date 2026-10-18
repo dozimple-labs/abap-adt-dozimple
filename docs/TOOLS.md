@@ -1284,7 +1284,6 @@ Crea un objeto nuevo en desarrollo: programa, include, clase, interfaz, grupo o 
 | `source` | string |  | Fuente inicial completa. Se comprueba la sintaxis antes de guardarla; una clase, entera. Tablas, estructuras y tipos tabla: sintaxis DDL de ADT (@EndUserText.label … define table ztab { key client : abap.clnt; … }). BDEF/SRVD/DDLX: su fuente RAP |
 | `ddic_properties` | record |  | Solo DTEL y DOMA: propiedades como en ADT. DOMA: { typeInformation: { datatype, length, decimals }, outputInformation: { length, conversionExit, lowercase, signExists }, valueInformation: { valueTableRef, fixValues: [{ low, high, text }] } }. DTEL: { dataType: 'DOMAIN'\|'PREDEFINED', typeName, dataTypeLength, dataTypeDecimals, fieldLabels: { shortFieldLabel, mediumFieldLabel, longFieldLabel, headingFieldLabel }, searchHelp } |
 | `service_definition` | string |  | Solo SRVB: definición de servicio (SRVD) que publica |
-| `implementation_type` | `managed` \| `unmanaged` \| `projection` \| `abstract` \| `interface` | "managed" | Solo BDEF: managed, unmanaged, projection, abstract o interface |
 | `activate` | boolean | true | Activar tras guardar la fuente inicial o las propiedades |
 | `confirm_token` | string |  | Token de la vista previa. Sin él la tool no escribe: devuelve qué va a cambiar y el token, que se usa tras la conformidad del usuario (un solo uso, 10 min). |
 
