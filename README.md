@@ -61,6 +61,7 @@ and **a failure is never presented as an empty result or as success**.
 | [Repository exploration](#g-exploracion) | Read and understand any ABAP object and its relations, on ECC and S/4HANA. | 17 |
 | [Data queries](#g-datos) | Query tables with ABAP SQL, read-only, with sensitive and personal data protected. | 8 |
 | [Incident diagnosis](#g-diagnostico) | One conversation for what used to take ST22, SM37, SLG1 and /IWFND/ERROR_LOG. | 8 |
+| [Read-only debugging](#g-depuracion) | See where a program stops and what its values are, without changing anything and only in development. | 5 |
 | [SAP documentation](#g-documentacion) | Answer from official documentation and check which syntax exists in each release. | 7 |
 | [Controlled writes](#g-escritura) | Save changes only in development, in the right transport, previewed and confirmed by a human. | 10 |
 | [DoZimple Transport Risk](#g-transport-risk) | Decide whether a whole release can go to QA or production, with the why in business terms. | 7 |
@@ -184,6 +185,19 @@ Summary per group; each tool's details — parameters, types, defaults, requirem
 | [`abap_traces`](docs/TOOLS.md#diagnostico) | **ABAP traces (SAT).** Recorded ABAP performance traces of a user: ABAP, system and database times; per trace, the hit list, the database accesses or the statements. Read-only: never activates or deletes traces. | read |
 | [`sql_traces`](docs/TOOLS.md#diagnostico) | **SQL traces (ST05).** Directory and state of the ST05 traces exposed by ADT (S/4HANA, NW ≥ 7.51). Read-only. | read |
 | [`system_messages`](docs/TOOLS.md#diagnostico) | **System messages (SM02).** Current or all system messages (text, client, server, validity, creator) from TEMSI/TEMSG. | read |
+
+<a id="g-depuracion"></a>
+### Read-only debugging
+
+*See where a program stops and what its values are, without changing anything and only in development.*
+
+| Tool | What it does | Access |
+|---|---|---|
+| [`debug_breakpoints`](docs/TOOLS.md#depuracion) | **External breakpoints (debugger).** Sets or clears external breakpoints for the connection user (object and line); only on development systems with test data, with confirmation. | executes (DEV) |
+| [`debug_listen`](docs/TOOLS.md#depuracion) | **Wait and attach to the debugger.** Listens up to a timeout for a program of the connection user to stop at an external breakpoint, attaches and returns the stack and the variables of the current frame. Read-only; personal variables masked on masked-data systems; disabled with production data. | executes (DEV) |
+| [`debug_variables`](docs/TOOLS.md#depuracion) | **Debugger variables.** With an attached session: values by name, components of a structure or table by id, and the stack. | executes (DEV) |
+| [`debug_step`](docs/TOOLS.md#depuracion) | **Debugger step.** Into, over, return or continue; returns the stack and variables afterwards; closes the session when the program ends. | executes (DEV) |
+| [`debug_stop`](docs/TOOLS.md#depuracion) | **Close the debug session.** Releases or terminates the debuggee, removes the listener and closes the session. | executes (DEV) |
 
 <a id="g-documentacion"></a>
 ### SAP documentation
@@ -399,7 +413,7 @@ abap-adt-doZimple is built on other people's work, and says so: each tool lists 
 <!-- credits:start -->
 | Project | Author / holder | License | Type | Used in |
 |---|---|---|---|---|
-| [abap-adt-api](https://github.com/marcellourbani/abap-adt-api) | Marcello Urbani | MIT | dependency | all (core), `transport_diff`, `transport_contents`, `my_transports`, `inactive_objects`, `edit_preflight` and 35 more |
+| [abap-adt-api](https://github.com/marcellourbani/abap-adt-api) | Marcello Urbani | MIT | dependency | all (core), `transport_diff`, `transport_contents`, `my_transports`, `inactive_objects`, `edit_preflight` and 40 more |
 | [Model Context Protocol TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk) | Model Context Protocol | MIT | dependency | all (core) |
 | [mcp-sap-docs](https://github.com/marianfoo/mcp-sap-docs) | Marian Zeis (marianfoo) | Apache-2.0 | dependency | `abap_feature_matrix`, `docs_search`, `docs_fetch`, `clean_core_objects`, `clean_core_object`, `abap_lint` and 1 more |
 | [abaplint](https://github.com/abaplint/abaplint) | Lars Hvam and contributors | MIT | dependency | `code_structure`, `package_dependencies`, `unused_methods`, `abap_lint` |
@@ -411,10 +425,10 @@ abap-adt-doZimple is built on other people's work, and says so: each tool lists 
 | [ABAP Feature Matrix](https://software-heroes.com/en/abap-feature-matrix) | Software-Heroes | © Software-Heroes | data | `abap_feature_matrix` |
 | [Released objects / Cloudification Repository (abap-atc-cr-cv-s4hc)](https://github.com/SAP/abap-atc-cr-cv-s4hc) | SAP | Apache-2.0 | data | `clean_core_objects`, `clean_core_object` |
 | [SAP Community / SAP Help Portal](https://community.sap.com) | SAP SE and community authors | SAP terms | data | `docs_community_search` |
-| [ABAP Remote FS (vscode_abap_remote_fs)](https://github.com/marcellourbani/vscode_abap_remote_fs) | Marcello Urbani | MIT | idea | `syntax_check`, `create_object` |
+| [ABAP Remote FS (vscode_abap_remote_fs)](https://github.com/marcellourbani/vscode_abap_remote_fs) | Marcello Urbani | MIT | idea | `syntax_check`, `debug_breakpoints`, `debug_listen`, `debug_variables`, `debug_step`, `debug_stop` and 1 more |
 | [mcp-abap-adt](https://github.com/mario-andreschak/mcp-abap-adt) | mario-andreschak | MIT | idea | `search_objects`, `get_source`, `package_contents`, `ddic_type_info`, `transaction_info`, `table_contents` |
 | [ARC-1](https://github.com/arc-mcp/arc-1) | arc-mcp (Marian Zeis and contributors) | MIT | idea | `transport_diff`, `atc_quickfix`, `object_context`, `gateway_errors` |
-| [vibing-steampunk](https://github.com/oisee/vibing-steampunk) | oisee and contributors | MIT | idea | `co_change`, `api_release_state`, `source_search`, `enhancements`, `code_structure`, `package_dependencies` and 4 more |
+| [vibing-steampunk](https://github.com/oisee/vibing-steampunk) | oisee and contributors | MIT | idea | `co_change`, `api_release_state`, `source_search`, `enhancements`, `code_structure`, `package_dependencies` and 6 more |
 | [ABAPilot MCP connector (catálogo de tools)](https://github.com/NicoHern/abapilot-mcp) | Crimson Consulting SL (NicoHern) | MIT | idea | `count_rows`, `search_tables`, `foreign_keys`, `diagnose_message` |
 | [ABAP Accelerator for Amazon Q Developer](https://github.com/aws-solutions-library-samples/guidance-for-deploying-sap-abap-accelerator-for-amazon-q-developer) | AWS Solutions Library Samples | MIT-0 | idea | all (core), `my_transports`, `create_object`, `usage_stats` |
 | [An O(ND) Difference Algorithm and Its Variations (1986)](https://doi.org/10.1007/BF01840446) | Eugene W. Myers | published algorithm | algorithm | `transport_diff`, `atc_quickfix` |

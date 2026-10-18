@@ -118,11 +118,20 @@ export class SapConnection {
     return this.reader;
   }
 
-  /** Ejecuta fn con una sesión stateful propia y la cierra siempre. */
-  async stateful<T>(fn: (c: ADTClient) => Promise<T>): Promise<T> {
+  /**
+   * Sesión stateful que vive más de una llamada (depurador): quien la abre la cierra con logout(). Para
+   * operaciones de una sola llamada, stateful(fn).
+   */
+  async openStateful(): Promise<ADTClient> {
     this.assertCircuitClosed();
     const c = await this.login(await this.newClient());
     c.stateful = session_types.stateful;
+    return c;
+  }
+
+  /** Ejecuta fn con una sesión stateful propia y la cierra siempre. */
+  async stateful<T>(fn: (c: ADTClient) => Promise<T>): Promise<T> {
+    const c = await this.openStateful();
     try {
       return await fn(c);
     } finally {
