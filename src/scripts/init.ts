@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { chmodSync, copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { chmodSync, copyFileSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import { createInterface } from "node:readline/promises";
@@ -253,14 +253,30 @@ async function fill(a: InitArgs, io: InitIo): Promise<SystemFields> {
   return { system, url, sapClient, user, role, sid: a.sid, language: a.language, allowWrite: a.allowWrite };
 }
 
-function writePrivate(path: string, text: string, dirMode: number, fileMode: number): void {
+/** Escribe el archivo con sus permisos y deja copia .bak del anterior; devuelve si había uno. Sin comprobar-y-usar. */
+function writePrivate(path: string, text: string, dirMode: number, fileMode: number): boolean {
   mkdirSync(dirname(path), { recursive: true, mode: dirMode });
-  if (existsSync(path)) copyFileSync(path, path + ".bak");
+  let hadPrevious = true;
+  try {
+    copyFileSync(path, path + ".bak");
+  } catch (e) {
+    if ((e as NodeJS.ErrnoException).code !== "ENOENT") throw e;
+    hadPrevious = false;
+  }
   writeFileSync(path, text, { mode: fileMode });
   chmodSync(path, fileMode);
+  return hadPrevious;
 }
 
-const read = (p: string) => (existsSync(p) ? readFileSync(p, "utf8") : undefined);
+/** Contenido del archivo, o undefined si no existe (se intenta leer directamente: sin comprobar-y-usar). */
+function read(p: string): string | undefined {
+  try {
+    return readFileSync(p, "utf8");
+  } catch (e) {
+    if ((e as NodeJS.ErrnoException).code === "ENOENT") return undefined;
+    throw e;
+  }
+}
 
 /** Ejecuta el instalador; devuelve el código de salida. Toda la salida va por stderr (stdout queda para MCP). */
 export async function runInit(argv: string[], io: InitIo = defaultIo()): Promise<number> {
@@ -305,8 +321,8 @@ export async function runInit(argv: string[], io: InitIo = defaultIo()): Promise
       const merged = mergeClientConfig(read(path), key, serverEntry(a.client, io.node, io.serverPath), a.force);
       if (merged.action === "kept") say(`${path}: ya hay una entrada «${SERVER_NAME}»; se deja como está (usa --force para sustituirla).`);
       else {
-        if (!a.dryRun) writePrivate(path, merged.text, 0o755, 0o644);
-        say(`${path}: entrada «${SERVER_NAME}» ${merged.action === "created" ? "creada (archivo nuevo)" : merged.action === "added" ? "añadida" : "sustituida"}${existsSync(path + ".bak") && !a.dryRun ? " (copia anterior en .bak)" : ""}.`);
+        const backed = a.dryRun ? false : writePrivate(path, merged.text, 0o755, 0o644);
+        say(`${path}: entrada «${SERVER_NAME}» ${merged.action === "created" ? "creada (archivo nuevo)" : merged.action === "added" ? "añadida" : "sustituida"}${backed ? " (copia anterior en .bak)" : ""}.`);
       }
       if (a.client === "claude-code") say("Claude Code lee .mcp.json del proyecto al arrancar: reinicia la sesión en esta carpeta.");
       if (a.client === "kiro" || a.client === "cursor" || a.client === "claude-desktop") say("Reinicia el cliente para que cargue el servidor.");
