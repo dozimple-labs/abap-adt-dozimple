@@ -4,6 +4,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-10-18
+
+Ola 2 del plan de mejoras: acceso elevado por categorías de datos, auditoría de lecturas, SQL libre analizado por
+estructura con confirmación en productivo, análisis de código en local con abaplint, runtime de solo lectura,
+`object_context` y el instalador `init`. Además la matriz de paridad con el MCP de SAP y el protocolo de prueba.
+
 ### Añadido
 - **Módulo de acceso elevado** (Ola 2, punto 7). Las tablas que lee una consulta (incluidas las base de vistas y
   CDS) se clasifican en `SECRETOS` (nunca), `SEG_ROLES`, `HCM_MAESTRO`, `HCM_NOMINA`, `PERSONAS_NEGOCIO` (elevables)
