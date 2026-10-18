@@ -4,7 +4,7 @@ Qué cubre `abap-adt-doZimple` frente al MCP oficial de SAP (ADT) y a los servid
 para el plan de mejoras. Es un documento vivo: se revisa en cada release nuestra y cada vez que SAP publica una
 versión nueva de ADT. Marca con honestidad lo verificado y lo supuesto.
 
-**Última revisión:** 2026-10-18 · **Nuestra versión:** 2.0.0 · **MCP de SAP:** el que trae ADT 3.60 (Eclipse y
+**Última revisión:** 2026-10-18 · **Nuestra versión:** 2.0.1 · **MCP de SAP:** el que trae ADT 3.60 (Eclipse y
 VS Code), según documentación pública y pruebas de terceros; **no se ha ejecutado todavía contra un sistema propio.**
 
 ## 1. Qué se puede garantizar y qué no
@@ -65,11 +65,11 @@ Estado: **V** verificado en vivo en un sistema real · **S** supuesto por docume
 | OData clásico (SEGW) | No | `odata_model` (EDMX) | S: importación en SEGW sin verificar | Sí |
 | Consulta de datos con política (veto, masking, tope por sistema) | No | `sql_query`, `table_contents`, `count_rows`, `search_tables`, `foreign_keys` | V | Igual |
 | Diagnóstico: dumps, mensajes, jobs, SLG1, gateway, notas, ampliaciones | Parcial | `dumps`, `diagnose_message`, `jobs`, `application_log`, `gateway_errors`, `sap_notes`, `enhancements` | V | Igual |
-| Runtime: SAT, ST05, SM02 | No consta | `abap_traces`, `sql_traces` (S/4), `system_messages` | S: sin verificar en vivo | Igual |
-| Análisis local de código: estructura, dependencias por paquete, métodos sin uso | No consta | `code_structure`, `package_dependencies`, `unused_methods` (abaplint) | V (tests) | Igual |
-| Acceso elevado por categoría de datos (seguridad, HCM, personas) con auditoría | No | `elevate_access`, `elevation_status`, `revoke_access` | V (tests) | Igual |
-| SQL libre analizado a tablas base; lectura productiva confirmada | No así | `sql_query`, `table_contents` | V (tests) | Igual |
-| Depurador | Sí (el del IDE) | `debug_breakpoints`, `debug_listen`, `debug_variables`, `debug_step`, `debug_stop` (solo lectura) | S: sin verificar en vivo | Verificar en vivo |
+| Runtime: SAT, ST05, SM02 | No consta | `abap_traces`, `sql_traces` (S/4), `system_messages` | V en 7.50 (`abap_traces`, `system_messages`); `sql_traces` S en S/4 | Verificar ST05 en S/4 |
+| Análisis local de código: estructura, dependencias por paquete, métodos sin uso | No consta | `code_structure`, `package_dependencies`, `unused_methods` (abaplint) | V (7.50 en vivo) | Igual |
+| Acceso elevado por categoría de datos (seguridad, HCM, personas) con auditoría | No | `elevate_access`, `elevation_status`, `revoke_access` | V (7.50 en vivo) | Igual |
+| SQL libre analizado a tablas base; lectura productiva confirmada | No así | `sql_query`, `table_contents` | V (productivo en vivo) | Igual |
+| Depurador | Sí (el del IDE) | `debug_breakpoints`, `debug_listen`, `debug_variables`, `debug_step`, `debug_stop` (solo lectura) | V (7.50: punto de parada, adhesión, pila, variables, paso) | Verificar en S/4 |
 | Documentación ABAP, Clean Core, abaplint local | Vía Joule | 7 tools del grupo `documentacion` | V | Igual |
 | Varios sistemas y clientes en un proceso | No (un proyecto ADT por sesión) | `system` explícito en cada tool | V | Igual |
 | Identidad por persona en uso compartido | Sí (sesión del IDE) | `serve`: HTTP con identidad por persona (Basic por sesión, TLS) | V (tests) | Piloto con un equipo |

@@ -4,6 +4,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Unreleased]
 
+## [2.0.1] - 2026-10-18
+
+Correcciones de la primera verificación en vivo de la 2.0 contra un NW 7.50: depurador (cierre, puntos de parada), mensajes
+de sistema y vista previa de `sql_query` en productivo.
+
 ### Corregido
 - **`debug_breakpoints clear` olvidaba los puntos de parada al cerrar la sesión** y quedaban puestos en SAP: ahora se
   recuerdan por sistema fuera de la sesión y se quitan por la conexión de lectura. Las variables internas del kernel
