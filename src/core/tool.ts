@@ -91,6 +91,11 @@ export interface ToolDef<S extends ZodRawShape = ZodRawShape> {
   confirmReads?: boolean;
   /** Con confirm en una tool de lectura: cómo se llama la acción en la pregunta («elevación de acceso»). */
   confirmWhat?: string;
+  /**
+   * Tools con `output` que pueden responder con una vista previa (confirmReads, confirm): el contenido estructurado
+   * de esa respuesta, conforme al esquema, porque el cliente lo valida aunque no se haya ejecutado nada.
+   */
+  previewStructured?(args: z.objectOutputType<S, z.ZodTypeAny>, previewText: string): Record<string, unknown>;
   /** Tiempo máximo de una ejecución (por defecto 60 s). Las lentas (ATC, where-used, diff) declaran el suyo. */
   timeoutMs?: number;
   /**

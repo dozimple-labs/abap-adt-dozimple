@@ -23,11 +23,26 @@ export interface DebugSession {
   startedAt: string;
   debuggeeId?: string;
   attached: boolean;
-  /** Puntos de parada puestos desde este proceso (para poder borrarlos). */
-  breakpoints: Array<{ id: string; uri: string; line: number; object: string }>;
+}
+
+export interface SetBreakpoint {
+  id: string;
+  uri: string;
+  line: number;
+  object: string;
 }
 
 const sessions = new Map<string, DebugSession>();
+/** Puntos de parada puestos desde este proceso, por sistema: sobreviven al cierre de la sesión para poder quitarlos. */
+const breakpoints = new Map<string, SetBreakpoint[]>();
+
+export const breakpointsOf = (systemId: string): SetBreakpoint[] => breakpoints.get(systemId.toUpperCase()) ?? [];
+export function rememberBreakpoint(systemId: string, b: SetBreakpoint): void {
+  breakpoints.set(systemId.toUpperCase(), [...breakpointsOf(systemId), b]);
+}
+export function forgetBreakpoints(systemId: string): void {
+  breakpoints.delete(systemId.toUpperCase());
+}
 
 /** Id de terminal estable por máquina, como hace Eclipse: así los puntos de parada externos son «de esta máquina». */
 export function terminalId(dir = stateDir()): string {
@@ -60,38 +75,38 @@ export async function openSession(sap: SapConnection, system: SystemConfig): Pro
   const cur = sessions.get(system.id.toUpperCase());
   if (cur) return cur;
   const client = await sap.openStateful();
-  const s: DebugSession = { system: system.id, user: system.user.toUpperCase(), client, terminalId: terminalId(), startedAt: new Date().toISOString(), attached: false, breakpoints: [] };
+  const s: DebugSession = { system: system.id, user: system.user.toUpperCase(), client, terminalId: terminalId(), startedAt: new Date().toISOString(), attached: false };
   sessions.set(system.id.toUpperCase(), s);
   return s;
 }
 
-/** Cierra la sesión: desengancha si hacía falta, quita el listener y cierra la conexión. Nunca lanza. */
-export async function closeSession(systemId: string, how: "detachDebugger" | "terminateDebuggee" = "detachDebugger"): Promise<string[]> {
+const withLimit = <T>(p: Promise<T>, ms: number): Promise<T | "timeout"> => Promise.race([p.catch(() => "timeout" as const), new Promise<"timeout">((r) => setTimeout(() => r("timeout"), ms))]);
+
+/**
+ * Cierra la sesión: desengancha si hacía falta, quita el listener y cierra la conexión. Nunca lanza ni se queda
+ * esperando: la sesión stateful puede estar ocupada con la escucha larga (verificado en vivo: un DELETE por esa misma
+ * sesión esperaba 2 minutos), así que el listener se retira por la conexión de lectura y el logout tiene tope.
+ */
+export async function closeSession(systemId: string, how: "detachDebugger" | "terminateDebuggee" = "detachDebugger", via?: ADTClient): Promise<string[]> {
   const s = sessions.get(systemId.toUpperCase());
   if (!s) return [];
+  sessions.delete(systemId.toUpperCase());
   const done: string[] = [];
   if (s.attached) {
-    try {
-      await s.client.debuggerStep(how);
-      done.push(how === "terminateDebuggee" ? "programa depurado terminado" : "depurador desenganchado");
-    } catch (e) {
-      done.push(`no se pudo ${how === "terminateDebuggee" ? "terminar" : "desenganchar"}: ${(e as Error).message}`);
-    }
+    const r = await withLimit(s.client.debuggerStep(how), 20_000);
+    done.push(r === "timeout" ? `no se pudo ${how === "terminateDebuggee" ? "terminar" : "desenganchar"} (sin respuesta)` : how === "terminateDebuggee" ? "programa depurado terminado" : "depurador desenganchado");
   }
-  try {
-    await s.client.debuggerDeleteListener("user", s.terminalId, IDE_ID, s.user);
-    done.push("listener retirado");
-  } catch {
-    done.push("listener: no había ninguno activo");
-  }
-  await s.client.logout().catch(() => undefined);
-  sessions.delete(systemId.toUpperCase());
+  const lister = via ?? s.client;
+  const d = await withLimit(lister.debuggerDeleteListener("user", s.terminalId, IDE_ID, s.user), 15_000);
+  done.push(d === "timeout" ? "listener: sin respuesta al retirarlo (caduca solo)" : "listener retirado");
+  await withLimit(s.client.logout(), 3_000);
   return done;
 }
 
 /** Solo para tests. */
 export function resetSessionsForTests(): void {
   sessions.clear();
+  breakpoints.clear();
 }
 
 export interface ShownVariable {

@@ -30,6 +30,9 @@ export default defineTool({
   async preview({ query, max_rows }, { system }) {
     return readPreview(system, query, max_rows);
   },
+  previewStructured(_a, previewText) {
+    return { rows: 0, columns: [], values: [], truncated: false, notes: ["Vista previa: la consulta no se ha ejecutado todavía.", previewText.split("\n").slice(0, 3).join(" ")] };
+  },
   async run({ query, max_rows }, { sap, system }) {
     const r = await guardedQuery(sap, system, query, max_rows);
     const structured = {

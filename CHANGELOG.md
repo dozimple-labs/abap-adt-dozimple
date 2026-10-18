@@ -4,6 +4,24 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Unreleased]
 
+### Corregido
+- **`debug_breakpoints clear` olvidaba los puntos de parada al cerrar la sesión** y quedaban puestos en SAP: ahora se
+  recuerdan por sistema fuera de la sesión y se quitan por la conexión de lectura. Las variables internas del kernel
+  («{DATAAGING_…}») ya no se listan. Verificado en vivo: punto de parada externo, adhesión por una petición HTTP
+  propia, pila de 4 marcos, variables por nombre, paso «over» y cierre.
+- **`debug_listen` tardaba dos minutos en volver tras el tiempo de espera y `debug_stop` se colgaba**: la sesión
+  stateful seguía ocupada con la escucha larga y cualquier petición por ella esperaba a SAP. Ahora el listener se
+  retira por la conexión de lectura, el cierre tiene tope y la sesión se cierra al agotar el tiempo. Verificado en
+  vivo (10 s de espera → 15 s en total). La vista previa de las tools `exec` dice «ejecutado», no «escrito».
+- `create_object` explica por familia por qué un release no expone un tipo (diccionario en 7.50 → `ddic_plan`; RAP
+  solo en S/4).
+- **`system_messages` leía columnas que no existen**: en un NW 7.50 real TEMSI es solo un contador y TEMSG trae todo
+  (ID, EMTEXT, DATCRE/TIMCRE, DATDEL/TIMDEL, AUTHOR, APPLSERVER, CLIENT, LANGU). Ahora lee TEMSG. Verificado en vivo.
+- **La vista previa de `sql_query` en sistemas con datos productivos fallaba en el cliente** («Output validation error»):
+  una tool con esquema de salida no puede responder sin contenido estructurado. Nuevo `previewStructured` en la
+  definición de tool (obligatorio, por test, en toda tool con `output` y confirmación); `sql_query` devuelve una
+  respuesta vacía con la nota de vista previa. Verificado en vivo.
+
 ## [2.0.0] - 2026-10-18
 
 Ola 3 del plan de mejoras: modo HTTP de equipo con identidad por persona, depurador de solo lectura, RAP y

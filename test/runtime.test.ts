@@ -41,21 +41,20 @@ describe("sql_traces y xmlRows", () => {
 });
 
 describe("system_messages", () => {
-  it("une índice y texto, y marca el fin de vigencia", async () => {
+  it("lee TEMSG y marca el fin de vigencia", async () => {
     const sap = {
       query: async (sql: string) => {
         if (/dd26s|ddldependency/i.test(sql)) return { columns: [], values: [] };
-        if (/FROM temsi/i.test(sql)) return { columns: ["EMID", "EMMAND", "EMSERV", "EMDAT", "EMTIM", "EMDEL", "EMTIMDEL", "EMUNAME"].map((name) => ({ name })), values: [{ EMID: "0001", EMMAND: "", EMSERV: "", EMDAT: "20261018", EMTIM: "080000", EMDEL: "00000000", EMTIMDEL: "", EMUNAME: "BASIS" }] };
-        return { columns: [], values: [{ EMID: "0001", EMTEXT: "Parada el sábado" }] };
+        return { columns: ["ID", "EMTEXT", "DATCRE", "TIMCRE", "DATDEL", "TIMDEL", "AUTHOR", "APPLSERVER", "CLIENT", "LANGU"].map((name) => ({ name })), values: [{ ID: 1, EMTEXT: "Parada el sábado", DATCRE: "20261018", TIMCRE: "080000", DATDEL: "00000000", TIMDEL: "", AUTHOR: "BASIS", APPLSERVER: "", CLIENT: "", LANGU: "S" }] };
       },
       adt: async () => ({}),
     } as any;
     const r = String(await systemMessages.run({ only_active: true, max: 50 }, { sap, system: sys } as any));
     expect(r).toMatch(/1 mensajes de sistema/);
-    expect(r).toMatch(/0001\ttodos\ttodos\t20261018 080000\tsin fin\tBASIS\tParada el sábado/);
+    expect(r).toMatch(/1\ttodos\ttodos\t20261018 080000\tsin fin\tBASIS\tS\tParada el sábado/);
   });
   it("si la tabla no existe lo dice como capacidad, no como vacío", async () => {
-    const sap = { query: async (sql: string) => { if (/FROM temsi/i.test(sql)) throw new Error("Table TEMSI does not exist"); return { columns: [], values: [] }; }, adt: async () => ({}) } as any;
-    await expect(systemMessages.run({ only_active: false, max: 10 }, { sap, system: sys } as any)).rejects.toThrow(/no tiene la tabla TEMSI/);
+    const sap = { query: async (sql: string) => { if (/FROM temsg/i.test(sql)) throw new Error("Table TEMSG does not exist"); return { columns: [], values: [] }; }, adt: async () => ({}) } as any;
+    await expect(systemMessages.run({ only_active: false, max: 10 }, { sap, system: sys } as any)).rejects.toThrow(/no expone la tabla TEMSG/);
   });
 });

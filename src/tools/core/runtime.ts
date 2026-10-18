@@ -121,32 +121,29 @@ const systemMessages = defineTool({
   title: "Mensajes de sistema (SM02)",
   description:
     "Mensajes de sistema de SM02 (aviso de parada, mantenimiento…): texto, mandante, servidor, vigencia y quién lo " +
-    "creó, leídos de las tablas TEMSI y TEMSG. Solo lectura. Si el release guarda los mensajes de otra forma, la " +
-    "tool lo dice en vez de devolver vacío.",
+    "creó, leídos de la tabla TEMSG. Solo lectura. Si el release guarda los mensajes de otra forma, la tool lo dice " +
+    "en vez de devolver vacío.",
   access: "read",
   input: {
     only_active: z.boolean().default(true).describe("Solo los vigentes hoy"),
     max: z.number().int().min(1).max(200).default(50),
   },
   async run({ only_active, max }, { sap, system }) {
+    // TEMSG (verificada en NW 7.50): ID, EMTEXT, DATCRE/TIMCRE, DATDEL/TIMDEL, AUTHOR, APPLSERVER, CLIENT, LANGU. TEMSI es solo el contador.
     const today = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-    const where = only_active ? ` WHERE emdat <= '${today}' AND ( emdel >= '${today}' OR emdel = '00000000' )` : "";
-    let idx;
+    const where = only_active ? ` WHERE datcre <= '${today}' AND ( datdel >= '${today}' OR datdel = '00000000' )` : "";
+    let r;
     try {
-      idx = await guardedQuery(sap, system, `SELECT emid, emmand, emserv, emdat, emtim, emdel, emtimdel, emuname FROM temsi${where} ORDER BY emdat DESCENDING, emtim DESCENDING`, max);
+      r = await guardedQuery(sap, system, `SELECT id, emtext, datcre, timcre, datdel, timdel, author, applserver, client, langu FROM temsg${where} ORDER BY datcre DESCENDING, timcre DESCENDING`, max);
     } catch (e) {
       const msg = (e as Error).message;
-      if (/TEMSI|no existe|not exist|unknown/i.test(msg)) throw new ToolError("CAPABILITY", `${system.id} no tiene la tabla TEMSI de mensajes de sistema (${msg}).`, "Consulta SM02 en el SAP GUI.");
+      if (/TEMSG|no existe|not exist|unknown|desconocid/i.test(msg)) throw new ToolError("CAPABILITY", `${system.id} no expone la tabla TEMSG de mensajes de sistema como se esperaba (${msg}).`, "Consulta SM02 en el SAP GUI.");
       throw e;
     }
-    if (!idx.values.length) return `${system.id}: no hay mensajes de sistema${only_active ? " vigentes" : ""}.`;
-    const ids = idx.values.map((v) => `'${String(v.EMID).replace(/'/g, "''")}'`).join(", ");
-    const txt = await sap.query(`SELECT emid, emtext FROM temsg WHERE emid IN ( ${ids} )`, max * 10);
-    const text = new Map<string, string[]>();
-    for (const t of txt.values) text.set(String(t.EMID), [...(text.get(String(t.EMID)) ?? []), String(t.EMTEXT ?? "").trimEnd()]);
-    const rows = idx.values.map((v) => [v.EMID, v.EMMAND || "todos", v.EMSERV || "todos", `${v.EMDAT} ${v.EMTIM}`, v.EMDEL && v.EMDEL !== "00000000" ? `${v.EMDEL} ${v.EMTIMDEL ?? ""}` : "sin fin", v.EMUNAME, (text.get(String(v.EMID)) ?? []).join(" ").slice(0, 200)]);
+    if (!r.values.length) return `${system.id}: no hay mensajes de sistema${only_active ? " vigentes" : ""}.`;
+    const rows = r.values.map((v) => [v.ID, v.CLIENT || "todos", String(v.APPLSERVER ?? "").trim() || "todos", `${v.DATCRE} ${v.TIMCRE}`, v.DATDEL && v.DATDEL !== "00000000" ? `${v.DATDEL} ${v.TIMDEL ?? ""}` : "sin fin", v.AUTHOR, v.LANGU, String(v.EMTEXT ?? "").trimEnd().slice(0, 200)]);
     const note = dataClassOf(system) !== "test" ? "\n\n(El usuario creador sale enmascarado por la política de datos del sistema.)" : "";
-    return `${idx.values.length} mensajes de sistema en ${system.id}${idx.capped ? " (tope alcanzado)" : ""}\n\n` + tsv(["id", "mandante", "servidor", "desde", "hasta", "creado por", "texto"], rows) + note;
+    return `${r.values.length} mensajes de sistema en ${system.id}${r.capped ? " (tope alcanzado)" : ""}\n\n` + tsv(["id", "mandante", "servidor", "desde", "hasta", "creado por", "idioma", "texto"], rows) + note;
   },
 });
 
