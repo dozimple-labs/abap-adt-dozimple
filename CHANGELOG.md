@@ -4,6 +4,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-10-18
+
+Menos tokens por conversación: perfil de tools `core` con carga diferida, descripciones compactas y línea base de
+medición. Además, `activate` con `main_program` para includes compartidos y dependencias al día.
+
 ### Añadido
 - **Línea base de tokens y descripciones compactas** (issue #86). `scripts/measure-tokens.mjs [core|expert] [--json]`
   mide lo que el MCP publica al arrancar con la configuración real; las mediciones quedan en `docs/benchmarks/`.
