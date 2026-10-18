@@ -48,10 +48,10 @@ export default defineTool({
   name: "edit_source",
   title: "Editar un fragmento de la fuente",
   description:
-    "Sustituye fragmentos concretos de la fuente de un objeto existente sin reenviarla entera: cada edición es el texto " +
-    "exacto que hay hoy y el que lo reemplaza. Úsala para cambios pequeños en objetos grandes; para reescribir un objeto, " +
-    "write_source. Mismas garantías que write_source: vista previa con la sintaxis de SAP sobre la fuente resultante y el " +
-    "diff, orden explícita, y no escribe si el objeto cambió desde la vista previa o está bloqueado en otra orden.",
+    "Sustituye fragmentos exactos de la fuente de un objeto sin reenviarla entera: cada edición es el texto " +
+    "actual y el que lo reemplaza. Para cambios pequeños en objetos grandes; para reescribir, write_source. " +
+    "Mismas garantías: vista previa con la sintaxis de SAP y el diff, orden explícita, y no escribe si el objeto " +
+    "cambió o está bloqueado en otra orden.",
   access: "write",
   input: {
     object_name: z.string().min(1),

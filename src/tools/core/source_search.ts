@@ -112,10 +112,10 @@ export default defineTool({
   name: "source_search",
   title: "Buscar texto en el código",
   description:
-    "Busca un texto (o una expresión regular) en el código fuente de un paquete (con subpaquetes), de una orden de " +
-    "transporte o de una lista de objetos, y devuelve objeto, include, línea y la línea encontrada. Sirve donde " +
-    "where_used no llega: llamadas dinámicas, literales, código Z que el índice de referencias no cubre. Lee cada " +
-    "fuente, así que exige un alcance y tiene tope de objetos; los objetos que no se pudieron leer se listan aparte.",
+    "Busca texto o expresión regular en el código de un paquete (con subpaquetes), una orden o una lista de " +
+    "objetos; devuelve objeto, include, línea y texto. Donde where_used no llega: llamadas dinámicas, literales, " +
+    "código Z sin índice. Lee cada fuente: exige alcance y tiene tope de objetos; los que no se pudieron leer se " +
+    "listan aparte.",
   access: "read",
   timeoutMs: 180_000,
   input: {

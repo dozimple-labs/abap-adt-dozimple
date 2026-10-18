@@ -115,11 +115,10 @@ export default defineTool({
   name: "write_source",
   title: "Guardar fuente en SAP",
   description:
-    "Sustituye la fuente COMPLETA de un objeto existente (o de un include de clase), en la orden indicada. " +
-    "Antes comprueba la sintaxis del código nuevo y, si hay errores, no escribe nada. Si el objeto está bloqueado en " +
-    "otra orden, se para y lo explica en vez de guardar donde SAP quiera. Luego activa (activate=false para no hacerlo). " +
-    "Para clases, escribe la clase entera en una sola llamada. Llama antes a edit_preflight. Para cambiar unas pocas " +
-    "líneas de un objeto grande, edit_source.",
+    "Sustituye la fuente COMPLETA de un objeto existente (o un include de clase) en la orden indicada. Comprueba " +
+    "la sintaxis antes y no escribe con errores; si el objeto está bloqueado en otra orden, se para y lo dice. " +
+    "Luego activa (activate=false para no hacerlo). Una clase, entera en una llamada. Antes, edit_preflight; para " +
+    "pocas líneas, edit_source.",
   access: "write",
   input: {
     object_name: z.string().min(1),

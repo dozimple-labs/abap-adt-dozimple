@@ -19,10 +19,10 @@ export default defineTool({
   timeoutMs: 180_000,
   title: "Qué cambió una orden (diff de código)",
   description:
-    "Revisión de código de una orden: por cada objeto con fuente (programas, includes, clases, interfaces, FM, CDS) " +
-    "compara la versión grabada con esa orden (o sus tareas) contra la versión anterior, y muestra el diff unificado. " +
-    "Dice la calidad de la evidencia (exacta / aproximada / objeto nuevo) y lista aparte lo que no tiene fuente " +
-    "(diccionario, customizing). Funciona con órdenes abiertas («lo que voy a mandar») y liberadas.",
+    "Revisión de código de una orden: por cada objeto con fuente (programas, includes, clases, interfaces, FM, " +
+    "CDS) compara la versión grabada con esa orden contra la anterior y muestra el diff unificado, con la calidad " +
+    "de la evidencia (exacta, aproximada, objeto nuevo). Lo sin fuente (diccionario, customizing) se lista " +
+    "aparte. Vale para órdenes abiertas y liberadas.",
   access: "read",
   input: {
     transport: z.string().describe("Orden (o tarea), p. ej. DEVK900123"),

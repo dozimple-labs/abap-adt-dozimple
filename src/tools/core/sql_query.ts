@@ -10,10 +10,10 @@ export default defineTool({
   name: "sql_query",
   title: "Consulta ABAP SQL",
   description:
-    "Ejecuta un SELECT de ABAP SQL (con WHERE, JOIN, ORDER BY, subconsultas) vía la vista previa de datos de ADT. " +
-    "Solo lectura. Sintaxis ABAP SQL: literales entre comillas simples, sin «;», sin UP TO (usa max_rows). " +
-    "Útil para E070/E071/TADIR/TLOCK/DD03L y datos de negocio. En sistemas con datos productivos las columnas " +
-    "personales salen enmascaradas y hay un tope de filas por sistema.",
+    "Ejecuta un SELECT de ABAP SQL (WHERE, JOIN, ORDER BY, subconsultas) por la vista previa de datos de ADT. " +
+    "Solo lectura. Literales entre comillas simples, sin «;» ni UP TO (usa max_rows). Útil para " +
+    "E070/E071/TADIR/TLOCK/DD03L y datos de negocio. En sistemas productivos las columnas personales salen " +
+    "enmascaradas y hay tope de filas.",
   access: "read",
   input: {
     query: z.string().min(1).describe("SELECT ... FROM ... WHERE ..."),

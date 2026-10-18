@@ -8,10 +8,10 @@ export default defineTool({
   name: "analyze_transport_risk",
   title: "Riesgo de transporte",
   description:
-    "Dice si una orden (o un pase de varias, separadas por coma) es segura para pasar a calidad o productivo: tareas " +
-    "sin liberar, estado de importación, dependencias que no viajan, acceso posicional, bloqueos del CTS, cola de " +
-    "importación. Primera llamada siempre sin include_source. Un pase se analiza junto, no orden a orden. " +
-    "Con queue_system analiza la cola completa de un destino.",
+    "Dice si una orden, o un pase de varias separadas por coma, es segura para calidad o productivo: tareas sin " +
+    "liberar, importación, dependencias que no viajan, acceso posicional, bloqueos CTS, cola. Primera llamada sin " +
+    "include_source. Un pase se analiza junto, no orden a orden. queue_system analiza la cola completa de un " +
+    "destino.",
   access: "read",
   requires: { module: RISK_MODULE },
   input: {

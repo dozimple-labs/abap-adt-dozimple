@@ -5,6 +5,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 ## [Unreleased]
 
 ### Añadido
+- **Línea base de tokens y descripciones compactas** (issue #86). `scripts/measure-tokens.mjs [core|expert] [--json]`
+  mide lo que el MCP publica al arrancar con la configuración real; las mediciones quedan en `docs/benchmarks/`.
+  Las 18 descripciones que pasaban de 60 palabras se reescribieron (media de 52 a 46 palabras) y un test impide que
+  vuelva a ocurrir. Medición del 18-10: `expert` 61 tools, 91,5 KB (≈22.900 tokens); `core` 14 tools, 21,5 KB
+  (≈5.400 tokens). Lo que más pesa ahora son los esquemas de entrada (media 810 bytes; `ddic_plan` 6,3 KB por su
+  especificación anidada), no las descripciones.
 - **Perfil de tools `core` y carga diferida (`load_tools`).** Al arrancar se publican 14 tools de uso diario; las
   otras 47 quedan registradas pero apagadas y se cargan por grupo del catálogo (o `all`) con `load_tools`, que avisa
   al cliente con una sola notificación `tools/list_changed`. Medido con la configuración real: el catálogo inicial

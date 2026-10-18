@@ -25,10 +25,10 @@ export default defineTool({
   name: "edit_preflight",
   title: "Antes de editar: ¿a qué orden irá?",
   description:
-    "Dice, ANTES de modificar un objeto, en qué orden acabará el cambio y por qué: bloqueo del CTS (TLOCK) de otra " +
-    "orden, objeto local ($TMP), reparación (sistema original distinto), o si está libre y qué órdenes tienes abiertas. " +
-    "Con el módulo dz-transport-risk compara además la fuente de DEV con la de calidad y productivo (deriva de versión: " +
-    "lo que el pase arrastraría o pisaría). Úsala siempre antes de write_source o de editar a mano en un sistema ajeno.",
+    "Antes de modificar un objeto: en qué orden acabará el cambio y por qué (bloqueo CTS de otra orden, objeto " +
+    "local, reparación por sistema original distinto, o libre y qué órdenes tienes). Con el módulo " +
+    "dz-transport-risk compara además la fuente de DEV con calidad y productivo (deriva de versión). Úsala " +
+    "siempre antes de write_source o de editar a mano.",
   access: "read",
   input: {
     object_name: z.string().min(1),

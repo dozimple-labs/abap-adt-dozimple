@@ -63,10 +63,10 @@ export default defineTool({
   name: "change_package",
   title: "Cambiar el paquete de un objeto",
   description:
-    "Cambia de paquete un objeto existente (programa, clase, interfaz, grupo de funciones, CDS, objeto de diccionario) y " +
-    "lo registra en la orden indicada: sirve para sacar de $TMP algo que nació como prueba. Es el «Change Package " +
-    "Assignment» de Eclipse. La vista previa incluye la validación de SAP sin cambiar nada. No mueve módulos de función " +
-    "ni includes sueltos (heredan el paquete de su contenedor) y nunca elige la orden.",
+    "Cambia de paquete un objeto existente (programa, clase, interfaz, grupo de funciones, CDS, diccionario) y lo " +
+    "registra en la orden indicada; sirve para sacar de $TMP algo que nació como prueba. Es el «Change Package " +
+    "Assignment» de Eclipse: la vista previa incluye la validación de SAP. No mueve módulos ni includes sueltos " +
+    "(heredan el paquete) y nunca elige la orden.",
   access: "write",
   requires: { adt: ["/sap/bc/adt/refactorings"] },
   input,

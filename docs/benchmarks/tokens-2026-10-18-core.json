@@ -1,0 +1,91 @@
+{
+  "date": "2026-10-18",
+  "profile": "core",
+  "tools": 14,
+  "bytes": 21542,
+  "tokensApprox": 5386,
+  "avgDescriptionWords": 59,
+  "avgInputSchemaBytes": 779,
+  "heaviest": [
+    {
+      "name": "activate",
+      "words": 85,
+      "description": 558,
+      "input": 1623,
+      "output": 0,
+      "total": 2181
+    },
+    {
+      "name": "edit_source",
+      "words": 84,
+      "description": 523,
+      "input": 1590,
+      "output": 0,
+      "total": 2113
+    },
+    {
+      "name": "syntax_check",
+      "words": 31,
+      "description": 198,
+      "input": 866,
+      "output": 682,
+      "total": 1746
+    },
+    {
+      "name": "write_source",
+      "words": 82,
+      "description": 520,
+      "input": 1159,
+      "output": 0,
+      "total": 1679
+    },
+    {
+      "name": "load_tools",
+      "words": 132,
+      "description": 1304,
+      "input": 271,
+      "output": 0,
+      "total": 1575
+    },
+    {
+      "name": "sql_query",
+      "words": 52,
+      "description": 331,
+      "input": 437,
+      "output": 663,
+      "total": 1431
+    },
+    {
+      "name": "get_source",
+      "words": 45,
+      "description": 292,
+      "input": 1072,
+      "output": 0,
+      "total": 1364
+    },
+    {
+      "name": "edit_preflight",
+      "words": 59,
+      "description": 351,
+      "input": 914,
+      "output": 0,
+      "total": 1265
+    },
+    {
+      "name": "where_used",
+      "words": 37,
+      "description": 215,
+      "input": 680,
+      "output": 0,
+      "total": 895
+    },
+    {
+      "name": "search_objects",
+      "words": 31,
+      "description": 194,
+      "input": 677,
+      "output": 0,
+      "total": 871
+    }
+  ]
+}

@@ -83,11 +83,10 @@ export default defineTool({
   name: "activate",
   title: "Activar objetos",
   description:
-    "Activa un objeto, una lista de objetos o todos los inactivos del usuario (opcionalmente de una orden) y devuelve " +
-    "los mensajes de SAP tal cual (errores con línea, avisos, objetos que quedan inactivos). Varios objetos se activan " +
-    "JUNTOS en una sola activación, que resuelve dependencias mutuas (clase ↔ interfaz, programa ↔ include) que una a " +
-    "una fallan. Un include de varios programas principales se activa indicando main_program. Nunca activa borrados " +
-    "pendientes.",
+    "Activa un objeto, una lista o todos los inactivos del usuario (opcionalmente de una orden) y devuelve los " +
+    "mensajes de SAP tal cual (errores con línea, avisos, inactivos). Varios objetos se activan JUNTOS en una " +
+    "sola activación, que resuelve dependencias mutuas que una a una fallan. Un include de varios programas " +
+    "principales se activa con main_program. Nunca activa borrados pendientes.",
   access: "write",
   timeoutMs: 180_000,
   requires: { adt: ["/sap/bc/adt/activation"] },
