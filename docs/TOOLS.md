@@ -1,6 +1,6 @@
 # Referencia de tools — abap-adt-doZimple
 
-Generado desde el código con `npm run docs`. 71 tools en 9 grupos y 3 flujos guiados.
+Generado desde el código con `npm run docs`. 72 tools en 9 grupos y 3 flujos guiados.
 Producto de [DoZimple](https://dozimple.cl).
 
 ## Índice
@@ -11,7 +11,7 @@ Producto de [DoZimple](https://dozimple.cl).
 - [Consulta de datos](#datos) — 8 tools: `sql_query`, `table_contents`, `count_rows`, `search_tables`, `foreign_keys`, `elevate_access`, `elevation_status`, `revoke_access`
 - [Diagnóstico de incidentes](#diagnostico) — 8 tools: `dumps`, `diagnose_message`, `jobs`, `application_log`, `gateway_errors`, `abap_traces`, `sql_traces`, `system_messages`
 - [Documentación SAP](#documentacion) — 7 tools: `abap_feature_matrix`, `docs_search`, `docs_fetch`, `clean_core_objects`, `clean_core_object`, `abap_lint`, `docs_community_search`
-- [Escritura controlada](#escritura) — 8 tools: `create_object`, `write_source`, `edit_source`, `revert_source`, `change_package`, `activate`, `write_text_elements`, `create_transport`
+- [Escritura controlada](#escritura) — 9 tools: `create_object`, `write_source`, `edit_source`, `push_sources`, `revert_source`, `change_package`, `activate`, `write_text_elements`, `create_transport`
 - [DoZimple Transport Risk](#transport-risk) — 7 tools: `analyze_transport_risk`, `import_health`, `failure_ranking`, `change_audit`, `object_transport_history`, `remote_source`, `transport_source_check`
 - [Operación y crecimiento](#operacion) — 4 tools: `sap_systems`, `report_gap`, `close_gap`, `usage_stats`
 - [Flujos guiados](#flujos-guiados)
@@ -1236,6 +1236,26 @@ Sustituye fragmentos exactos de la fuente de un objeto sin reenviarla entera: ca
 | `edits` * | lista de { old_text, new_text, replace_all } |  | Sustituciones, aplicadas en orden |
 | `transport` | string |  | Orden (o tarea) donde debe ir el cambio. Obligatoria salvo objetos locales |
 | `activate` | boolean | true |  |
+| `confirm_token` | string |  | Token de la vista previa. Sin él la tool no escribe: devuelve qué va a cambiar y el token, que se usa tras la conformidad del usuario (un solo uso, 10 min). |
+
+\* obligatorio
+
+### `push_sources` — Guardar varias fuentes en una operación
+
+Guarda las fuentes completas de varios objetos existentes (hasta 20, includes de clase incluidos) en la misma orden con una sola vista previa consolidada (sintaxis y diff por objeto) y una sola confirmación; después los activa juntos. Lo que falle se dice por objeto y no se activa. Objetos nuevos: create_object.
+
+| | |
+|---|---|
+| **Acceso** | Escribe (solo DEV con `allowWrite`; nunca QAS/PRD) |
+| **Créditos** | [abap-adt-api](https://github.com/marcellourbani/abap-adt-api) — Marcello Urbani (MIT, dependencia) |
+
+| Parámetro | Tipo | Por defecto | Descripción |
+|---|---|---|---|
+| `system` | string |  | Sistema SAP configurado. Obligatorio si hay varios y ninguno por defecto. |
+| `files` * | lista de { object_name, object_type, include, source } |  |  |
+| `transport` | string |  | Orden (o tarea) para todos. Obligatoria salvo objetos locales |
+| `activate` | boolean | true | Activar todos juntos al final |
+| `skip_syntax_check` | boolean | false |  |
 | `confirm_token` | string |  | Token de la vista previa. Sin él la tool no escribe: devuelve qué va a cambiar y el token, que se usa tras la conformidad del usuario (un solo uso, 10 min). |
 
 \* obligatorio
