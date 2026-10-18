@@ -152,6 +152,7 @@ export const GROUPS: Group[] = [
       { name: "write_source", credits: ADT },
       { name: "edit_source", credits: ADT },
       { name: "push_sources", credits: ADT },
+      { name: "write_ddic_properties", credits: ADT },
       { name: "revert_source", credits: ADT },
       { name: "change_package", credits: ADT },
       { name: "activate", credits: ADT },

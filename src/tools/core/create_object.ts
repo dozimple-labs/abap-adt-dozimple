@@ -4,6 +4,7 @@ import { activateObject } from "../../core/activation.js";
 import { isError, renderSyntax, syntaxCheck } from "../../core/checks.js";
 import { stateOf } from "../../core/confirm.js";
 import type { SapConnection } from "../../core/connection.js";
+import { describeDdicProps, parseDdicProps, type DataElementProperties, type DomainProperties } from "../../core/ddicprops.js";
 import { normalizeError, ToolError } from "../../core/errors.js";
 import { resolveObject, sourceUrl, sqlLiteral, type ResolvedObject } from "../../core/objects.js";
 import { assertTrkorr } from "../../core/policy.js";
@@ -38,6 +39,14 @@ const KINDS = {
   /** Solo donde ADT expone el diccionario con fuente (S/4 y NW ≥ 7.51): en ECC 7.50 no existe la colección y se remite a ddic_plan. */
   TABL: { adt: "TABL/DT", label: "tabla de diccionario", maxLen: 16 },
   STRU: { adt: "TABL/DS", label: "estructura de diccionario", maxLen: 30 },
+  TTYP: { adt: "TTYP/DA", label: "tipo tabla", maxLen: 30 },
+  DTEL: { adt: "DTEL/DE", label: "elemento de datos", maxLen: 30 },
+  DOMA: { adt: "DOMA/DD", label: "dominio", maxLen: 30 },
+  /** RAP (S/4): metadatos CDS, definición de servicio, binding y definición de comportamiento. */
+  DDLX: { adt: "DDLX/EX", label: "extensión de metadatos CDS (DDLX)", maxLen: 30 },
+  SRVD: { adt: "SRVD/SRV", label: "definición de servicio (SRVD)", maxLen: 30 },
+  SRVB: { adt: "SRVB/SVB", label: "binding de servicio OData V2 (SRVB)", maxLen: 26 },
+  BDEF: { adt: "BDEF/BDO", label: "definición de comportamiento (BDEF)", maxLen: 30 },
 } as const;
 type Kind = keyof typeof KINDS;
 
@@ -53,7 +62,20 @@ const COLLECTIONS: Record<Kind, string[]> = {
   DCLS: ["/sap/bc/adt/acm/dcl/sources", "/sap/bc/adt/acm/dcl/validation"],
   TABL: ["/sap/bc/adt/ddic/tables", "/sap/bc/adt/ddic/tables/validation"],
   STRU: ["/sap/bc/adt/ddic/structures", "/sap/bc/adt/ddic/structures/validation"],
+  TTYP: ["/sap/bc/adt/ddic/tabletypes", "/sap/bc/adt/ddic/tabletypes/validation"],
+  DTEL: ["/sap/bc/adt/ddic/dataelements", "/sap/bc/adt/ddic/dataelements/validation"],
+  DOMA: ["/sap/bc/adt/ddic/domains", "/sap/bc/adt/ddic/domains/validation"],
+  DDLX: ["/sap/bc/adt/ddic/ddlx/sources", "/sap/bc/adt/ddic/ddlx/sources/validation"],
+  SRVD: ["/sap/bc/adt/ddic/srvd/sources", "/sap/bc/adt/ddic/srvd/sources/validation"],
+  SRVB: ["/sap/bc/adt/businessservices/bindings", "/sap/bc/adt/businessservices/bindings/validation"],
+  BDEF: ["/sap/bc/adt/bo/behaviordefinitions"],
 };
+
+/** Tipos cuyo contenido es un texto fuente (se guarda con setObjectSource) frente a los que llevan propiedades. */
+const SOURCE_KINDS = new Set<Kind>(["PROG", "INCL", "CLAS", "INTF", "FUGR", "FUNC", "DDLS", "DCLS", "TABL", "STRU", "TTYP", "DDLX", "SRVD", "BDEF"]);
+const PROPS_KINDS = new Set<Kind>(["DTEL", "DOMA"]);
+const DDIC_KINDS = new Set<Kind>(["TABL", "STRU", "TTYP", "DTEL", "DOMA"]);
+const IMPLEMENTATION_TYPES = ["managed", "unmanaged", "projection", "abstract", "interface"] as const;
 
 /** Espacio de nombres de cliente: Z o Y, o un namespace /XXX/ registrado. */
 const CUSTOMER_NAME = /^(?:[ZY][A-Z0-9_]*|\/[A-Z0-9_]{1,10}\/[A-Z0-9_]+)$/;
@@ -79,6 +101,13 @@ export async function existingObject(sap: SapConnection, kind: Kind, name: strin
     DCLS: [`SELECT obj_name FROM tadir WHERE pgmid = 'R3TR' AND object = 'DCLS' AND obj_name = ${lit}`, "control de acceso CDS"],
     TABL: [`SELECT tabname FROM dd02l WHERE tabname = ${lit}`, "tabla o estructura de diccionario"],
     STRU: [`SELECT tabname FROM dd02l WHERE tabname = ${lit}`, "tabla o estructura de diccionario"],
+    TTYP: [`SELECT typename FROM dd40l WHERE typename = ${lit}`, "tipo tabla"],
+    DTEL: [`SELECT rollname FROM dd04l WHERE rollname = ${lit}`, "elemento de datos"],
+    DOMA: [`SELECT domname FROM dd01l WHERE domname = ${lit}`, "dominio"],
+    DDLX: [`SELECT obj_name FROM tadir WHERE pgmid = 'R3TR' AND object = 'DDLX' AND obj_name = ${lit}`, "extensión de metadatos"],
+    SRVD: [`SELECT obj_name FROM tadir WHERE pgmid = 'R3TR' AND object = 'SRVD' AND obj_name = ${lit}`, "definición de servicio"],
+    SRVB: [`SELECT obj_name FROM tadir WHERE pgmid = 'R3TR' AND object = 'SRVB' AND obj_name = ${lit}`, "binding de servicio"],
+    BDEF: [`SELECT obj_name FROM tadir WHERE pgmid = 'R3TR' AND object = 'BDEF' AND obj_name = ${lit}`, "definición de comportamiento"],
   };
   const [sql, what] = probe[kind];
   return (await sap.query(sql, 1)).values.length ? what : undefined;
@@ -120,20 +149,34 @@ async function resolveTarget(sap: SapConnection, a: Args): Promise<Target> {
   const transport = a.transport ? assertTrkorr(a.transport) : undefined;
   if (transportable && !transport) throw new ToolError("INPUT", `El paquete ${pkg} es transportable: indica la orden (transport). El servidor nunca elige la orden por ti.`);
   if (!transportable && transport) throw new ToolError("INPUT", `El paquete ${pkg} es local: sus objetos no viajan y no llevan orden. Quita transport o usa un paquete transportable.`);
+  if (kind === "SRVB" && !a.service_definition) throw new ToolError("INPUT", "Un binding de servicio necesita service_definition (la SRVD que publica).");
+  if (PROPS_KINDS.has(kind) && a.source) throw new ToolError("INPUT", `Un ${KINDS[kind].label} no tiene fuente: sus propiedades van en ddic_properties.`);
+  if (!PROPS_KINDS.has(kind) && a.ddic_properties) throw new ToolError("INPUT", "ddic_properties solo aplica a DTEL y DOMA.");
+  if (PROPS_KINDS.has(kind) && a.ddic_properties) {
+    try {
+      parseDdicProps(kind as "DTEL" | "DOMA", a.ddic_properties);
+    } catch (e) {
+      throw new ToolError("INPUT", (e as Error).message);
+    }
+  }
   return { kind, name, description: a.description.trim(), pkg, local: !transportable, group, transport };
 }
 
 const input = {
   object_type: z.enum(Object.keys(KINDS) as [Kind, ...Kind[]]).describe(
-    "PROG programa · INCL include · CLAS clase · INTF interfaz · FUGR grupo de funciones · FUNC módulo de función · DDLS vista CDS · DCLS control de acceso CDS · TABL tabla · STRU estructura (estas dos solo en S/4 o NW ≥ 7.51)",
+    "PROG programa · INCL include · CLAS clase · INTF interfaz · FUGR grupo de funciones · FUNC módulo de función · DDLS vista CDS · DCLS control de acceso CDS · " +
+      "S/4 o NW ≥ 7.51: TABL tabla · STRU estructura · TTYP tipo tabla · DTEL elemento de datos · DOMA dominio (con ddic_properties) · DDLX metadatos CDS · SRVD definición de servicio · SRVB binding OData V2 · BDEF definición de comportamiento",
   ),
   name: z.string().min(1).max(40),
   description: z.string().min(1).max(60).describe("Texto breve (en el idioma del sistema)"),
   package: z.string().optional().describe("Paquete de desarrollo. Obligatorio salvo FUNC (usa el del grupo). $TMP solo si se pide expresamente"),
   function_group: z.string().optional().describe("Solo FUNC: grupo de funciones donde se crea"),
   transport: z.string().optional().describe("Orden (o tarea). Obligatoria si el paquete es transportable"),
-  source: z.string().optional().describe("Fuente inicial completa. Se comprueba la sintaxis antes de guardarla; una clase, entera. Tablas y estructuras: en la sintaxis DDL de ADT (@EndUserText.label … define table ztab { key client : abap.clnt; … })"),
-  activate: z.boolean().default(true).describe("Activar tras guardar la fuente inicial"),
+  source: z.string().optional().describe("Fuente inicial completa. Se comprueba la sintaxis antes de guardarla; una clase, entera. Tablas, estructuras y tipos tabla: sintaxis DDL de ADT (@EndUserText.label … define table ztab { key client : abap.clnt; … }). BDEF/SRVD/DDLX: su fuente RAP"),
+  ddic_properties: z.record(z.unknown()).optional().describe("Solo DTEL y DOMA: propiedades como en ADT. DOMA: { typeInformation: { datatype, length, decimals }, outputInformation: { length, conversionExit, lowercase, signExists }, valueInformation: { valueTableRef, fixValues: [{ low, high, text }] } }. DTEL: { dataType: 'DOMAIN'|'PREDEFINED', typeName, dataTypeLength, dataTypeDecimals, fieldLabels: { shortFieldLabel, mediumFieldLabel, longFieldLabel, headingFieldLabel }, searchHelp }"),
+  service_definition: z.string().optional().describe("Solo SRVB: definición de servicio (SRVD) que publica"),
+  implementation_type: z.enum(IMPLEMENTATION_TYPES).default("managed").describe("Solo BDEF: managed, unmanaged, projection, abstract o interface"),
+  activate: z.boolean().default(true).describe("Activar tras guardar la fuente inicial o las propiedades"),
 };
 type Args = z.objectOutputType<typeof input, z.ZodTypeAny>;
 
@@ -143,13 +186,16 @@ async function missingCollections(sap: SapConnection, kind: Kind): Promise<strin
   return COLLECTIONS[kind].filter((c) => !caps.collections.includes(c));
 }
 
-async function sapValidation(c: ADTClient, t: Target): Promise<string> {
+async function sapValidation(c: ADTClient, t: Target, a: Args): Promise<string> {
+  if (t.kind === "BDEF") return "SAP no ofrece validación previa para definiciones de comportamiento: el nombre se comprueba al crear.";
   try {
     const opts =
       t.kind === "FUNC"
         ? { objtype: "FUGR/FF" as const, objname: t.name, description: t.description, fugrname: t.group! }
-        : { objtype: KINDS[t.kind].adt as "PROG/P", objname: t.name, description: t.description, packagename: t.pkg };
-    const r = await c.validateNewObject(opts);
+        : t.kind === "SRVB"
+          ? { objtype: "SRVB/SVB" as const, objname: t.name, description: t.description, serviceBindingVersion: "ODATA\\V2" as const, serviceDefinition: a.service_definition!.trim().toUpperCase(), package: t.pkg }
+          : { objtype: KINDS[t.kind].adt as "PROG/P", objname: t.name, description: t.description, packagename: t.pkg };
+    const r = await c.validateNewObject(opts as Parameters<ADTClient["validateNewObject"]>[0]);
     return r.SEVERITY && r.SEVERITY !== "OK" ? `SAP avisa (${r.SEVERITY}): ${r.SHORT_TEXT ?? ""}` : "SAP valida el nombre y el paquete: correcto.";
   } catch (e) {
     throw new ToolError("SAP", `SAP rechaza crear ${t.name}: ${normalizeError(e).message}`);
@@ -157,6 +203,22 @@ async function sapValidation(c: ADTClient, t: Target): Promise<string> {
 }
 
 const absentState = (t: Target) => stateOf(`absent|${t.kind}|${t.name}`);
+
+const xmlEsc = (s: string) => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+/**
+ * abap-adt-api no conoce las definiciones de comportamiento: se crean con la misma forma de petición que el resto
+ * de objetos con fuente, con el tipo de implementación como atributo. Sin verificar en vivo todavía.
+ */
+export function behaviorDefinitionBody(o: { name: string; description: string; pkg: string; responsible: string; language: string; implementationType: string }): string {
+  return (
+    `<?xml version="1.0" encoding="UTF-8"?>` +
+    `<bdef:bdefSource xmlns:bdef="http://www.sap.com/adt/bo/behaviordefinitions" xmlns:adtcore="http://www.sap.com/adt/core" ` +
+    `adtcore:description="${xmlEsc(o.description)}" adtcore:name="${xmlEsc(o.name)}" adtcore:type="BDEF/BDO" adtcore:language="${o.language}" ` +
+    `adtcore:masterLanguage="${o.language}" adtcore:responsible="${xmlEsc(o.responsible)}" bdef:implementationType="${xmlEsc(o.implementationType)}">` +
+    `<adtcore:packageRef adtcore:name="${xmlEsc(o.pkg)}"/></bdef:bdefSource>`
+  );
+}
 
 async function readBack(c: ADTClient, t: Target): Promise<ResolvedObject | undefined> {
   for (let i = 0; i < 2; i++) {
@@ -173,10 +235,10 @@ export default defineTool({
   name: "create_object",
   title: "Crear objeto ABAP",
   description:
-    "Crea un objeto nuevo en desarrollo: programa, include, clase, interfaz, grupo o módulo de función, vista o " +
-    "control de acceso CDS y, en S/4 o NW ≥ 7.51, tabla o estructura con fuente DDL (en 7.50, ddic_plan). Exige " +
-    "paquete y orden si es transportable. Fuente inicial opcional con sintaxis de SAP. Vista previa y " +
-    "confirmación. Para objetos existentes, write_source.",
+    "Crea un objeto nuevo en desarrollo: programa, include, clase, interfaz, grupo o módulo de función, CDS y, en " +
+    "S/4 o NW ≥ 7.51, diccionario (tabla, estructura, tipo tabla, elemento de datos, dominio) y RAP (DDLX, SRVD, " +
+    "SRVB, BDEF). Exige paquete y orden si es transportable. Fuente o propiedades iniciales opcionales. Vista " +
+    "previa y confirmación. Para objetos existentes, write_source.",
   access: "write",
   timeoutMs: 180_000,
   input,
@@ -193,7 +255,7 @@ export default defineTool({
     const exists = await existingObject(sap, t.kind, t.name);
     if (exists) throw new ToolError("INPUT", `Ya existe un ${exists} llamado ${t.name}: para cambiarlo usa write_source.`);
     const c = await sap.adt();
-    const validation = await sapValidation(c, t);
+    const validation = await sapValidation(c, t, a);
     const out = [
       `Crear ${KINDS[t.kind].label} ${t.name} «${t.description}»`,
       t.kind === "FUNC" ? `En el grupo ${t.group} (paquete ${t.pkg})` : `En el paquete ${t.pkg}`,
@@ -205,13 +267,19 @@ export default defineTool({
       const warn = await transportWarnings(sap, t.transport!, system.user);
       out.push(warn.length ? `⚠ AVISOS DE LA ORDEN ${t.transport}:\n${warn.map((w) => "  ⚠ " + w).join("\n")}` : `Orden ${t.transport}: modificable, con destino y del usuario de esta conexión.`);
     }
-    if (a.source) {
+    if (t.kind === "SRVB") out.push(`Publica la definición de servicio ${a.service_definition!.trim().toUpperCase()} como OData V2 (categoría estándar). Publicarlo en el gateway (/IWFND/MAINT_SERVICE o «Publish» en Eclipse) es un paso aparte.`);
+    if (t.kind === "BDEF") out.push(`Tipo de implementación: ${a.implementation_type}. Creación por petición ADT directa (sin verificar en vivo): si SAP la rechaza, se devuelve su mensaje.`);
+    if (DDIC_KINDS.has(t.kind)) out.push("Objeto de diccionario: solo donde ADT lo expone (S/4 y NW ≥ 7.51); en 7.50 usa ddic_plan.");
+    if (PROPS_KINDS.has(t.kind)) {
+      if (a.ddic_properties) out.push(`Propiedades: ${describeDdicProps(t.kind as "DTEL" | "DOMA", parseDdicProps(t.kind as "DTEL" | "DOMA", a.ddic_properties))}.${a.activate ? " Después se activa." : ""}`);
+      else out.push("Sin ddic_properties: se crea vacío y NO se activa (un dominio o elemento sin tipo no activa). Complétalo después con write_ddic_properties.");
+    } else if (a.source) {
       const lines = a.source.split("\n").length;
       out.push(
         `Fuente inicial: ${lines} líneas. Su sintaxis se comprueba con SAP en cuanto el objeto exista y ANTES de guardarla; ` +
           `si tiene errores, el objeto queda creado vacío y la fuente no se guarda.${a.activate ? " Después se activa." : " No se activa."}`,
       );
-    } else out.push("Sin fuente inicial: se crea con el esqueleto que genera SAP.");
+    } else if (SOURCE_KINDS.has(t.kind)) out.push("Sin fuente inicial: se crea con el esqueleto que genera SAP.");
     if (t.kind === "FUNC") out.push("Si debe ser RFC (remote-enabled), esa marca no viaja en la fuente: se pone en SE37.");
     return { text: out.join("\n"), state: absentState(t) };
   },
@@ -224,7 +292,7 @@ export default defineTool({
     }
     const c = await sap.adt();
     const options: NewObjectOptions = {
-      objtype: KINDS[t.kind].adt,
+      objtype: KINDS[t.kind].adt as NewObjectOptions["objtype"],
       name: t.name,
       parentName: t.kind === "FUNC" ? t.group! : t.pkg,
       parentPath: t.kind === "FUNC" ? `/sap/bc/adt/functions/groups/${encodeURIComponent(t.group!.toLowerCase())}` : `/sap/bc/adt/packages/${encodeURIComponent(t.pkg)}`,
@@ -236,7 +304,16 @@ export default defineTool({
     };
     let createError: string | undefined;
     try {
-      await c.createObject(options);
+      if (t.kind === "BDEF") {
+        await c.httpClient.request("/sap/bc/adt/bo/behaviordefinitions", {
+          method: "POST",
+          qs: t.transport ? { corrNr: t.transport } : undefined,
+          headers: { "Content-Type": "application/vnd.sap.adt.bo.behaviordefinitions.v1+xml, application/xml", Accept: "application/xml, */*" },
+          body: behaviorDefinitionBody({ name: t.name, description: t.description, pkg: t.pkg, responsible: system.user, language: system.language, implementationType: a.implementation_type }),
+        });
+      } else if (t.kind === "SRVB") {
+        await c.createObject({ ...options, service: a.service_definition!.trim().toUpperCase(), bindingtype: "ODATA", category: "0" } as NewObjectOptions);
+      } else await c.createObject(options);
     } catch (e) {
       createError = normalizeError(e, system.id).message;
     }
@@ -254,6 +331,25 @@ export default defineTool({
         `${t.transport ? `, orden ${t.transport}` : " (local)"}.`,
     ];
     if (createError) lines.push(`Nota: SAP devolvió «${createError}», pero el objeto existe al releerlo.`);
+    if (PROPS_KINDS.has(t.kind)) {
+      if (!a.ddic_properties) return `${lines.join("\n")}\nSin propiedades: queda vacío e inactivo. Complétalo con write_ddic_properties.`;
+      const props = parseDdicProps(t.kind as "DTEL" | "DOMA", a.ddic_properties);
+      const meta = { name: obj.name, description: t.description, language: system.language, masterLanguage: system.language, masterSystem: system.sid ?? "", responsible: system.user, packageName: t.pkg };
+      await sap.stateful(async (s) => {
+        const lock = await s.lock(obj.uri);
+        try {
+          if (t.kind === "DOMA") await s.setDomainProperties(obj.uri, props as DomainProperties, meta, lock.LOCK_HANDLE, t.transport || undefined);
+          else await s.setDataElementProperties(obj.uri, props as DataElementProperties, meta, lock.LOCK_HANDLE, t.transport || undefined);
+        } finally {
+          await s.unLock(obj.uri, lock.LOCK_HANDLE).catch(() => undefined);
+        }
+      });
+      lines.push(`Propiedades guardadas: ${describeDdicProps(t.kind as "DTEL" | "DOMA", props)}.`);
+      if (!a.activate) return `${lines.join("\n")}\nSin activar (activate=false).`;
+      const act = await activateObject(c, obj);
+      lines.push(act.text);
+      return { text: lines.join("\n"), isError: !act.ok };
+    }
     if (!a.source) return lines.join("\n");
 
     const url = await sourceUrl(c, obj);

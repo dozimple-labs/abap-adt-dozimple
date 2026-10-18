@@ -1,6 +1,6 @@
 # Referencia de tools — abap-adt-doZimple
 
-Generado desde el código con `npm run docs`. 72 tools en 9 grupos y 3 flujos guiados.
+Generado desde el código con `npm run docs`. 73 tools en 9 grupos y 3 flujos guiados.
 Producto de [DoZimple](https://dozimple.cl).
 
 ## Índice
@@ -11,7 +11,7 @@ Producto de [DoZimple](https://dozimple.cl).
 - [Consulta de datos](#datos) — 8 tools: `sql_query`, `table_contents`, `count_rows`, `search_tables`, `foreign_keys`, `elevate_access`, `elevation_status`, `revoke_access`
 - [Diagnóstico de incidentes](#diagnostico) — 8 tools: `dumps`, `diagnose_message`, `jobs`, `application_log`, `gateway_errors`, `abap_traces`, `sql_traces`, `system_messages`
 - [Documentación SAP](#documentacion) — 7 tools: `abap_feature_matrix`, `docs_search`, `docs_fetch`, `clean_core_objects`, `clean_core_object`, `abap_lint`, `docs_community_search`
-- [Escritura controlada](#escritura) — 9 tools: `create_object`, `write_source`, `edit_source`, `push_sources`, `revert_source`, `change_package`, `activate`, `write_text_elements`, `create_transport`
+- [Escritura controlada](#escritura) — 10 tools: `create_object`, `write_source`, `edit_source`, `push_sources`, `write_ddic_properties`, `revert_source`, `change_package`, `activate`, `write_text_elements`, `create_transport`
 - [DoZimple Transport Risk](#transport-risk) — 7 tools: `analyze_transport_risk`, `import_health`, `failure_ranking`, `change_audit`, `object_transport_history`, `remote_source`, `transport_source_check`
 - [Operación y crecimiento](#operacion) — 4 tools: `sap_systems`, `report_gap`, `close_gap`, `usage_stats`
 - [Flujos guiados](#flujos-guiados)
@@ -1173,7 +1173,7 @@ Busca en SAP Community (blogs y preguntas) por mensaje de error, clase o concept
 
 ### `create_object` — Crear objeto ABAP
 
-Crea un objeto nuevo en desarrollo: programa, include, clase, interfaz, grupo o módulo de función, vista o control de acceso CDS y, en S/4 o NW ≥ 7.51, tabla o estructura con fuente DDL (en 7.50, ddic_plan). Exige paquete y orden si es transportable. Fuente inicial opcional con sintaxis de SAP. Vista previa y confirmación. Para objetos existentes, write_source.
+Crea un objeto nuevo en desarrollo: programa, include, clase, interfaz, grupo o módulo de función, CDS y, en S/4 o NW ≥ 7.51, diccionario (tabla, estructura, tipo tabla, elemento de datos, dominio) y RAP (DDLX, SRVD, SRVB, BDEF). Exige paquete y orden si es transportable. Fuente o propiedades iniciales opcionales. Vista previa y confirmación. Para objetos existentes, write_source.
 
 | | |
 |---|---|
@@ -1183,14 +1183,17 @@ Crea un objeto nuevo en desarrollo: programa, include, clase, interfaz, grupo o 
 | Parámetro | Tipo | Por defecto | Descripción |
 |---|---|---|---|
 | `system` | string |  | Sistema SAP configurado. Obligatorio si hay varios y ninguno por defecto. |
-| `object_type` * | `PROG` \| `INCL` \| `CLAS` \| `INTF` \| `FUGR` \| `FUNC` \| `DDLS` \| `DCLS` \| `TABL` \| `STRU` |  | PROG programa · INCL include · CLAS clase · INTF interfaz · FUGR grupo de funciones · FUNC módulo de función · DDLS vista CDS · DCLS control de acceso CDS · TABL tabla · STRU estructura (estas dos solo en S/4 o NW ≥ 7.51) |
+| `object_type` * | `PROG` \| `INCL` \| `CLAS` \| `INTF` \| `FUGR` \| `FUNC` \| `DDLS` \| `DCLS` \| `TABL` \| `STRU` \| `TTYP` \| `DTEL` \| `DOMA` \| `DDLX` \| `SRVD` \| `SRVB` \| `BDEF` |  | PROG programa · INCL include · CLAS clase · INTF interfaz · FUGR grupo de funciones · FUNC módulo de función · DDLS vista CDS · DCLS control de acceso CDS · S/4 o NW ≥ 7.51: TABL tabla · STRU estructura · TTYP tipo tabla · DTEL elemento de datos · DOMA dominio (con ddic_properties) · DDLX metadatos CDS · SRVD definición de servicio · SRVB binding OData V2 · BDEF definición de comportamiento |
 | `name` * | string |  |  |
 | `description` * | string |  | Texto breve (en el idioma del sistema) |
 | `package` | string |  | Paquete de desarrollo. Obligatorio salvo FUNC (usa el del grupo). $TMP solo si se pide expresamente |
 | `function_group` | string |  | Solo FUNC: grupo de funciones donde se crea |
 | `transport` | string |  | Orden (o tarea). Obligatoria si el paquete es transportable |
-| `source` | string |  | Fuente inicial completa. Se comprueba la sintaxis antes de guardarla; una clase, entera. Tablas y estructuras: en la sintaxis DDL de ADT (@EndUserText.label … define table ztab { key client : abap.clnt; … }) |
-| `activate` | boolean | true | Activar tras guardar la fuente inicial |
+| `source` | string |  | Fuente inicial completa. Se comprueba la sintaxis antes de guardarla; una clase, entera. Tablas, estructuras y tipos tabla: sintaxis DDL de ADT (@EndUserText.label … define table ztab { key client : abap.clnt; … }). BDEF/SRVD/DDLX: su fuente RAP |
+| `ddic_properties` | record |  | Solo DTEL y DOMA: propiedades como en ADT. DOMA: { typeInformation: { datatype, length, decimals }, outputInformation: { length, conversionExit, lowercase, signExists }, valueInformation: { valueTableRef, fixValues: [{ low, high, text }] } }. DTEL: { dataType: 'DOMAIN'\|'PREDEFINED', typeName, dataTypeLength, dataTypeDecimals, fieldLabels: { shortFieldLabel, mediumFieldLabel, longFieldLabel, headingFieldLabel }, searchHelp } |
+| `service_definition` | string |  | Solo SRVB: definición de servicio (SRVD) que publica |
+| `implementation_type` | `managed` \| `unmanaged` \| `projection` \| `abstract` \| `interface` | "managed" | Solo BDEF: managed, unmanaged, projection, abstract o interface |
+| `activate` | boolean | true | Activar tras guardar la fuente inicial o las propiedades |
 | `confirm_token` | string |  | Token de la vista previa. Sin él la tool no escribe: devuelve qué va a cambiar y el token, que se usa tras la conformidad del usuario (un solo uso, 10 min). |
 
 \* obligatorio
@@ -1256,6 +1259,28 @@ Guarda las fuentes completas de varios objetos existentes (hasta 20, includes de
 | `transport` | string |  | Orden (o tarea) para todos. Obligatoria salvo objetos locales |
 | `activate` | boolean | true | Activar todos juntos al final |
 | `skip_syntax_check` | boolean | false |  |
+| `confirm_token` | string |  | Token de la vista previa. Sin él la tool no escribe: devuelve qué va a cambiar y el token, que se usa tras la conformidad del usuario (un solo uso, 10 min). |
+
+\* obligatorio
+
+### `write_ddic_properties` — Escribir propiedades de un dominio o elemento de datos
+
+Cambia las propiedades de un dominio (tipo, longitud, salida, valores fijos) o de un elemento de datos (dominio o tipo predefinido, etiquetas, ayuda de búsqueda) existente, por ADT en S/4 o NW ≥ 7.51. Vista previa con el diff de propiedades y confirmación; orden explícita; activa después. En 7.50, ddic_plan.
+
+| | |
+|---|---|
+| **Acceso** | Escribe (solo DEV con `allowWrite`; nunca QAS/PRD) |
+| **Créditos** | [abap-adt-api](https://github.com/marcellourbani/abap-adt-api) — Marcello Urbani (MIT, dependencia) |
+
+| Parámetro | Tipo | Por defecto | Descripción |
+|---|---|---|---|
+| `system` | string |  | Sistema SAP configurado. Obligatorio si hay varios y ninguno por defecto. |
+| `object_type` * | `DTEL` \| `DOMA` |  |  |
+| `name` * | string |  |  |
+| `properties` * | record |  | Propiedades completas, como en create_object (ddic_properties) |
+| `description` | string |  | Texto breve nuevo; si se omite, se conserva |
+| `transport` | string |  | Orden (o tarea). Obligatoria salvo objetos locales |
+| `activate` | boolean | true |  |
 | `confirm_token` | string |  | Token de la vista previa. Sin él la tool no escribe: devuelve qué va a cambiar y el token, que se usa tras la conformidad del usuario (un solo uso, 10 min). |
 
 \* obligatorio
