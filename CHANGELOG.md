@@ -4,6 +4,13 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-10-18
+
+Ola 3 del plan de mejoras: modo HTTP de equipo con identidad por persona, depurador de solo lectura, RAP y
+diccionario con escritura en S/4, y varias fuentes en una operación. Versión mayor porque cambia el comportamiento
+de 1.8.0 en dos puntos que vienen de la Ola 2: las tablas de seguridad y de personal requieren acceso elevado, y las
+lecturas de datos productivos piden confirmación.
+
 ### Añadido
 - **Depurador de solo lectura** (Ola 3, punto 13), grupo `depuracion`: `debug_breakpoints` (puntos de parada externos
   del usuario de la conexión, solo con datos `test` y con confirmación), `debug_listen` (escucha hasta un tiempo,
