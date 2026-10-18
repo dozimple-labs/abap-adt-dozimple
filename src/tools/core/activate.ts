@@ -22,6 +22,10 @@ const OBJ = z.object({ name: z.string().min(1), type: z.string().optional().desc
 const input = {
   object_name: z.string().min(1).optional().describe("Un objeto"),
   object_type: z.string().optional().describe(TYPE_HELP),
+  main_program: z
+    .string()
+    .optional()
+    .describe("Solo con object_name y un include usado por varios programas principales: cuál usar como contexto (nombre o URI)"),
   objects: z.array(OBJ).min(2).max(MAX_OBJECTS).optional().describe("Varios objetos, activados juntos en una sola activación"),
   all_inactive: z.boolean().default(false).describe("Todos los objetos inactivos del usuario de la conexión (como «activar todo» en Eclipse)"),
   transport: z.string().optional().describe("Con all_inactive: solo los inactivos de esta orden"),
@@ -46,6 +50,7 @@ async function plan(c: ADTClient, a: Args, ctx: ToolContext): Promise<Plan> {
   const modes = [a.object_name, a.objects?.length ? "x" : undefined, a.all_inactive ? "x" : undefined].filter(Boolean).length;
   if (modes !== 1) throw new ToolError("INPUT", "Indica exactamente uno: object_name, objects o all_inactive=true.");
   if (a.transport && !a.all_inactive) throw new ToolError("INPUT", "transport solo filtra all_inactive.");
+  if (a.main_program && !a.object_name) throw new ToolError("INPUT", "main_program solo acompaña a object_name.");
 
   if (a.object_name || a.objects) {
     const wanted = a.object_name ? [{ name: a.object_name, type: a.object_type }] : a.objects!;
@@ -81,7 +86,8 @@ export default defineTool({
     "Activa un objeto, una lista de objetos o todos los inactivos del usuario (opcionalmente de una orden) y devuelve " +
     "los mensajes de SAP tal cual (errores con línea, avisos, objetos que quedan inactivos). Varios objetos se activan " +
     "JUNTOS en una sola activación, que resuelve dependencias mutuas (clase ↔ interfaz, programa ↔ include) que una a " +
-    "una fallan. Nunca activa borrados pendientes.",
+    "una fallan. Un include de varios programas principales se activa indicando main_program. Nunca activa borrados " +
+    "pendientes.",
   access: "write",
   timeoutMs: 180_000,
   requires: { adt: ["/sap/bc/adt/activation"] },
@@ -113,7 +119,7 @@ export default defineTool({
     }
     if (a.object_name) {
       const o = await resolveObject(c, a.object_name, a.object_type);
-      const r = await activateObject(c, o);
+      const r = await activateObject(c, o, a.main_program);
       return { text: r.text, isError: !r.ok };
     }
     ctx.progress?.(`Activando ${p.targets.length} objetos juntos…`);

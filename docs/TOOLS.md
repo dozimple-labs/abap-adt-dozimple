@@ -1050,7 +1050,7 @@ Cambia de paquete un objeto existente (programa, clase, interfaz, grupo de funci
 
 ### `activate` — Activar objetos
 
-Activa un objeto, una lista de objetos o todos los inactivos del usuario (opcionalmente de una orden) y devuelve los mensajes de SAP tal cual (errores con línea, avisos, objetos que quedan inactivos). Varios objetos se activan JUNTOS en una sola activación, que resuelve dependencias mutuas (clase ↔ interfaz, programa ↔ include) que una a una fallan. Nunca activa borrados pendientes.
+Activa un objeto, una lista de objetos o todos los inactivos del usuario (opcionalmente de una orden) y devuelve los mensajes de SAP tal cual (errores con línea, avisos, objetos que quedan inactivos). Varios objetos se activan JUNTOS en una sola activación, que resuelve dependencias mutuas (clase ↔ interfaz, programa ↔ include) que una a una fallan. Un include de varios programas principales se activa indicando main_program. Nunca activa borrados pendientes.
 
 | | |
 |---|---|
@@ -1063,6 +1063,7 @@ Activa un objeto, una lista de objetos o todos los inactivos del usuario (opcion
 | `system` | string |  | Sistema SAP configurado. Obligatorio si hay varios y ninguno por defecto. |
 | `object_name` | string |  | Un objeto |
 | `object_type` | string |  | Tipo corto: PROG, INCL, CLAS, INTF, FUGR, FUNC, DDLS, DDLX, DCLS, TABL, STRU, VIEW, DTEL, DOMA, TTYP, MSAG, XSLT, BDEF, SRVD, SRVB, ENHO. También vale el tipo ADT (p. ej. PROG/P). |
+| `main_program` | string |  | Solo con object_name y un include usado por varios programas principales: cuál usar como contexto (nombre o URI) |
 | `objects` | lista de { name, type } |  | Varios objetos, activados juntos en una sola activación |
 | `all_inactive` | boolean | false | Todos los objetos inactivos del usuario de la conexión (como «activar todo» en Eclipse) |
 | `transport` | string |  | Con all_inactive: solo los inactivos de esta orden |

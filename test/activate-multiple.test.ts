@@ -96,7 +96,7 @@ describe("activate · varios objetos", () => {
   it("un objeto sigue funcionando como antes", async () => {
     const { calls, ctx } = setup();
     const r: any = await def.run({ object_name: "ZDEMO_REP", all_inactive: false }, ctx());
-    expect(calls[0]).toEqual(["ZDEMO_REP", URI.ZDEMO_REP[1]]);
+    expect(calls[0]).toEqual(["ZDEMO_REP", URI.ZDEMO_REP[1], undefined]);
     expect(r.text).toMatch(/^ZDEMO_REP activado\./);
   });
 });
