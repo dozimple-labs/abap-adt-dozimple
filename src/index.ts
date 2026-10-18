@@ -50,7 +50,9 @@ async function main() {
   const defs = await loadTools(join(here, "tools"));
   for (const w of filterWarnings(resolveToolFilter(config), defs)) log(`ℹ ${w}`);
   const sidecars = new SidecarPool(config);
-  const published = registerAll(server, defs, config, new ConnectionPool(), sidecars);
+  const reg = registerAll(server, defs, config, new ConnectionPool(), sidecars);
+  const published = reg.published;
+  if (reg.deferred.length) log(`Perfil de tools: ${reg.profile} · ${published.length} publicadas · ${reg.deferred.length} se cargan con load_tools`);
   // Los componentes auxiliares son procesos hijo: se cierran con el servidor.
   const shutdown = () => {
     clearPasswords();
