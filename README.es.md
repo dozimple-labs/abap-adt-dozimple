@@ -383,6 +383,24 @@ Cada versión se publica desde el CI con [procedencia de npm](https://docs.npmjs
 paquete, su bundle de Sigstore (`.sigstore.json`), el mismo bundle como procedencia in-toto (`.intoto.jsonl`)
 y el SBOM. Para comprobarlo: `gh attestation verify dozimple-abap-adt-1.8.0.tgz --repo <owner>/abap-adt-dozimple`.
 
+### Modo de equipo por HTTP (identidad por persona)
+
+```sh
+abap-adt-dozimple serve --host 127.0.0.1 --port 2235            # detrás de un proxy TLS
+abap-adt-dozimple serve --host 0.0.0.0 --cert srv.pem --key srv.key   # o con su propio TLS
+```
+
+Endpoint Streamable HTTP (`/mcp`). Cada petición lleva la identidad SAP de la persona que lo usa
+(`Authorization: Basic usuario:contraseña`) y el servidor habla con SAP **como esa persona**: su usuario en las
+conexiones, los bloqueos, las órdenes y el registro de auditoría. Las contraseñas viven solo en memoria mientras
+dura la sesión y nunca se escriben en disco; el servidor se niega a escuchar fuera de loopback sin TLS. Las sesiones
+tienen tope y caducan por inactividad (`--max-sessions`, `--idle-minutes`, o variables `ABAP_DZ_HTTP_*`). Registro en
+el cliente:
+
+```json
+{ "mcpServers": { "abap-adt-doZimple": { "type": "http", "url": "https://sap-mcp.ejemplo/mcp", "headers": { "Authorization": "Basic <base64 usuario:contraseña>" } } } }
+```
+
 ### Desde el código fuente
 
 ```sh

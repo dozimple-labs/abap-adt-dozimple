@@ -380,6 +380,23 @@ Every release is published from CI with [npm provenance](https://docs.npmjs.com/
 tarball, its Sigstore bundle (`.sigstore.json`), the same bundle as in-toto provenance (`.intoto.jsonl`) and the
 SBOM. To check it: `gh attestation verify dozimple-abap-adt-1.8.0.tgz --repo <owner>/abap-adt-dozimple`.
 
+### Team mode over HTTP (identity per person)
+
+```sh
+abap-adt-dozimple serve --host 127.0.0.1 --port 2235            # behind a TLS reverse proxy
+abap-adt-dozimple serve --host 0.0.0.0 --cert srv.pem --key srv.key   # or with its own TLS
+```
+
+Streamable HTTP endpoint (`/mcp`). Every request carries the SAP identity of the person using it
+(`Authorization: Basic user:password`), and the server talks to SAP **as that person**: their user in connections,
+locks, transports and the audit log. Passwords live only in memory while the session lasts and are never written
+to disk; the server refuses to listen outside loopback without TLS. Sessions are capped and expire after
+inactivity (`--max-sessions`, `--idle-minutes`, or `ABAP_DZ_HTTP_*` variables). Client registration:
+
+```json
+{ "mcpServers": { "abap-adt-doZimple": { "type": "http", "url": "https://sap-mcp.example/mcp", "headers": { "Authorization": "Basic <base64 user:password>" } } } }
+```
+
 ### From source
 
 ```sh
