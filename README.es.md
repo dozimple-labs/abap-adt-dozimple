@@ -275,6 +275,11 @@ Diseñado para poder presentarse ante Seguridad y Basis sin excepciones. Detalle
 - **Sin superficie de red:** solo stdio; no abre puertos.
 - **Credenciales en el llavero del sistema operativo,** nunca en archivos, logs ni respuestas.
 - **Política por rol:** calidad y productivo nunca se escriben; en desarrollo, solo con autorización explícita.
+- **Perfil de tools `core` (por defecto):** al arrancar se publican solo las de uso diario (localizar, leer,
+  consultar, comprobar, guardar y `load_tools`); el resto queda registrado pero apagado y se carga por grupo del
+  catálogo con `load_tools(groups)`, que avisa al cliente con `tools/list_changed`. Menos tokens por conversación y
+  menos confusión entre tools. `"tools": { "profile": "expert" }` o `ABAP_DZ_PROFILE=expert` publica todo desde el
+  arranque. El filtro `only`/`except` manda sobre el perfil: lo excluido no se puede cargar.
 - **Exposición selectiva de tools:** `"tools": { "only": [...], "except": [...] }` en `systems.json`, o `ABAP_DZ_TOOLS`
   (lista separada por comas) en la configuración del cliente MCP de un proyecto. Se nombran tools, grupos del catálogo
   (`exploracion`, `escritura`…) o tipos de acceso (`read`, `write`, `exec`). El entorno nunca amplía lo que la

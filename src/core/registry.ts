@@ -1,9 +1,10 @@
 import { resolveToolFilter, toolAllowed } from "./toolfilter.js";
+import { CORE_TOOLS, groupSummary, inProfile, LOAD_TOOL, resolveProfile } from "./profiles.js";
 import { readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { z } from "zod";
-import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { McpServer, RegisteredTool } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { canWrite, resolveSystem, type Config, type SystemConfig, type SystemSource } from "./config.js";
 import type { ConnectionPool, SapConnection } from "./connection.js";
 import { isSessionExpired, normalizeError, renderError, ToolError, type ErrorKind } from "./errors.js";
@@ -375,14 +376,25 @@ const confirmParam = z
   .optional()
   .describe("Token de la vista previa. Llama primero SIN él: devuelve qué va a cambiar y el token a usar tras la conformidad del usuario");
 
+export interface Registered {
+  /** Publicadas al arrancar. */
+  published: string[];
+  /** Registradas pero apagadas hasta load_tools. */
+  deferred: string[];
+  profile: "core" | "expert";
+}
+
 export function registerAll(
   server: McpServer,
   defs: readonly ToolDef<any>[],
   config: Config,
   pool: ConnectionPool,
   sidecars?: SidecarPool,
-): string[] {
+): Registered {
   const published: string[] = [];
+  const deferred: string[] = [];
+  const profile = resolveProfile(config);
+  const registered = new Map<string, RegisteredTool>();
   const ids = config.systems.map((s) => s.id);
   const systemParam = z
     .string()
@@ -391,14 +403,15 @@ export function registerAll(
       `Sistema SAP: ${ids.join(", ")}.` + (config.defaultSystem ? ` Si se omite: ${config.defaultSystem}.` : ""),
     );
 
-  for (const def of defs) {
-    if (!isVisible(def, config)) continue;
+  const visible = defs.filter((d) => isVisible(d, config));
+  const loadTool = makeLoadTool(server, registered, new Set(visible.map((d) => d.name)), deferred);
+  for (const def of [...visible, loadTool]) {
     const shape =
       def.access === "local"
         ? def.input
         : { ...def.input, system: systemParam, ...(def.access === "write" ? { confirm_token: confirmParam } : {}) };
     const inputSchema = strictInput(def.name, shape);
-    server.registerTool(
+    const tool = server.registerTool(
       def.name,
       {
         title: def.title,
@@ -423,7 +436,68 @@ export function registerAll(
         };
       }) as any,
     );
-    published.push(def.name);
+    if (inProfile(def, profile)) published.push(def.name);
+    else {
+      // Registrada pero apagada: no aparece en tools/list ni se puede llamar hasta load_tools. Antes de conectar,
+      // disable() no envía ninguna notificación.
+      tool.disable();
+      deferred.push(def.name);
+    }
+    registered.set(def.name, tool);
   }
-  return published;
+  if (!deferred.length) {
+    // Sin nada que cargar (perfil expert o todo en core), load_tools no aporta nada: fuera.
+    registered.get(LOAD_TOOL)?.disable();
+    const i = published.indexOf(LOAD_TOOL);
+    if (i >= 0) published.splice(i, 1);
+  }
+  return { published, deferred, profile };
+}
+
+/**
+ * load_tools enciende grupos del catálogo (o todo) y avisa al cliente UNA vez con tools/list_changed. Se construye
+ * aquí porque necesita el servidor y las tools registradas; su descripción lista lo que puede cargar, que es lo que
+ * el modelo necesita para pedirlo sin tener los esquemas delante.
+ */
+function makeLoadTool(server: McpServer, registered: Map<string, RegisteredTool>, visible: ReadonlySet<string>, deferred: string[]): ToolDef<any> {
+  const groups = groupSummary(new Set([...visible].filter((n) => !CORE_TOOLS.has(n))));
+  const menu = groups.map((g) => `· ${g.id} (${g.title}): ${g.tools.join(", ")}`).join("\n");
+  return {
+    name: LOAD_TOOL,
+    title: "Cargar más tools",
+    description:
+      "Al arrancar solo están publicadas las tools de uso diario. Esta carga grupos del catálogo (o todos con «all») y " +
+      "el cliente recibe la lista nueva; llámala cuando una tool de esta lista haga falta y no aparezca:\n" + menu,
+    access: "local",
+    input: { groups: z.array(z.string().min(1)).min(1).describe('Ids de grupo, nombres de tool, o "all"') },
+    async run({ groups }: { groups: string[] }) {
+      const pending = groupSummary(new Set(deferred));
+      const wanted = new Set<string>();
+      const unknown: string[] = [];
+      for (const g of groups) {
+        const key = g.trim().toLowerCase();
+        const group = pending.find((x) => x.id === key);
+        if (key === "all") deferred.forEach((n) => wanted.add(n));
+        else if (group) group.tools.forEach((n) => wanted.add(n));
+        else if (deferred.includes(key)) wanted.add(key);
+        else if (registered.get(key)?.enabled) continue; // ya cargada: no es error
+        else unknown.push(g);
+      }
+      if (unknown.length) throw new ToolError("INPUT", `No existe: ${unknown.join(", ")}.`, `Grupos: ${pending.map((x) => x.id).join(", ") || "ninguno"}; o "all".`);
+      const loaded: string[] = [];
+      for (const n of wanted) {
+        const t = registered.get(n);
+        if (t && !t.enabled) {
+          // enabled directo + una sola notificación al final, en vez de una por tool.
+          t.enabled = true;
+          loaded.push(n);
+        }
+      }
+      if (loaded.length) server.sendToolListChanged();
+      const left = deferred.filter((n) => !registered.get(n)?.enabled);
+      return loaded.length
+        ? `Cargadas ${loaded.length}: ${loaded.join(", ")}. Ya se pueden llamar.${left.length ? ` Sin cargar: ${left.length}.` : ""}`
+        : "Nada que cargar: todo lo pedido ya estaba disponible.";
+    },
+  };
 }

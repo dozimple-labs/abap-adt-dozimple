@@ -2,6 +2,7 @@ import { z } from "zod";
 import { canWrite } from "../../core/config.js";
 import { dataClassOf, rowCap } from "../../core/datapolicy.js";
 import { normalizeError } from "../../core/errors.js";
+import { inProfile, resolveProfile } from "../../core/profiles.js";
 import { eligibleSystems, isVisible } from "../../core/registry.js";
 import { defineTool } from "../../core/tool.js";
 
@@ -19,6 +20,10 @@ export default defineTool({
   },
   async run({ check, only, refresh_discovery }, { config, pool, tools }) {
     const out: string[] = [];
+    const profile = resolveProfile(config);
+    const visible = tools.filter((t) => isVisible(t, config));
+    const loaded = visible.filter((t) => inProfile(t, profile)).length;
+    out.push(`Perfil de tools: ${profile} · ${profile === "core" ? `${Math.min(loaded + 1, visible.length + 1)} cargadas de ${visible.length + 1}; el resto con load_tools(groups)` : `${visible.length} publicadas`}`);
     const systems = config.systems.filter((s) => !only || s.id.toUpperCase() === only.toUpperCase());
     for (const s of systems) {
       const flags = [

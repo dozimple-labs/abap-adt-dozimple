@@ -276,6 +276,11 @@ Designed to pass a Security and Basis review without exceptions. Details: **[SEC
 - **No network surface:** stdio only; no ports are opened.
 - **Credentials in the OS keychain** (macOS Keychain or Linux Secret Service), never in files, logs or responses.
 - **Policy per role:** QA and production are never written; development only with explicit authorization.
+- **`core` tool profile (default):** at startup only the everyday tools are published (find, read, query, check,
+  save and `load_tools`); the rest stay registered but disabled and are loaded per catalog group with
+  `load_tools(groups)`, which notifies the client with `tools/list_changed`. Fewer tokens per conversation and less
+  tool confusion. `"tools": { "profile": "expert" }` or `ABAP_DZ_PROFILE=expert` publishes everything at startup. The
+  `only`/`except` filter overrides the profile: what it excludes cannot be loaded.
 - **Selective tool exposure:** `"tools": { "only": [...], "except": [...] }` in `systems.json`, or `ABAP_DZ_TOOLS`
   (comma-separated) in a project's MCP client configuration. Entries are tool names, catalog groups (`exploracion`,
   `escritura`…) or access kinds (`read`, `write`, `exec`). The environment never widens what the configuration allows;

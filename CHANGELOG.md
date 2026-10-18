@@ -4,6 +4,15 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Unreleased]
 
+### Añadido
+- **Perfil de tools `core` y carga diferida (`load_tools`).** Al arrancar se publican 14 tools de uso diario; las
+  otras 47 quedan registradas pero apagadas y se cargan por grupo del catálogo (o `all`) con `load_tools`, que avisa
+  al cliente con una sola notificación `tools/list_changed`. Medido con la configuración real: el catálogo inicial
+  pasa de 93,4 KB (61 tools, ~23.300 tokens) a 22,0 KB (14 tools, ~5.500 tokens), −76 % en cada arranque y en cada
+  compactación de contexto. `tools.profile: "expert"` o `ABAP_DZ_PROFILE=expert` recupera el
+  comportamiento anterior. Las tools fuera del catálogo se publican siempre; el filtro `only`/`except` manda sobre
+  el perfil. `sap_systems` y el arranque dicen qué perfil está activo.
+
 ## [1.6.1] - 2026-10-06
 
 Corrección de la deriva de versión en módulos de función y reutilización del ATC de un objeto sin cambios.

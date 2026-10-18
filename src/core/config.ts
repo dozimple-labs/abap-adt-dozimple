@@ -70,7 +70,14 @@ const ConfigSchema = z.object({
   systems: z.array(SystemSchema).min(1),
   sidecars: z.record(SidecarSchema).default({}),
   /** Exposición selectiva: `only` deja solo lo listado, `except` quita lo listado. ABAP_DZ_TOOLS (coma) es otro `only`. */
-  tools: z.object({ only: ToolListSchema.optional(), except: ToolListSchema.default([]) }).default({}),
+  tools: z
+    .object({
+      only: ToolListSchema.optional(),
+      except: ToolListSchema.default([]),
+      /** core: publica las de uso diario y carga el resto con load_tools; expert: todas desde el arranque. ABAP_DZ_PROFILE lo cambia. */
+      profile: z.enum(["core", "expert"]).default("core"),
+    })
+    .default({}),
 });
 
 export type SystemConfig = z.infer<typeof SystemSchema>;
