@@ -55,7 +55,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.32.0",
-    "abap-adt-api": "8.4.3",
+    "abap-adt-api": "8.5.0",
     "axios": "1.20.0",
     "zod": "3.25.76"
   },
