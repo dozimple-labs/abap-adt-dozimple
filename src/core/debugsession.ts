@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import type { ADTClient, DebugVariable } from "abap-adt-api";
 import type { SystemConfig } from "./config.js";
@@ -33,10 +33,9 @@ const sessions = new Map<string, DebugSession>();
 export function terminalId(dir = stateDir()): string {
   const file = join(dir, "debugger-terminal.json");
   try {
-    if (existsSync(file)) {
-      const id = JSON.parse(readFileSync(file, "utf8")).terminalId;
-      if (typeof id === "string" && id) return id;
-    }
+    // Se lee directamente (sin comprobar-y-usar): si no existe o está corrupto, se regenera.
+    const id = JSON.parse(readFileSync(file, "utf8")).terminalId;
+    if (typeof id === "string" && id) return id;
   } catch {
     /* se regenera */
   }
