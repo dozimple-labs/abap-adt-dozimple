@@ -30,10 +30,10 @@ export default defineTool({
   name: "atc_quickfix",
   title: "Correcciones propuestas por SAP",
   description:
-    "Correcciones que SAP ofrece (las mismas de Ctrl+1 en Eclipse) para un hallazgo ATC o una línea: crear símbolo de " +
-    "texto, extraer constante, etc. Sin apply lista las propuestas; con apply=N calcula el cambio SIN GUARDAR y " +
-    "devuelve el diff y el chequeo de sintaxis. Para guardar, pasa el fuente resultante a write_source (return_source=true). " +
-    "Uso típico: run_atc → atc_quickfix(finding=N) → atc_quickfix(finding=N, apply=K).",
+    "Correcciones que SAP ofrece (las de Ctrl+1 en Eclipse) para un hallazgo ATC o una línea: crear símbolo de " +
+    "texto, extraer constante… Sin apply lista las propuestas; apply=N calcula el cambio SIN GUARDAR y devuelve " +
+    "diff y sintaxis; para guardar, pasa el fuente resultante a write_source (return_source=true). Flujo: run_atc " +
+    "→ atc_quickfix(finding=N) → apply=K.",
   access: "read",
   requires: { adt: ["/sap/bc/adt/quickfixes"] },
   input: {

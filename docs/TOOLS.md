@@ -24,7 +24,7 @@ Producto de [DoZimple](https://dozimple.cl).
 
 ### `transport_diff` — Qué cambió una orden (diff de código)
 
-Revisión de código de una orden: por cada objeto con fuente (programas, includes, clases, interfaces, FM, CDS) compara la versión grabada con esa orden (o sus tareas) contra la versión anterior, y muestra el diff unificado. Dice la calidad de la evidencia (exacta / aproximada / objeto nuevo) y lista aparte lo que no tiene fuente (diccionario, customizing). Funciona con órdenes abiertas («lo que voy a mandar») y liberadas.
+Revisión de código de una orden: por cada objeto con fuente (programas, includes, clases, interfaces, FM, CDS) compara la versión grabada con esa orden contra la anterior y muestra el diff unificado, con la calidad de la evidencia (exacta, aproximada, objeto nuevo). Lo sin fuente (diccionario, customizing) se lista aparte. Vale para órdenes abiertas y liberadas.
 
 | | |
 |---|---|
@@ -128,7 +128,7 @@ Objetos con versión inactiva (guardados sin activar) del usuario de la conexió
 
 ### `edit_preflight` — Antes de editar: ¿a qué orden irá?
 
-Dice, ANTES de modificar un objeto, en qué orden acabará el cambio y por qué: bloqueo del CTS (TLOCK) de otra orden, objeto local ($TMP), reparación (sistema original distinto), o si está libre y qué órdenes tienes abiertas. Con el módulo dz-transport-risk compara además la fuente de DEV con la de calidad y productivo (deriva de versión: lo que el pase arrastraría o pisaría). Úsala siempre antes de write_source o de editar a mano en un sistema ajeno.
+Antes de modificar un objeto: en qué orden acabará el cambio y por qué (bloqueo CTS de otra orden, objeto local, reparación por sistema original distinto, o libre y qué órdenes tienes). Con el módulo dz-transport-risk compara además la fuente de DEV con calidad y productivo (deriva de versión). Úsala siempre antes de write_source o de editar a mano.
 
 | | |
 |---|---|
@@ -152,7 +152,7 @@ Dice, ANTES de modificar un objeto, en qué orden acabará el cambio y por qué:
 
 ### `run_atc` — Ejecutar ATC
 
-Ejecuta el ATC sobre un objeto o una orden de transporte y lista los hallazgos numerados (prioridad, línea, check, mensaje), con los totales P1/P2/P3 que da SAP. El resultado queda recordado POR OBJETO U ORDEN: explain=N con object_name (o transport) trae la documentación del hallazgo N de ESE objeto (nota SAP, supresión) sin re-ejecutar si ya se analizó, y lo ejecuta si no. atc_quickfix(finding=N) usa la misma memoria. Sobre un objeto sin cambios desde el último ATC (menos de 1 h, misma variante) devuelve ese resultado y lo dice; refresh=true fuerza una ejecución nueva.
+Ejecuta el ATC de un objeto o una orden y lista hallazgos numerados (prioridad, línea, check, mensaje) con totales P1/P2/P3. Recuerda el resultado por objeto u orden: explain=N trae la documentación del hallazgo N sin re-ejecutar; atc_quickfix(finding=N) usa la misma memoria. Un objeto sin cambios en la última hora devuelve el resultado anterior; refresh=true fuerza otra ejecución.
 
 | | |
 |---|---|
@@ -177,7 +177,7 @@ Ejecuta el ATC sobre un objeto o una orden de transporte y lista los hallazgos n
 
 ### `atc_quickfix` — Correcciones propuestas por SAP
 
-Correcciones que SAP ofrece (las mismas de Ctrl+1 en Eclipse) para un hallazgo ATC o una línea: crear símbolo de texto, extraer constante, etc. Sin apply lista las propuestas; con apply=N calcula el cambio SIN GUARDAR y devuelve el diff y el chequeo de sintaxis. Para guardar, pasa el fuente resultante a write_source (return_source=true). Uso típico: run_atc → atc_quickfix(finding=N) → atc_quickfix(finding=N, apply=K).
+Correcciones que SAP ofrece (las de Ctrl+1 en Eclipse) para un hallazgo ATC o una línea: crear símbolo de texto, extraer constante… Sin apply lista las propuestas; apply=N calcula el cambio SIN GUARDAR y devuelve diff y sintaxis; para guardar, pasa el fuente resultante a write_source (return_source=true). Flujo: run_atc → atc_quickfix(finding=N) → apply=K.
 
 | | |
 |---|---|
@@ -219,7 +219,7 @@ Estado de liberación de un objeto SAP (clase, FM/BAPI, tabla, CDS…) por contr
 
 ### `sap_notes` — Notas SAP en el sistema (SNOTE)
 
-Estado de notas SAP en este sistema, como en SNOTE: si está descargada, estado de implementación (completa, incompleta, versión anterior, se puede implementar, obsoleta, no se puede implementar), estado de tratamiento, versión, componente y título. Con notes=[…] responde por notas concretas (p. ej. «¿está la 2198647 en PRD?»); sin notas, lista las del estado pedido. Solo conoce las notas descargadas en el sistema: no consulta el portal.
+Estado de notas SAP en el sistema, como en SNOTE: descargada, implementación (completa, incompleta, versión anterior, implementable, obsoleta, no implementable), tratamiento, versión, componente y título. Con notes=[…] responde por notas concretas («¿está la 2198647?»); sin notas, lista las del estado pedido. Solo notas descargadas: no consulta el portal.
 
 | | |
 |---|---|
@@ -359,7 +359,7 @@ Lista de uso (where-used) de un objeto: quién lo referencia, con paquete y resp
 
 ### `source_search` — Buscar texto en el código
 
-Busca un texto (o una expresión regular) en el código fuente de un paquete (con subpaquetes), de una orden de transporte o de una lista de objetos, y devuelve objeto, include, línea y la línea encontrada. Sirve donde where_used no llega: llamadas dinámicas, literales, código Z que el índice de referencias no cubre. Lee cada fuente, así que exige un alcance y tiene tope de objetos; los objetos que no se pudieron leer se listan aparte.
+Busca texto o expresión regular en el código de un paquete (con subpaquetes), una orden o una lista de objetos; devuelve objeto, include, línea y texto. Donde where_used no llega: llamadas dinámicas, literales, código Z sin índice. Lee cada fuente: exige alcance y tiene tope de objetos; los que no se pudieron leer se listan aparte.
 
 | | |
 |---|---|
@@ -449,7 +449,7 @@ Definición de un tipo DDIC: elemento de datos (dominio, tipo, longitud, textos)
 
 ### `ddic_plan` — Preparar objetos de diccionario (NW 7.50)
 
-Para sistemas donde ADT no crea ni modifica tablas, estructuras, dominios, elementos de datos ni tipos tabla (ECC / NW 7.50): valida una especificación de objetos nuevos y de cambios (añadir campos, valores, textos), comprueba contra el sistema el paquete, la tarea, los nombres y todo lo que referencia, y devuelve el fichero de instrucciones que una persona ejecuta en SE38 con el programa ZDZ_DDIC_GEN (primero en simulación). Esta tool NO modifica SAP: solo lee y prepara. También cubre grupos y módulos de función con su interfaz y la marca RFC.
+Donde ADT no crea ni modifica diccionario (ECC / NW 7.50): valida una especificación de tablas, estructuras, dominios, elementos, tipos tabla y funciones RFC, nuevos o cambios, la comprueba contra el sistema (paquete, tarea, nombres, referencias) y devuelve el fichero de instrucciones que una persona ejecuta en SE38 con ZDZ_DDIC_GEN, primero en simulación. No modifica SAP.
 
 | | |
 |---|---|
@@ -474,7 +474,7 @@ Para sistemas donde ADT no crea ni modifica tablas, estructuras, dominios, eleme
 
 ### `odata_model` — Modelo OData (EDMX) desde el diccionario
 
-Genera el modelo de un servicio OData V2 (fichero EDMX: entity types, entity sets, asociaciones y navegación) a partir de tablas, estructuras o vistas del diccionario, con tipos, longitudes, claves y etiquetas reales. Es para importarlo en un proyecto de SEGW (Data Model → Import → Data Model from File) en sistemas ECC / NW 7.50, en vez de definir cada propiedad a mano. Solo lee el diccionario: crear el proyecto, importar, generar las clases y registrar el servicio siguen siendo pasos manuales en SEGW y /IWFND/MAINT_SERVICE; el código de DPC_EXT se escribe después con write_source. Para servicios de solo lectura suele bastar una vista CDS con @OData.publish.
+Modelo OData V2 (EDMX: entity types, sets, asociaciones y navegación) desde tablas, estructuras o vistas del diccionario, con tipos, claves y etiquetas reales, para importarlo en SEGW (Data Model → Import from File) en ECC 7.50. Solo lee: crear el proyecto, generar las clases y registrar el servicio siguen siendo manuales. Para solo lectura basta una CDS con @OData.publish.
 
 | | |
 |---|---|
@@ -544,7 +544,7 @@ Lee los símbolos de texto (TEXT-001…), textos de selección o encabezados de 
 
 ### `enhancements` — Ampliaciones y BAdI
 
-Qué ampliaciones hay y dónde. badi=NOMBRE: implementaciones de esa BAdI, nuevas y clásicas, activas o no. program + program_type (PROG, CLAS, FUGR): ampliaciones de código (puntos y secciones implícitos o explícitos) implementadas dentro de ese programa, clase o grupo — lo que cambia el comportamiento de un estándar sin tocar su código. prefix (p. ej. Z): implementaciones de ampliación de ese espacio de nombres, por tipo. Solo lectura.
+Qué ampliaciones hay y dónde. badi=NOMBRE: implementaciones de esa BAdI, nuevas y clásicas, activas o no. program + program_type (PROG, CLAS, FUGR): ampliaciones de código implementadas dentro de ese programa, clase o grupo, lo que cambia un estándar sin tocarlo. prefix (p. ej. Z): implementaciones de ese espacio de nombres, por tipo. Solo lectura.
 
 | | |
 |---|---|
@@ -580,7 +580,7 @@ Salida estructurada (`structuredContent`, además del texto):
 
 ### `sql_query` — Consulta ABAP SQL
 
-Ejecuta un SELECT de ABAP SQL (con WHERE, JOIN, ORDER BY, subconsultas) vía la vista previa de datos de ADT. Solo lectura. Sintaxis ABAP SQL: literales entre comillas simples, sin «;», sin UP TO (usa max_rows). Útil para E070/E071/TADIR/TLOCK/DD03L y datos de negocio. En sistemas con datos productivos las columnas personales salen enmascaradas y hay un tope de filas por sistema.
+Ejecuta un SELECT de ABAP SQL (WHERE, JOIN, ORDER BY, subconsultas) por la vista previa de datos de ADT. Solo lectura. Literales entre comillas simples, sin «;» ni UP TO (usa max_rows). Útil para E070/E071/TADIR/TLOCK/DD03L y datos de negocio. En sistemas productivos las columnas personales salen enmascaradas y hay tope de filas.
 
 | | |
 |---|---|
@@ -687,7 +687,7 @@ Claves externas de una tabla en las dos direcciones: las tablas de verificación
 
 ### `dumps` — Dumps (ST22)
 
-Lista los dumps de ejecución (ST22): fecha, error, programa, usuario y texto corto. Filtra por usuario y por texto (error o programa). Con detail=N devuelve el dump N completo (qué pasó, análisis, dónde terminó, fuente, pila). Con group_by (error, program, error_program, user, day) y days=N responde «los errores más frecuentes del periodo»: cuenta los dumps de los últimos N días agrupados, con primer y último caso, usuarios afectados y dónde terminó. La lista y el detalle salen del feed ADT (solo los más recientes); los grupos, de la cabecera de ST22 (SNAP_BEG).
+Dumps de ST22: fecha, error, programa, usuario y texto; filtra por usuario o texto. detail=N devuelve el dump N completo (análisis, dónde terminó, fuente, pila). group_by (error, program, error_program, user, day) con days=N responde «los errores más frecuentes del periodo», con primer y último caso y usuarios afectados. Lista y detalle salen del feed ADT; los grupos, de ST22.
 
 | | |
 |---|---|
@@ -722,7 +722,7 @@ Salida estructurada (`structuredContent`, además del texto):
 
 ### `diagnose_message` — Diagnosticar un mensaje
 
-Parte de un mensaje de pantalla (clase y número, o el texto tal como lo copió la persona: «E:ZDEMO:012», «ZDEMO 012») y devuelve su texto en el idioma de la conexión y en inglés, los marcadores (&1…) y qué programas, clases o funciones lo emiten (índice de referencias cruzadas, el de SE91), más su texto largo (la ayuda del mensaje: causa, respuesta del sistema, qué hacer) si existe. Primer paso de un ticket: del mensaje al código. Los mensajes con número dinámico (MESSAGE ID … NUMBER variable) no están en el índice: se listan los programas que declaran la clase.
+De un mensaje de pantalla («E:ZDEMO:012», «ZDEMO 012» o el texto copiado) a su texto en dos idiomas, marcadores, ayuda larga (causa, respuesta, qué hacer) y los includes que lo emiten según el índice de SE91. Primer paso de un ticket. Los mensajes con número dinámico no están indexados: se listan los programas que declaran la clase.
 
 | | |
 |---|---|
@@ -938,7 +938,7 @@ Busca en SAP Community (blogs y preguntas) por mensaje de error, clase o concept
 
 ### `create_object` — Crear objeto ABAP
 
-Crea un objeto ABAP nuevo en un sistema de desarrollo: programa, include, clase, interfaz, grupo de funciones, módulo de función, vista CDS o control de acceso CDS. Exige paquete y, si es transportable, la orden (nunca elige una por su cuenta). Opcional: fuente inicial, que se comprueba con la sintaxis de SAP antes de guardarse, y activación. Primero muestra una vista previa (validación de SAP, orden, idioma) y solo crea tras la confirmación. Para modificar objetos que ya existen, write_source.
+Crea un objeto nuevo en desarrollo: programa, include, clase, interfaz, grupo o módulo de función, vista CDS o control de acceso CDS. Exige paquete y, si es transportable, la orden (nunca la elige). Fuente inicial opcional, comprobada con la sintaxis de SAP, y activación. Vista previa (validación de SAP, orden, idioma) y confirmación. Para objetos existentes, write_source.
 
 | | |
 |---|---|
@@ -962,7 +962,7 @@ Crea un objeto ABAP nuevo en un sistema de desarrollo: programa, include, clase,
 
 ### `write_source` — Guardar fuente en SAP
 
-Sustituye la fuente COMPLETA de un objeto existente (o de un include de clase), en la orden indicada. Antes comprueba la sintaxis del código nuevo y, si hay errores, no escribe nada. Si el objeto está bloqueado en otra orden, se para y lo explica en vez de guardar donde SAP quiera. Luego activa (activate=false para no hacerlo). Para clases, escribe la clase entera en una sola llamada. Llama antes a edit_preflight. Para cambiar unas pocas líneas de un objeto grande, edit_source.
+Sustituye la fuente COMPLETA de un objeto existente (o un include de clase) en la orden indicada. Comprueba la sintaxis antes y no escribe con errores; si el objeto está bloqueado en otra orden, se para y lo dice. Luego activa (activate=false para no hacerlo). Una clase, entera en una llamada. Antes, edit_preflight; para pocas líneas, edit_source.
 
 | | |
 |---|---|
@@ -985,7 +985,7 @@ Sustituye la fuente COMPLETA de un objeto existente (o de un include de clase), 
 
 ### `edit_source` — Editar un fragmento de la fuente
 
-Sustituye fragmentos concretos de la fuente de un objeto existente sin reenviarla entera: cada edición es el texto exacto que hay hoy y el que lo reemplaza. Úsala para cambios pequeños en objetos grandes; para reescribir un objeto, write_source. Mismas garantías que write_source: vista previa con la sintaxis de SAP sobre la fuente resultante y el diff, orden explícita, y no escribe si el objeto cambió desde la vista previa o está bloqueado en otra orden.
+Sustituye fragmentos exactos de la fuente de un objeto sin reenviarla entera: cada edición es el texto actual y el que lo reemplaza. Para cambios pequeños en objetos grandes; para reescribir, write_source. Mismas garantías: vista previa con la sintaxis de SAP y el diff, orden explícita, y no escribe si el objeto cambió o está bloqueado en otra orden.
 
 | | |
 |---|---|
@@ -1029,7 +1029,7 @@ Deshace un cambio escribiendo de nuevo una versión anterior del objeto: la últ
 
 ### `change_package` — Cambiar el paquete de un objeto
 
-Cambia de paquete un objeto existente (programa, clase, interfaz, grupo de funciones, CDS, objeto de diccionario) y lo registra en la orden indicada: sirve para sacar de $TMP algo que nació como prueba. Es el «Change Package Assignment» de Eclipse. La vista previa incluye la validación de SAP sin cambiar nada. No mueve módulos de función ni includes sueltos (heredan el paquete de su contenedor) y nunca elige la orden.
+Cambia de paquete un objeto existente (programa, clase, interfaz, grupo de funciones, CDS, diccionario) y lo registra en la orden indicada; sirve para sacar de $TMP algo que nació como prueba. Es el «Change Package Assignment» de Eclipse: la vista previa incluye la validación de SAP. No mueve módulos ni includes sueltos (heredan el paquete) y nunca elige la orden.
 
 | | |
 |---|---|
@@ -1050,7 +1050,7 @@ Cambia de paquete un objeto existente (programa, clase, interfaz, grupo de funci
 
 ### `activate` — Activar objetos
 
-Activa un objeto, una lista de objetos o todos los inactivos del usuario (opcionalmente de una orden) y devuelve los mensajes de SAP tal cual (errores con línea, avisos, objetos que quedan inactivos). Varios objetos se activan JUNTOS en una sola activación, que resuelve dependencias mutuas (clase ↔ interfaz, programa ↔ include) que una a una fallan. Un include de varios programas principales se activa indicando main_program. Nunca activa borrados pendientes.
+Activa un objeto, una lista o todos los inactivos del usuario (opcionalmente de una orden) y devuelve los mensajes de SAP tal cual (errores con línea, avisos, inactivos). Varios objetos se activan JUNTOS en una sola activación, que resuelve dependencias mutuas que una a una fallan. Un include de varios programas principales se activa con main_program. Nunca activa borrados pendientes.
 
 | | |
 |---|---|
@@ -1121,7 +1121,7 @@ Crea una orden workbench para el paquete de un objeto, ANTES de la primera edici
 
 ### `analyze_transport_risk` — Riesgo de transporte
 
-Dice si una orden (o un pase de varias, separadas por coma) es segura para pasar a calidad o productivo: tareas sin liberar, estado de importación, dependencias que no viajan, acceso posicional, bloqueos del CTS, cola de importación. Primera llamada siempre sin include_source. Un pase se analiza junto, no orden a orden. Con queue_system analiza la cola completa de un destino.
+Dice si una orden, o un pase de varias separadas por coma, es segura para calidad o productivo: tareas sin liberar, importación, dependencias que no viajan, acceso posicional, bloqueos CTS, cola. Primera llamada sin include_source. Un pase se analiza junto, no orden a orden. queue_system analiza la cola completa de un destino.
 
 | | |
 |---|---|

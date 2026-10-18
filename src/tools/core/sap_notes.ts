@@ -72,10 +72,10 @@ export default defineTool({
   name: "sap_notes",
   title: "Notas SAP en el sistema (SNOTE)",
   description:
-    "Estado de notas SAP en este sistema, como en SNOTE: si está descargada, estado de implementación (completa, " +
-    "incompleta, versión anterior, se puede implementar, obsoleta, no se puede implementar), estado de tratamiento, " +
-    "versión, componente y título. Con notes=[…] responde por notas concretas (p. ej. «¿está la 2198647 en PRD?»); " +
-    "sin notas, lista las del estado pedido. Solo conoce las notas descargadas en el sistema: no consulta el portal.",
+    "Estado de notas SAP en el sistema, como en SNOTE: descargada, implementación (completa, incompleta, versión " +
+    "anterior, implementable, obsoleta, no implementable), tratamiento, versión, componente y título. Con " +
+    "notes=[…] responde por notas concretas («¿está la 2198647?»); sin notas, lista las del estado pedido. Solo " +
+    "notas descargadas: no consulta el portal.",
   access: "read",
   input: {
     notes: z.array(z.string().regex(/^\d{1,10}$/, "número de nota: solo dígitos")).max(200).optional(),

@@ -74,12 +74,10 @@ export default defineTool({
   name: "odata_model",
   title: "Modelo OData (EDMX) desde el diccionario",
   description:
-    "Genera el modelo de un servicio OData V2 (fichero EDMX: entity types, entity sets, asociaciones y navegación) a " +
-    "partir de tablas, estructuras o vistas del diccionario, con tipos, longitudes, claves y etiquetas reales. Es para " +
-    "importarlo en un proyecto de SEGW (Data Model → Import → Data Model from File) en sistemas ECC / NW 7.50, en vez de " +
-    "definir cada propiedad a mano. Solo lee el diccionario: crear el proyecto, importar, generar las clases y registrar " +
-    "el servicio siguen siendo pasos manuales en SEGW y /IWFND/MAINT_SERVICE; el código de DPC_EXT se escribe después " +
-    "con write_source. Para servicios de solo lectura suele bastar una vista CDS con @OData.publish.",
+    "Modelo OData V2 (EDMX: entity types, sets, asociaciones y navegación) desde tablas, estructuras o vistas del " +
+    "diccionario, con tipos, claves y etiquetas reales, para importarlo en SEGW (Data Model → Import from File) " +
+    "en ECC 7.50. Solo lee: crear el proyecto, generar las clases y registrar el servicio siguen siendo manuales. " +
+    "Para solo lectura basta una CDS con @OData.publish.",
   access: "read",
   input,
   async run({ namespace, entities, associations }, { sap, system }) {

@@ -166,11 +166,10 @@ export default defineTool({
   name: "create_object",
   title: "Crear objeto ABAP",
   description:
-    "Crea un objeto ABAP nuevo en un sistema de desarrollo: programa, include, clase, interfaz, grupo de funciones, " +
-    "módulo de función, vista CDS o control de acceso CDS. Exige paquete y, si es transportable, la orden (nunca elige " +
-    "una por su cuenta). Opcional: fuente inicial, que se comprueba con la sintaxis de SAP antes de guardarse, y " +
-    "activación. Primero muestra una vista previa (validación de SAP, orden, idioma) y solo crea tras la confirmación. " +
-    "Para modificar objetos que ya existen, write_source.",
+    "Crea un objeto nuevo en desarrollo: programa, include, clase, interfaz, grupo o módulo de función, vista CDS " +
+    "o control de acceso CDS. Exige paquete y, si es transportable, la orden (nunca la elige). Fuente inicial " +
+    "opcional, comprobada con la sintaxis de SAP, y activación. Vista previa (validación de SAP, orden, idioma) y " +
+    "confirmación. Para objetos existentes, write_source.",
   access: "write",
   timeoutMs: 180_000,
   input,

@@ -43,9 +43,9 @@ export default defineTool({
   title: "Ampliaciones y BAdI",
   description:
     "Qué ampliaciones hay y dónde. badi=NOMBRE: implementaciones de esa BAdI, nuevas y clásicas, activas o no. " +
-    "program + program_type (PROG, CLAS, FUGR): ampliaciones de código (puntos y secciones implícitos o explícitos) " +
-    "implementadas dentro de ese programa, clase o grupo — lo que cambia el comportamiento de un estándar sin tocar " +
-    "su código. prefix (p. ej. Z): implementaciones de ampliación de ese espacio de nombres, por tipo. Solo lectura.",
+    "program + program_type (PROG, CLAS, FUGR): ampliaciones de código implementadas dentro de ese programa, " +
+    "clase o grupo, lo que cambia un estándar sin tocarlo. prefix (p. ej. Z): implementaciones de ese espacio de " +
+    "nombres, por tipo. Solo lectura.",
   access: "read",
   input: {
     badi: z.string().regex(NAME).optional().describe("Definición de BAdI, p. ej. MB_MIGO_BADI"),

@@ -118,11 +118,10 @@ export default defineTool({
   name: "dumps",
   title: "Dumps (ST22)",
   description:
-    "Lista los dumps de ejecución (ST22): fecha, error, programa, usuario y texto corto. Filtra por usuario y por " +
-    "texto (error o programa). Con detail=N devuelve el dump N completo (qué pasó, análisis, dónde terminó, fuente, pila). " +
-    "Con group_by (error, program, error_program, user, day) y days=N responde «los errores más frecuentes del periodo»: " +
-    "cuenta los dumps de los últimos N días agrupados, con primer y último caso, usuarios afectados y dónde terminó. " +
-    "La lista y el detalle salen del feed ADT (solo los más recientes); los grupos, de la cabecera de ST22 (SNAP_BEG).",
+    "Dumps de ST22: fecha, error, programa, usuario y texto; filtra por usuario o texto. detail=N devuelve el dump N " +
+    "completo (análisis, dónde terminó, fuente, pila). group_by (error, program, error_program, user, day) con days=N " +
+    "responde «los errores más frecuentes del periodo», con primer y último caso y usuarios afectados. Lista y detalle " +
+    "salen del feed ADT; los grupos, de ST22.",
   access: "read",
   requires: { adt: ["/sap/bc/adt/runtime/dumps"] },
   input: {

@@ -84,11 +84,10 @@ export default defineTool({
   name: "diagnose_message",
   title: "Diagnosticar un mensaje",
   description:
-    "Parte de un mensaje de pantalla (clase y número, o el texto tal como lo copió la persona: «E:ZDEMO:012», " +
-    "«ZDEMO 012») y devuelve su texto en el idioma de la conexión y en inglés, los marcadores (&1…) y qué programas, " +
-    "clases o funciones lo emiten (índice de referencias cruzadas, el de SE91), más su texto largo (la ayuda del mensaje: causa, respuesta del " +
-    "sistema, qué hacer) si existe. Primer paso de un ticket: del mensaje al código. Los mensajes con número " +
-    "dinámico (MESSAGE ID … NUMBER variable) no están en el índice: se listan los programas que declaran la clase.",
+    "De un mensaje de pantalla («E:ZDEMO:012», «ZDEMO 012» o el texto copiado) a su texto en dos idiomas, " +
+    "marcadores, ayuda larga (causa, respuesta, qué hacer) y los includes que lo emiten según el índice de SE91. " +
+    "Primer paso de un ticket. Los mensajes con número dinámico no están indexados: se listan los programas que " +
+    "declaran la clase.",
   access: "read",
   input: {
     message: z.string().min(1).describe("«CLASE NNN», «E:CLASE:NNN» o el texto copiado de la barra de estado"),

@@ -106,12 +106,12 @@ la **[referencia completa](docs/TOOLS.md)**.
 
 | Tool | Qué hace | Acceso |
 |---|---|---|
-| [`transport_diff`](docs/TOOLS.md#revision) | **Qué cambió una orden (diff de código).** Revisión de código de una orden: por cada objeto con fuente (programas, includes, clases, interfaces, FM, CDS) compara la versión grabada con esa orden (o sus tareas) contra la versión anterior, y muestra el diff unificado. | lectura |
+| [`transport_diff`](docs/TOOLS.md#revision) | **Qué cambió una orden (diff de código).** Revisión de código de una orden: por cada objeto con fuente (programas, includes, clases, interfaces, FM, CDS) compara la versión grabada con esa orden contra la anterior y muestra el diff unificado, con la calidad de la evidencia (exacta, aproximada, objeto nuevo). | lectura |
 | [`transport_contents`](docs/TOOLS.md#revision) | **Contenido de una orden.** Cabecera, tareas (con dueño y estado) y objetos de una orden de transporte, leídos de E070/E07T/E071. | lectura |
 | [`my_transports`](docs/TOOLS.md#revision) | **Mis órdenes de transporte.** Órdenes de transporte de un usuario (por defecto, el de la conexión): las que son suyas y aquellas en las que tiene una tarea, con sus tareas, estado, sistema destino y objetos. | lectura |
 | [`co_change`](docs/TOOLS.md#revision) | **¿Con qué suele viajar este objeto?** Mira las órdenes que tocaron un objeto y cuenta qué otros objetos viajaron con él, de más a menos frecuente. | lectura |
 | [`inactive_objects`](docs/TOOLS.md#revision) | **Objetos sin activar.** Objetos con versión inactiva (guardados sin activar) del usuario de la conexión, con su orden. | lectura |
-| [`edit_preflight`](docs/TOOLS.md#revision) | **Antes de editar: ¿a qué orden irá?** Dice, ANTES de modificar un objeto, en qué orden acabará el cambio y por qué: bloqueo del CTS (TLOCK) de otra orden, objeto local ($TMP), reparación (sistema original distinto), o si está libre y qué órdenes tienes abiertas. | lectura |
+| [`edit_preflight`](docs/TOOLS.md#revision) | **Antes de editar: ¿a qué orden irá?** Antes de modificar un objeto: en qué orden acabará el cambio y por qué (bloqueo CTS de otra orden, objeto local, reparación por sistema original distinto, o libre y qué órdenes tienes). | lectura |
 
 <a id="g-calidad"></a>
 ### Calidad, ATC y remediación
@@ -120,10 +120,10 @@ la **[referencia completa](docs/TOOLS.md)**.
 
 | Tool | Qué hace | Acceso |
 |---|---|---|
-| [`run_atc`](docs/TOOLS.md#calidad) | **Ejecutar ATC.** Ejecuta el ATC sobre un objeto o una orden de transporte y lista los hallazgos numerados (prioridad, línea, check, mensaje), con los totales P1/P2/P3 que da SAP. | lectura |
-| [`atc_quickfix`](docs/TOOLS.md#calidad) | **Correcciones propuestas por SAP.** Correcciones que SAP ofrece (las mismas de Ctrl+1 en Eclipse) para un hallazgo ATC o una línea: crear símbolo de texto, extraer constante, etc. | lectura |
+| [`run_atc`](docs/TOOLS.md#calidad) | **Ejecutar ATC.** Ejecuta el ATC de un objeto o una orden y lista hallazgos numerados (prioridad, línea, check, mensaje) con totales P1/P2/P3. | lectura |
+| [`atc_quickfix`](docs/TOOLS.md#calidad) | **Correcciones propuestas por SAP.** Correcciones que SAP ofrece (las de Ctrl+1 en Eclipse) para un hallazgo ATC o una línea: crear símbolo de texto, extraer constante… Sin apply lista las propuestas; apply=N calcula el cambio SIN GUARDAR y devuelve diff y sintaxis; para guardar, pasa el fuente resultante a write_source (return_source=true). | lectura |
 | [`api_release_state`](docs/TOOLS.md#calidad) | **¿Está liberada esta API? ¿Cuál es su sucesor?** Estado de liberación de un objeto SAP (clase, FM/BAPI, tabla, CDS…) por contrato C0–C4 y su sucesor liberado, leído del propio sistema. | lectura |
-| [`sap_notes`](docs/TOOLS.md#calidad) | **Notas SAP en el sistema (SNOTE).** Estado de notas SAP en este sistema, como en SNOTE: si está descargada, estado de implementación (completa, incompleta, versión anterior, se puede implementar, obsoleta, no se puede implementar), estado de tratamiento, versión, componente y título. | lectura |
+| [`sap_notes`](docs/TOOLS.md#calidad) | **Notas SAP en el sistema (SNOTE).** Estado de notas SAP en el sistema, como en SNOTE: descargada, implementación (completa, incompleta, versión anterior, implementable, obsoleta, no implementable), tratamiento, versión, componente y título. | lectura |
 | [`syntax_check`](docs/TOOLS.md#calidad) | **Chequeo de sintaxis SAP.** Chequeo de sintaxis real de SAP (no abaplint). | lectura |
 | [`run_unit_tests`](docs/TOOLS.md#calidad) | **Ejecutar ABAP Unit.** Ejecuta los tests ABAP Unit de una clase o programa y devuelve el resultado por método, con el detalle de cada fallo. | ejecuta (DEV) |
 
@@ -137,16 +137,16 @@ la **[referencia completa](docs/TOOLS.md)**.
 | [`search_objects`](docs/TOOLS.md#exploracion) | **Buscar objetos ABAP.** Busca objetos del repositorio por nombre (admite * como comodín). | lectura |
 | [`get_source`](docs/TOOLS.md#exploracion) | **Leer fuente ABAP.** Lee la fuente de cualquier objeto: programa, include, clase (y sus includes), interfaz, módulo de función (sin necesidad de saber el grupo), CDS, tabla/estructura, etc. | lectura |
 | [`where_used`](docs/TOOLS.md#exploracion) | **Dónde se usa.** Lista de uso (where-used) de un objeto: quién lo referencia, con paquete y responsable. | lectura |
-| [`source_search`](docs/TOOLS.md#exploracion) | **Buscar texto en el código.** Busca un texto (o una expresión regular) en el código fuente de un paquete (con subpaquetes), de una orden de transporte o de una lista de objetos, y devuelve objeto, include, línea y la línea encontrada. | lectura |
+| [`source_search`](docs/TOOLS.md#exploracion) | **Buscar texto en el código.** Busca texto o expresión regular en el código de un paquete (con subpaquetes), una orden o una lista de objetos; devuelve objeto, include, línea y texto. | lectura |
 | [`object_versions`](docs/TOOLS.md#exploracion) | **Versiones de un objeto.** Historial de versiones de un objeto (fecha, autor, orden). | lectura |
 | [`package_contents`](docs/TOOLS.md#exploracion) | **Contenido de un paquete.** Objetos de un paquete de desarrollo agrupados por tipo, con sus subpaquetes (TADIR/TDEVC, cualquier release). | lectura |
 | [`ddic_type_info`](docs/TOOLS.md#exploracion) | **Elemento de datos, dominio o tipo tabla.** Definición de un tipo DDIC: elemento de datos (dominio, tipo, longitud, textos), dominio (tipo, longitud, valores fijos, tabla de valores) o tipo tabla (tipo de línea, clave). | lectura |
-| [`ddic_plan`](docs/TOOLS.md#exploracion) | **Preparar objetos de diccionario (NW 7.50).** Para sistemas donde ADT no crea ni modifica tablas, estructuras, dominios, elementos de datos ni tipos tabla (ECC / NW 7.50): valida una especificación de objetos nuevos y de cambios (añadir campos, valores, textos), comprueba contra el sistema el paquete, la tarea, los nombres y todo lo que referencia, y devuelve el fichero de instrucciones que una persona ejecuta en SE38 con el programa ZDZ_DDIC_GEN (primero en simulación). | lectura |
-| [`odata_model`](docs/TOOLS.md#exploracion) | **Modelo OData (EDMX) desde el diccionario.** Genera el modelo de un servicio OData V2 (fichero EDMX: entity types, entity sets, asociaciones y navegación) a partir de tablas, estructuras o vistas del diccionario, con tipos, longitudes, claves y etiquetas reales. | lectura |
+| [`ddic_plan`](docs/TOOLS.md#exploracion) | **Preparar objetos de diccionario (NW 7.50).** Donde ADT no crea ni modifica diccionario (ECC / NW 7.50): valida una especificación de tablas, estructuras, dominios, elementos, tipos tabla y funciones RFC, nuevos o cambios, la comprueba contra el sistema (paquete, tarea, nombres, referencias) y devuelve el fichero de instrucciones que una persona ejecuta en SE38 con ZDZ_DDIC_GEN, primero en simulación. | lectura |
+| [`odata_model`](docs/TOOLS.md#exploracion) | **Modelo OData (EDMX) desde el diccionario.** Modelo OData V2 (EDMX: entity types, sets, asociaciones y navegación) desde tablas, estructuras o vistas del diccionario, con tipos, claves y etiquetas reales, para importarlo en SEGW (Data Model → Import from File) en ECC 7.50. | lectura |
 | [`transaction_info`](docs/TOOLS.md#exploracion) | **Qué ejecuta una transacción.** Programa, dynpro y parámetros de una transacción (TSTC/TSTCP), con su texto. | lectura |
 | [`function_modules`](docs/TOOLS.md#exploracion) | **Módulos de función de un grupo.** Lista los módulos de función de un grupo de funciones, con su texto y si son RFC o de actualización. | lectura |
 | [`text_elements`](docs/TOOLS.md#exploracion) | **Símbolos de texto y textos de selección.** Lee los símbolos de texto (TEXT-001…), textos de selección o encabezados de un programa, clase o grupo de funciones. | lectura |
-| [`enhancements`](docs/TOOLS.md#exploracion) | **Ampliaciones y BAdI.** Qué ampliaciones hay y dónde. badi=NOMBRE: implementaciones de esa BAdI, nuevas y clásicas, activas o no. program + program_type (PROG, CLAS, FUGR): ampliaciones de código (puntos y secciones implícitos o explícitos) implementadas dentro de ese programa, clase o grupo — lo que cambia el comportamiento de un estándar sin tocar su código. prefix (p. ej. Z): implementaciones de ampliación de ese espacio de nombres, por tipo. | lectura |
+| [`enhancements`](docs/TOOLS.md#exploracion) | **Ampliaciones y BAdI.** Qué ampliaciones hay y dónde. badi=NOMBRE: implementaciones de esa BAdI, nuevas y clásicas, activas o no. program + program_type (PROG, CLAS, FUGR): ampliaciones de código implementadas dentro de ese programa, clase o grupo, lo que cambia un estándar sin tocarlo. prefix (p. ej. Z): implementaciones de ese espacio de nombres, por tipo. | lectura |
 
 <a id="g-datos"></a>
 ### Consulta de datos
@@ -155,7 +155,7 @@ la **[referencia completa](docs/TOOLS.md)**.
 
 | Tool | Qué hace | Acceso |
 |---|---|---|
-| [`sql_query`](docs/TOOLS.md#datos) | **Consulta ABAP SQL.** Ejecuta un SELECT de ABAP SQL (con WHERE, JOIN, ORDER BY, subconsultas) vía la vista previa de datos de ADT. | lectura |
+| [`sql_query`](docs/TOOLS.md#datos) | **Consulta ABAP SQL.** Ejecuta un SELECT de ABAP SQL (WHERE, JOIN, ORDER BY, subconsultas) por la vista previa de datos de ADT. | lectura |
 | [`table_contents`](docs/TOOLS.md#datos) | **Contenido de una tabla.** Filas de una tabla, vista o CDS, con columnas y filtro opcionales. | lectura |
 | [`count_rows`](docs/TOOLS.md#datos) | **Contar filas.** Cuenta las filas de una tabla o vista, con condición opcional y agrupación opcional (p. ej. por año o por estado), sin traer datos. | lectura |
 | [`search_tables`](docs/TOOLS.md#datos) | **Buscar tablas por descripción.** Busca tablas, estructuras y vistas del diccionario por una palabra de su descripción o de su nombre («partición», «garantía», «ZDZ_TICKET»). | lectura |
@@ -168,8 +168,8 @@ la **[referencia completa](docs/TOOLS.md)**.
 
 | Tool | Qué hace | Acceso |
 |---|---|---|
-| [`dumps`](docs/TOOLS.md#diagnostico) | **Dumps (ST22).** Lista los dumps de ejecución (ST22): fecha, error, programa, usuario y texto corto. | lectura |
-| [`diagnose_message`](docs/TOOLS.md#diagnostico) | **Diagnosticar un mensaje.** Parte de un mensaje de pantalla (clase y número, o el texto tal como lo copió la persona: «E:ZDEMO:012», «ZDEMO 012») y devuelve su texto en el idioma de la conexión y en inglés, los marcadores (&1…) y qué programas, clases o funciones lo emiten (índice de referencias cruzadas, el de SE91), más su texto largo (la ayuda del mensaje: causa, respuesta del sistema, qué hacer) si existe. | lectura |
+| [`dumps`](docs/TOOLS.md#diagnostico) | **Dumps (ST22).** Dumps de ST22: fecha, error, programa, usuario y texto; filtra por usuario o texto. detail=N devuelve el dump N completo (análisis, dónde terminó, fuente, pila). group_by (error, program, error_program, user, day) con days=N responde «los errores más frecuentes del periodo», con primer y último caso y usuarios afectados. | lectura |
+| [`diagnose_message`](docs/TOOLS.md#diagnostico) | **Diagnosticar un mensaje.** De un mensaje de pantalla («E:ZDEMO:012», «ZDEMO 012» o el texto copiado) a su texto en dos idiomas, marcadores, ayuda larga (causa, respuesta, qué hacer) y los includes que lo emiten según el índice de SE91. | lectura |
 | [`jobs`](docs/TOOLS.md#diagnostico) | **Jobs de fondo (SM37).** Jobs de fondo por nombre (admite *), usuario, estado y fecha, con sus pasos (programa y variante). | lectura |
 | [`application_log`](docs/TOOLS.md#diagnostico) | **Log de aplicación (SLG1), cabeceras.** Cabeceras del log de aplicación (BALHDR) por objeto/subobjeto, nº externo, usuario y fecha, con el recuento de errores y avisos. | lectura |
 | [`gateway_errors`](docs/TOOLS.md#diagnostico) | **Errores de SAP Gateway (/IWFND/ERROR_LOG).** Lista los errores del log de SAP Gateway (servicios OData): servicio, error, usuario, fecha. | lectura |
@@ -196,12 +196,12 @@ la **[referencia completa](docs/TOOLS.md)**.
 
 | Tool | Qué hace | Acceso |
 |---|---|---|
-| [`create_object`](docs/TOOLS.md#escritura) | **Crear objeto ABAP.** Crea un objeto ABAP nuevo en un sistema de desarrollo: programa, include, clase, interfaz, grupo de funciones, módulo de función, vista CDS o control de acceso CDS. | escribe (DEV autorizado) |
-| [`write_source`](docs/TOOLS.md#escritura) | **Guardar fuente en SAP.** Sustituye la fuente COMPLETA de un objeto existente (o de un include de clase), en la orden indicada. | escribe (DEV autorizado) |
-| [`edit_source`](docs/TOOLS.md#escritura) | **Editar un fragmento de la fuente.** Sustituye fragmentos concretos de la fuente de un objeto existente sin reenviarla entera: cada edición es el texto exacto que hay hoy y el que lo reemplaza. | escribe (DEV autorizado) |
+| [`create_object`](docs/TOOLS.md#escritura) | **Crear objeto ABAP.** Crea un objeto nuevo en desarrollo: programa, include, clase, interfaz, grupo o módulo de función, vista CDS o control de acceso CDS. | escribe (DEV autorizado) |
+| [`write_source`](docs/TOOLS.md#escritura) | **Guardar fuente en SAP.** Sustituye la fuente COMPLETA de un objeto existente (o un include de clase) en la orden indicada. | escribe (DEV autorizado) |
+| [`edit_source`](docs/TOOLS.md#escritura) | **Editar un fragmento de la fuente.** Sustituye fragmentos exactos de la fuente de un objeto sin reenviarla entera: cada edición es el texto actual y el que lo reemplaza. | escribe (DEV autorizado) |
 | [`revert_source`](docs/TOOLS.md#escritura) | **Volver a una versión anterior.** Deshace un cambio escribiendo de nuevo una versión anterior del objeto: la última activa (para limpiar un borrador inactivo tras un write_source cuya activación falló), la anterior a la activa, o una concreta del historial de object_versions. | escribe (DEV autorizado) |
-| [`change_package`](docs/TOOLS.md#escritura) | **Cambiar el paquete de un objeto.** Cambia de paquete un objeto existente (programa, clase, interfaz, grupo de funciones, CDS, objeto de diccionario) y lo registra en la orden indicada: sirve para sacar de $TMP algo que nació como prueba. | escribe (DEV autorizado) |
-| [`activate`](docs/TOOLS.md#escritura) | **Activar objetos.** Activa un objeto, una lista de objetos o todos los inactivos del usuario (opcionalmente de una orden) y devuelve los mensajes de SAP tal cual (errores con línea, avisos, objetos que quedan inactivos). | escribe (DEV autorizado) |
+| [`change_package`](docs/TOOLS.md#escritura) | **Cambiar el paquete de un objeto.** Cambia de paquete un objeto existente (programa, clase, interfaz, grupo de funciones, CDS, diccionario) y lo registra en la orden indicada; sirve para sacar de $TMP algo que nació como prueba. | escribe (DEV autorizado) |
+| [`activate`](docs/TOOLS.md#escritura) | **Activar objetos.** Activa un objeto, una lista o todos los inactivos del usuario (opcionalmente de una orden) y devuelve los mensajes de SAP tal cual (errores con línea, avisos, inactivos). | escribe (DEV autorizado) |
 | [`write_text_elements`](docs/TOOLS.md#escritura) | **Crear o cambiar símbolos de texto.** Añade o modifica símbolos de texto (o textos de selección) de un programa/clase/grupo, fusionando con los existentes: no borra los que no se mencionan. | escribe (DEV autorizado) |
 | [`create_transport`](docs/TOOLS.md#escritura) | **Crear orden de transporte.** Crea una orden workbench para el paquete de un objeto, ANTES de la primera edición, para que el cambio caiga en la orden del ticket y no en una tarea reutilizada. | escribe (DEV autorizado) |
 
@@ -212,7 +212,7 @@ la **[referencia completa](docs/TOOLS.md)**.
 
 | Tool | Qué hace | Acceso |
 |---|---|---|
-| [`analyze_transport_risk`](docs/TOOLS.md#transport-risk) | **Riesgo de transporte.** Dice si una orden (o un pase de varias, separadas por coma) es segura para pasar a calidad o productivo: tareas sin liberar, estado de importación, dependencias que no viajan, acceso posicional, bloqueos del CTS, cola de importación. | lectura |
+| [`analyze_transport_risk`](docs/TOOLS.md#transport-risk) | **Riesgo de transporte.** Dice si una orden, o un pase de varias separadas por coma, es segura para calidad o productivo: tareas sin liberar, importación, dependencias que no viajan, acceso posicional, bloqueos CTS, cola. | lectura |
 | [`import_health`](docs/TOOLS.md#transport-risk) | **Salud de importaciones.** Salud de las importaciones de un destino (calidad o productivo): responde «¿cómo van los pases a productivo?». | lectura |
 | [`failure_ranking`](docs/TOOLS.md#transport-risk) | **Objetos que más fallan al importar.** Ranking de objetos por historial de fallos de importación en un destino. | lectura |
 | [`change_audit`](docs/TOOLS.md#transport-risk) | **Evidencia de auditoría de cambios.** Evidencia para una auditoría de gestión de cambios en un destino: qué entró, con qué ticket, de qué iniciativa y origen. | lectura |

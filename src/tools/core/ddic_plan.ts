@@ -91,11 +91,10 @@ export default defineTool({
   name: "ddic_plan",
   title: "Preparar objetos de diccionario (NW 7.50)",
   description:
-    "Para sistemas donde ADT no crea ni modifica tablas, estructuras, dominios, elementos de datos ni tipos tabla " +
-    "(ECC / NW 7.50): valida una especificación de objetos nuevos y de cambios (añadir campos, valores, textos), comprueba " +
-    "contra el sistema el paquete, la tarea, los nombres y todo lo que referencia, y devuelve el fichero de instrucciones " +
-    `que una persona ejecuta en SE38 con el programa ${GENERATOR_PROGRAM} (primero en simulación). Esta tool NO modifica SAP: ` +
-    "solo lee y prepara. También cubre grupos y módulos de función con su interfaz y la marca RFC.",
+    "Donde ADT no crea ni modifica diccionario (ECC / NW 7.50): valida una especificación de tablas, estructuras, dominios, " +
+    "elementos, tipos tabla y funciones RFC, nuevos o cambios, la comprueba contra el sistema (paquete, tarea, nombres, " +
+    `referencias) y devuelve el fichero de instrucciones que una persona ejecuta en SE38 con ${GENERATOR_PROGRAM}, primero en ` +
+    "simulación. No modifica SAP.",
   access: "read",
   input: DDIC_SPEC,
   async run(a, { sap, system }) {

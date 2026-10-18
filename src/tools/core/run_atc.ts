@@ -82,12 +82,10 @@ export default defineTool({
   timeoutMs: 180_000,
   title: "Ejecutar ATC",
   description:
-    "Ejecuta el ATC sobre un objeto o una orden de transporte y lista los hallazgos numerados (prioridad, línea, " +
-    "check, mensaje), con los totales P1/P2/P3 que da SAP. El resultado queda recordado POR OBJETO U ORDEN: " +
-    "explain=N con object_name (o transport) trae la documentación del hallazgo N de ESE objeto (nota SAP, " +
-    "supresión) sin re-ejecutar si ya se analizó, y lo ejecuta si no. atc_quickfix(finding=N) usa la misma memoria. " +
-    "Sobre un objeto sin cambios desde el último ATC (menos de 1 h, misma variante) devuelve ese resultado y lo dice; " +
-    "refresh=true fuerza una ejecución nueva.",
+    "Ejecuta el ATC de un objeto o una orden y lista hallazgos numerados (prioridad, línea, check, mensaje) con " +
+    "totales P1/P2/P3. Recuerda el resultado por objeto u orden: explain=N trae la documentación del hallazgo N " +
+    "sin re-ejecutar; atc_quickfix(finding=N) usa la misma memoria. Un objeto sin cambios en la última hora " +
+    "devuelve el resultado anterior; refresh=true fuerza otra ejecución.",
   access: "read",
   requires: { adt: ["/sap/bc/adt/atc/runs"] },
   input: {

@@ -1,0 +1,91 @@
+{
+  "date": "2026-10-18",
+  "profile": "expert",
+  "tools": 61,
+  "bytes": 91454,
+  "tokensApprox": 22864,
+  "avgDescriptionWords": 50,
+  "avgInputSchemaBytes": 810,
+  "heaviest": [
+    {
+      "name": "ddic_plan",
+      "words": 56,
+      "description": 375,
+      "input": 6260,
+      "output": 0,
+      "total": 6635
+    },
+    {
+      "name": "odata_model",
+      "words": 59,
+      "description": 376,
+      "input": 2360,
+      "output": 0,
+      "total": 2736
+    },
+    {
+      "name": "dumps",
+      "words": 59,
+      "description": 379,
+      "input": 907,
+      "output": 1317,
+      "total": 2603
+    },
+    {
+      "name": "source_search",
+      "words": 56,
+      "description": 333,
+      "input": 1123,
+      "output": 957,
+      "total": 2413
+    },
+    {
+      "name": "my_transports",
+      "words": 57,
+      "description": 332,
+      "input": 758,
+      "output": 1230,
+      "total": 2320
+    },
+    {
+      "name": "activate",
+      "words": 85,
+      "description": 558,
+      "input": 1623,
+      "output": 0,
+      "total": 2181
+    },
+    {
+      "name": "edit_source",
+      "words": 84,
+      "description": 523,
+      "input": 1590,
+      "output": 0,
+      "total": 2113
+    },
+    {
+      "name": "create_object",
+      "words": 82,
+      "description": 546,
+      "input": 1495,
+      "output": 0,
+      "total": 2041
+    },
+    {
+      "name": "revert_source",
+      "words": 84,
+      "description": 554,
+      "input": 1403,
+      "output": 0,
+      "total": 1957
+    },
+    {
+      "name": "sap_notes",
+      "words": 48,
+      "description": 357,
+      "input": 802,
+      "output": 780,
+      "total": 1939
+    }
+  ]
+}
