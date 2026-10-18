@@ -5,6 +5,14 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 ## [Unreleased]
 
 ### Añadido
+- **Depurador de solo lectura** (Ola 3, punto 13), grupo `depuracion`: `debug_breakpoints` (puntos de parada externos
+  del usuario de la conexión, solo con datos `test` y con confirmación), `debug_listen` (escucha hasta un tiempo,
+  se adhiere y devuelve pila y variables), `debug_variables`, `debug_step` (into, over, return, continue) y
+  `debug_stop`. Sesión stateful por sistema en memoria del proceso; variables personales enmascaradas en sistemas
+  `masked`; deshabilitado con datos `prod`; nunca cambia valores. Todo `exec`: solo DEV y con rastro en el registro.
+  `SapConnection.openStateful()` para sesiones que duran más de una llamada. Sin verificar en vivo.
+
+### Añadido
 - **RAP y diccionario con escritura en S/4** (Ola 3, punto 12). `create_object` admite tipos tabla (TTYP), elementos
   de datos y dominios (DTEL, DOMA, con `ddic_properties` validadas y escritas bajo bloqueo), extensiones de metadatos
   CDS (DDLX), definiciones de servicio (SRVD), bindings OData V2 (SRVB, con `service_definition`) y definiciones de

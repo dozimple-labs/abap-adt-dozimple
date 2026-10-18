@@ -130,6 +130,18 @@ export const GROUPS: Group[] = [
     ],
   },
   {
+    id: "depuracion",
+    title: "Depuración de solo lectura",
+    pitch: "Ver dónde se para un programa y qué valores tiene, sin cambiar nada y solo en desarrollo.",
+    tools: [
+      { name: "debug_breakpoints", credits: ["abapAdtApi", "abapFs", "vsp"] },
+      { name: "debug_listen", credits: ["abapAdtApi", "abapFs", "vsp"] },
+      { name: "debug_variables", credits: ["abapAdtApi", "abapFs"] },
+      { name: "debug_step", credits: ["abapAdtApi", "abapFs"] },
+      { name: "debug_stop", credits: ["abapAdtApi", "abapFs"] },
+    ],
+  },
+  {
     id: "documentacion",
     title: "Documentación SAP",
     pitch: "Responder con la documentación oficial y comprobar qué sintaxis existe en cada release.",

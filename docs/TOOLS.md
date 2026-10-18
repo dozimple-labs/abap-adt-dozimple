@@ -1,6 +1,6 @@
 # Referencia de tools — abap-adt-doZimple
 
-Generado desde el código con `npm run docs`. 73 tools en 9 grupos y 3 flujos guiados.
+Generado desde el código con `npm run docs`. 78 tools en 10 grupos y 3 flujos guiados.
 Producto de [DoZimple](https://dozimple.cl).
 
 ## Índice
@@ -10,6 +10,7 @@ Producto de [DoZimple](https://dozimple.cl).
 - [Exploración del repositorio](#exploracion) — 17 tools: `search_objects`, `get_source`, `object_context`, `where_used`, `source_search`, `object_versions`, `package_contents`, `ddic_type_info`, `ddic_plan`, `odata_model`, `transaction_info`, `function_modules`, `text_elements`, `enhancements`, `code_structure`, `package_dependencies`, `unused_methods`
 - [Consulta de datos](#datos) — 8 tools: `sql_query`, `table_contents`, `count_rows`, `search_tables`, `foreign_keys`, `elevate_access`, `elevation_status`, `revoke_access`
 - [Diagnóstico de incidentes](#diagnostico) — 8 tools: `dumps`, `diagnose_message`, `jobs`, `application_log`, `gateway_errors`, `abap_traces`, `sql_traces`, `system_messages`
+- [Depuración de solo lectura](#depuracion) — 5 tools: `debug_breakpoints`, `debug_listen`, `debug_variables`, `debug_step`, `debug_stop`
 - [Documentación SAP](#documentacion) — 7 tools: `abap_feature_matrix`, `docs_search`, `docs_fetch`, `clean_core_objects`, `clean_core_object`, `abap_lint`, `docs_community_search`
 - [Escritura controlada](#escritura) — 10 tools: `create_object`, `write_source`, `edit_source`, `push_sources`, `write_ddic_properties`, `revert_source`, `change_package`, `activate`, `write_text_elements`, `create_transport`
 - [DoZimple Transport Risk](#transport-risk) — 7 tools: `analyze_transport_risk`, `import_health`, `failure_ranking`, `change_audit`, `object_transport_history`, `remote_source`, `transport_source_check`
@@ -1030,6 +1031,97 @@ Mensajes de sistema de SM02 (aviso de parada, mantenimiento…): texto, mandante
 | `system` | string |  | Sistema SAP configurado. Obligatorio si hay varios y ninguno por defecto. |
 | `only_active` | boolean | true | Solo los vigentes hoy |
 | `max` | number | 50 |  |
+
+\* obligatorio
+
+<a id="depuracion"></a>
+## Depuración de solo lectura
+
+*Ver dónde se para un programa y qué valores tiene, sin cambiar nada y solo en desarrollo.*
+
+### `debug_breakpoints` — Puntos de parada externos (depurador)
+
+Pone o quita puntos de parada externos para el usuario de la conexión (objeto y línea), como los de Eclipse. Solo en sistemas de desarrollo con datos de prueba y con confirmación. Después, debug_listen espera a que el programa pase por ahí. clear quita los puestos desde este servidor.
+
+| | |
+|---|---|
+| **Acceso** | Ejecuta código (solo sistemas DEV) |
+| **Créditos** | [abap-adt-api](https://github.com/marcellourbani/abap-adt-api) — Marcello Urbani (MIT, dependencia)<br>[ABAP Remote FS (vscode_abap_remote_fs)](https://github.com/marcellourbani/vscode_abap_remote_fs) — Marcello Urbani (MIT, idea)<br>[vibing-steampunk](https://github.com/oisee/vibing-steampunk) — oisee y contribuidores (MIT, idea) |
+
+| Parámetro | Tipo | Por defecto | Descripción |
+|---|---|---|---|
+| `system` | string |  | Sistema SAP configurado. Obligatorio si hay varios y ninguno por defecto. |
+| `action` | `set` \| `clear` | "set" |  |
+| `breakpoints` | lista de { object_name, object_type, line } | [] |  |
+
+\* obligatorio
+
+### `debug_listen` — Esperar y adherirse al depurador
+
+Escucha hasta timeout_s a que un programa del usuario de la conexión pare en un punto de parada externo, se adhiere y devuelve la pila y las variables del marco actual. Solo lectura: no cambia valores. En sistemas con datos enmascarados, las variables personales salen ocultas; con datos productivos no funciona.
+
+| | |
+|---|---|
+| **Acceso** | Ejecuta código (solo sistemas DEV) |
+| **Créditos** | [abap-adt-api](https://github.com/marcellourbani/abap-adt-api) — Marcello Urbani (MIT, dependencia)<br>[ABAP Remote FS (vscode_abap_remote_fs)](https://github.com/marcellourbani/vscode_abap_remote_fs) — Marcello Urbani (MIT, idea)<br>[vibing-steampunk](https://github.com/oisee/vibing-steampunk) — oisee y contribuidores (MIT, idea) |
+
+| Parámetro | Tipo | Por defecto | Descripción |
+|---|---|---|---|
+| `system` | string |  | Sistema SAP configurado. Obligatorio si hay varios y ninguno por defecto. |
+| `timeout_s` | number | 60 |  |
+| `max_variables` | number | 50 |  |
+
+\* obligatorio
+
+### `debug_variables` — Variables del depurador
+
+Con una sesión adherida: valores de variables por nombre (p. ej. LV_X, LS_HEAD-KUNNR) o los hijos de una estructura o tabla por su id, y la pila si se pide. Solo lectura; variables personales enmascaradas según el sistema.
+
+| | |
+|---|---|
+| **Acceso** | Ejecuta código (solo sistemas DEV) |
+| **Créditos** | [abap-adt-api](https://github.com/marcellourbani/abap-adt-api) — Marcello Urbani (MIT, dependencia)<br>[ABAP Remote FS (vscode_abap_remote_fs)](https://github.com/marcellourbani/vscode_abap_remote_fs) — Marcello Urbani (MIT, idea) |
+
+| Parámetro | Tipo | Por defecto | Descripción |
+|---|---|---|---|
+| `system` | string |  | Sistema SAP configurado. Obligatorio si hay varios y ninguno por defecto. |
+| `names` | lista de string |  | Nombres o ids de variables a leer |
+| `children_of` | string |  | Id de una estructura, tabla u objeto para listar sus componentes |
+| `stack` | boolean | false |  |
+| `max_variables` | number | 50 |  |
+
+\* obligatorio
+
+### `debug_step` — Paso del depurador
+
+Con una sesión adherida: into, over, return o continue (hasta el siguiente punto de parada o el final). Devuelve la pila y las variables tras el paso. Si el programa termina, la sesión se cierra y lo dice.
+
+| | |
+|---|---|
+| **Acceso** | Ejecuta código (solo sistemas DEV) |
+| **Créditos** | [abap-adt-api](https://github.com/marcellourbani/abap-adt-api) — Marcello Urbani (MIT, dependencia)<br>[ABAP Remote FS (vscode_abap_remote_fs)](https://github.com/marcellourbani/vscode_abap_remote_fs) — Marcello Urbani (MIT, idea) |
+
+| Parámetro | Tipo | Por defecto | Descripción |
+|---|---|---|---|
+| `system` | string |  | Sistema SAP configurado. Obligatorio si hay varios y ninguno por defecto. |
+| `step` * | `into` \| `over` \| `return` \| `continue` |  |  |
+| `max_variables` | number | 50 |  |
+
+\* obligatorio
+
+### `debug_stop` — Cerrar la sesión de depuración
+
+Suelta el programa depurado (continúa) o lo termina, retira la escucha y cierra la sesión del depurador en el sistema.
+
+| | |
+|---|---|
+| **Acceso** | Ejecuta código (solo sistemas DEV) |
+| **Créditos** | [abap-adt-api](https://github.com/marcellourbani/abap-adt-api) — Marcello Urbani (MIT, dependencia)<br>[ABAP Remote FS (vscode_abap_remote_fs)](https://github.com/marcellourbani/vscode_abap_remote_fs) — Marcello Urbani (MIT, idea) |
+
+| Parámetro | Tipo | Por defecto | Descripción |
+|---|---|---|---|
+| `system` | string |  | Sistema SAP configurado. Obligatorio si hay varios y ninguno por defecto. |
+| `terminate` | boolean | false | true: termina el programa depurado en vez de dejarlo seguir |
 
 \* obligatorio
 
