@@ -59,7 +59,7 @@ El agente elige las tools, las encadena y responde con evidencia. Cada respuesta
 | [Calidad, ATC y remediación](#g-calidad) | Encontrar, entender y corregir hallazgos con la sintaxis y las correcciones reales de SAP. | 6 |
 | [Exploración del repositorio](#g-exploracion) | Leer y entender cualquier objeto ABAP y sus relaciones, en ECC y en S/4HANA. | 14 |
 | [Consulta de datos](#g-datos) | Preguntar a las tablas con ABAP SQL, de solo lectura y sin tocar material de credenciales. | 5 |
-| [Diagnóstico de incidentes](#g-diagnostico) | Reunir en una conversación lo que antes exigía ST22, SM37, SLG1 y /IWFND/ERROR_LOG. | 5 |
+| [Diagnóstico de incidentes](#g-diagnostico) | Reunir en una conversación lo que antes exigía ST22, SM37, SLG1 y /IWFND/ERROR_LOG. | 8 |
 | [Documentación SAP](#g-documentacion) | Responder con la documentación oficial y comprobar qué sintaxis existe en cada release. | 7 |
 | [Escritura controlada](#g-escritura) | Guardar cambios solo en desarrollo, en la orden correcta y con la sintaxis verificada antes. | 8 |
 | [DoZimple Transport Risk](#g-transport-risk) | Decidir si un pase entero puede ir a calidad o productivo, con el porqué en lenguaje de negocio. | 7 |
@@ -174,6 +174,9 @@ la **[referencia completa](docs/TOOLS.md)**.
 | [`jobs`](docs/TOOLS.md#diagnostico) | **Jobs de fondo (SM37).** Jobs de fondo por nombre (admite *), usuario, estado y fecha, con sus pasos (programa y variante). | lectura |
 | [`application_log`](docs/TOOLS.md#diagnostico) | **Log de aplicación (SLG1), cabeceras.** Cabeceras del log de aplicación (BALHDR) por objeto/subobjeto, nº externo, usuario y fecha, con el recuento de errores y avisos. | lectura |
 | [`gateway_errors`](docs/TOOLS.md#diagnostico) | **Errores de SAP Gateway (/IWFND/ERROR_LOG).** Lista los errores del log de SAP Gateway (servicios OData): servicio, error, usuario, fecha. | lectura |
+| [`abap_traces`](docs/TOOLS.md#diagnostico) | **Trazas ABAP (SAT).** Trazas de rendimiento ABAP (SAT) ya grabadas en el sistema: lista las del usuario (o de otro) con tiempos de ABAP, sistema y base de datos; con trace=<id> muestra la hit list (qué consume tiempo), los accesos a base de datos o las sentencias. | lectura |
+| [`sql_traces`](docs/TOOLS.md#diagnostico) | **Trazas SQL (ST05).** Directorio y estado de las trazas SQL de ST05 que expone ADT (S/4HANA y NW ≥ 7.51): qué trazas hay, de quién, cuándo y si la grabación está activa. | lectura |
+| [`system_messages`](docs/TOOLS.md#diagnostico) | **Mensajes de sistema (SM02).** Mensajes de sistema de SM02 (aviso de parada, mantenimiento…): texto, mandante, servidor, vigencia y quién lo creó, leídos de las tablas TEMSI y TEMSG. | lectura |
 
 <a id="g-documentacion"></a>
 ### Documentación SAP
@@ -386,7 +389,7 @@ abap-adt-doZimple se construye sobre el trabajo de otros, y lo reconoce: cada to
 <!-- credits:start -->
 | Proyecto | Autor / titular | Licencia | Tipo | Usado en |
 |---|---|---|---|---|
-| [abap-adt-api](https://github.com/marcellourbani/abap-adt-api) | Marcello Urbani | MIT | dependencia | todas (núcleo), `transport_diff`, `transport_contents`, `my_transports`, `inactive_objects`, `edit_preflight` y 31 más |
+| [abap-adt-api](https://github.com/marcellourbani/abap-adt-api) | Marcello Urbani | MIT | dependencia | todas (núcleo), `transport_diff`, `transport_contents`, `my_transports`, `inactive_objects`, `edit_preflight` y 33 más |
 | [Model Context Protocol TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk) | Model Context Protocol | MIT | dependencia | todas (núcleo) |
 | [mcp-sap-docs](https://github.com/marianfoo/mcp-sap-docs) | Marian Zeis (marianfoo) | Apache-2.0 | dependencia | `abap_feature_matrix`, `docs_search`, `docs_fetch`, `clean_core_objects`, `clean_core_object`, `abap_lint` y 1 más |
 | [abaplint](https://github.com/abaplint/abaplint) | Lars Hvam y contribuidores | MIT | dependencia | `abap_lint` |
@@ -401,7 +404,7 @@ abap-adt-doZimple se construye sobre el trabajo de otros, y lo reconoce: cada to
 | [ABAP Remote FS (vscode_abap_remote_fs)](https://github.com/marcellourbani/vscode_abap_remote_fs) | Marcello Urbani | MIT | idea | `syntax_check`, `create_object` |
 | [mcp-abap-adt](https://github.com/mario-andreschak/mcp-abap-adt) | mario-andreschak | MIT | idea | `search_objects`, `get_source`, `package_contents`, `ddic_type_info`, `transaction_info`, `table_contents` |
 | [ARC-1](https://github.com/arc-mcp/arc-1) | arc-mcp (Marian Zeis y contribuidores) | MIT | idea | `transport_diff`, `atc_quickfix`, `object_context`, `gateway_errors` |
-| [vibing-steampunk](https://github.com/oisee/vibing-steampunk) | oisee y contribuidores | MIT | idea | `co_change`, `api_release_state`, `source_search`, `enhancements`, `jobs`, `application_log` |
+| [vibing-steampunk](https://github.com/oisee/vibing-steampunk) | oisee y contribuidores | MIT | idea | `co_change`, `api_release_state`, `source_search`, `enhancements`, `jobs`, `application_log` y 1 más |
 | [ABAPilot MCP connector (catálogo de tools)](https://github.com/NicoHern/abapilot-mcp) | Crimson Consulting SL (NicoHern) | MIT | idea | `count_rows`, `search_tables`, `foreign_keys`, `diagnose_message` |
 | [ABAP Accelerator for Amazon Q Developer](https://github.com/aws-solutions-library-samples/guidance-for-deploying-sap-abap-accelerator-for-amazon-q-developer) | AWS Solutions Library Samples | MIT-0 | idea | todas (núcleo), `my_transports`, `create_object`, `usage_stats` |
 | [An O(ND) Difference Algorithm and Its Variations (1986)](https://doi.org/10.1007/BF01840446) | Eugene W. Myers | algoritmo publicado | algoritmo | `transport_diff`, `atc_quickfix` |

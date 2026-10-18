@@ -60,7 +60,7 @@ and **a failure is never presented as an empty result or as success**.
 | [Quality, ATC and remediation](#g-calidad) | Find, understand and fix findings with SAP's real syntax check and quick fixes. | 6 |
 | [Repository exploration](#g-exploracion) | Read and understand any ABAP object and its relations, on ECC and S/4HANA. | 14 |
 | [Data queries](#g-datos) | Query tables with ABAP SQL, read-only, with sensitive and personal data protected. | 5 |
-| [Incident diagnosis](#g-diagnostico) | One conversation for what used to take ST22, SM37, SLG1 and /IWFND/ERROR_LOG. | 5 |
+| [Incident diagnosis](#g-diagnostico) | One conversation for what used to take ST22, SM37, SLG1 and /IWFND/ERROR_LOG. | 8 |
 | [SAP documentation](#g-documentacion) | Answer from official documentation and check which syntax exists in each release. | 7 |
 | [Controlled writes](#g-escritura) | Save changes only in development, in the right transport, previewed and confirmed by a human. | 8 |
 | [DoZimple Transport Risk](#g-transport-risk) | Decide whether a whole release can go to QA or production, with the why in business terms. | 7 |
@@ -175,6 +175,9 @@ Summary per group; each tool's details — parameters, types, defaults, requirem
 | [`jobs`](docs/TOOLS.md#diagnostico) | **Background jobs (SM37).** Background jobs by name (supports *), user, status and date, with their steps (program and variant). | read |
 | [`application_log`](docs/TOOLS.md#diagnostico) | **Application log (SLG1) headers.** Application log headers (BALHDR) by object/subobject, external number, user and date, with error and warning counts. | read |
 | [`gateway_errors`](docs/TOOLS.md#diagnostico) | **SAP Gateway errors (/IWFND/ERROR_LOG).** Lists SAP Gateway (OData) errors: service, error, user, date. | read |
+| [`abap_traces`](docs/TOOLS.md#diagnostico) | **ABAP traces (SAT).** Recorded ABAP performance traces of a user: ABAP, system and database times; per trace, the hit list, the database accesses or the statements. Read-only: never activates or deletes traces. | read |
+| [`sql_traces`](docs/TOOLS.md#diagnostico) | **SQL traces (ST05).** Directory and state of the ST05 traces exposed by ADT (S/4HANA, NW ≥ 7.51). Read-only. | read |
+| [`system_messages`](docs/TOOLS.md#diagnostico) | **System messages (SM02).** Current or all system messages (text, client, server, validity, creator) from TEMSI/TEMSG. | read |
 
 <a id="g-documentacion"></a>
 ### SAP documentation
@@ -385,7 +388,7 @@ abap-adt-doZimple is built on other people's work, and says so: each tool lists 
 <!-- credits:start -->
 | Project | Author / holder | License | Type | Used in |
 |---|---|---|---|---|
-| [abap-adt-api](https://github.com/marcellourbani/abap-adt-api) | Marcello Urbani | MIT | dependency | all (core), `transport_diff`, `transport_contents`, `my_transports`, `inactive_objects`, `edit_preflight` and 31 more |
+| [abap-adt-api](https://github.com/marcellourbani/abap-adt-api) | Marcello Urbani | MIT | dependency | all (core), `transport_diff`, `transport_contents`, `my_transports`, `inactive_objects`, `edit_preflight` and 33 more |
 | [Model Context Protocol TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk) | Model Context Protocol | MIT | dependency | all (core) |
 | [mcp-sap-docs](https://github.com/marianfoo/mcp-sap-docs) | Marian Zeis (marianfoo) | Apache-2.0 | dependency | `abap_feature_matrix`, `docs_search`, `docs_fetch`, `clean_core_objects`, `clean_core_object`, `abap_lint` and 1 more |
 | [abaplint](https://github.com/abaplint/abaplint) | Lars Hvam and contributors | MIT | dependency | `abap_lint` |
@@ -400,7 +403,7 @@ abap-adt-doZimple is built on other people's work, and says so: each tool lists 
 | [ABAP Remote FS (vscode_abap_remote_fs)](https://github.com/marcellourbani/vscode_abap_remote_fs) | Marcello Urbani | MIT | idea | `syntax_check`, `create_object` |
 | [mcp-abap-adt](https://github.com/mario-andreschak/mcp-abap-adt) | mario-andreschak | MIT | idea | `search_objects`, `get_source`, `package_contents`, `ddic_type_info`, `transaction_info`, `table_contents` |
 | [ARC-1](https://github.com/arc-mcp/arc-1) | arc-mcp (Marian Zeis and contributors) | MIT | idea | `transport_diff`, `atc_quickfix`, `object_context`, `gateway_errors` |
-| [vibing-steampunk](https://github.com/oisee/vibing-steampunk) | oisee and contributors | MIT | idea | `co_change`, `api_release_state`, `source_search`, `enhancements`, `jobs`, `application_log` |
+| [vibing-steampunk](https://github.com/oisee/vibing-steampunk) | oisee and contributors | MIT | idea | `co_change`, `api_release_state`, `source_search`, `enhancements`, `jobs`, `application_log` and 1 more |
 | [ABAPilot MCP connector (catálogo de tools)](https://github.com/NicoHern/abapilot-mcp) | Crimson Consulting SL (NicoHern) | MIT | idea | `count_rows`, `search_tables`, `foreign_keys`, `diagnose_message` |
 | [ABAP Accelerator for Amazon Q Developer](https://github.com/aws-solutions-library-samples/guidance-for-deploying-sap-abap-accelerator-for-amazon-q-developer) | AWS Solutions Library Samples | MIT-0 | idea | all (core), `my_transports`, `create_object`, `usage_stats` |
 | [An O(ND) Difference Algorithm and Its Variations (1986)](https://doi.org/10.1007/BF01840446) | Eugene W. Myers | published algorithm | algorithm | `transport_diff`, `atc_quickfix` |

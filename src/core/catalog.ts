@@ -118,6 +118,9 @@ export const GROUPS: Group[] = [
       { name: "jobs", credits: ["vsp"] },
       { name: "application_log", credits: ["vsp"] },
       { name: "gateway_errors", credits: ["abapAdtApi", "arc1"] },
+      { name: "abap_traces", credits: ["abapAdtApi", "vsp"] },
+      { name: "sql_traces", credits: ADT },
+      { name: "system_messages", credits: [] },
     ],
   },
   {
