@@ -5,6 +5,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 ## [Unreleased]
 
 ### Añadido
+- Plantilla de issue «Lo estoy usando» (`.github/ISSUE_TEMPLATE/uso.yml`) y sección «¿Lo usas?» en el README (EN y ES):
+  país, release, cliente MCP y tipo de uso, sin identificar empresa ni sistemas. Enlace de seguridad al aviso privado.
 - **`docs/PARIDAD.md`**: matriz de capacidades frente al MCP oficial de SAP (ADT 3.60) y a los servidores estudiados,
   con estado verificado/supuesto/pendiente por capacidad, huecos conocidos y el procedimiento de comparación. Se
   revisa en cada release y es compuerta de salida de la 2.0.0.

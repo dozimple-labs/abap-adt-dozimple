@@ -391,6 +391,12 @@ abap-adt-doZimple is built on other people's work, and says so: each tool lists 
 Full dependency licenses: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). If you are the author of one of these
 projects and want to adjust how you are credited, reach us at [dozimple.cl](https://dozimple.cl).
 
+## Are you using it?
+
+Tell us where and what for: **[open a short "I'm using it" issue](https://github.com/dozimple-labs/abap-adt-dozimple/issues/new?template=uso.yml)**
+(country, SAP release, MCP client, kind of use; no company or system names needed). npm and GitHub only give us
+anonymous counters, and what you tell us is what decides the next tools.
+
 ## About DoZimple
 
 **[DoZimple](https://dozimple.cl)** — technology that connects operations, data and innovation. SAP consulting and
