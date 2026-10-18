@@ -5,6 +5,14 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 ## [Unreleased]
 
 ### Añadido
+- **RAP y diccionario con escritura en S/4** (Ola 3, punto 12). `create_object` admite tipos tabla (TTYP), elementos
+  de datos y dominios (DTEL, DOMA, con `ddic_properties` validadas y escritas bajo bloqueo), extensiones de metadatos
+  CDS (DDLX), definiciones de servicio (SRVD), bindings OData V2 (SRVB, con `service_definition`) y definiciones de
+  comportamiento (BDEF, con `implementation_type`, por petición ADT directa). Nueva `write_ddic_properties` para
+  cambiar las propiedades de un dominio o elemento existente con diff, huella bajo bloqueo, orden y activación.
+  Solo donde ADT lo expone (S/4 y NW ≥ 7.51); en 7.50, `ddic_plan`. Sin verificar en vivo todavía.
+
+### Añadido
 - **`push_sources`** (Ola 3, punto 15): varias fuentes completas (hasta 20 objetos existentes o includes de clase) en
   la misma orden, con una sola vista previa consolidada (sintaxis y diff por objeto), una sola confirmación, guardado
   objeto a objeto con las garantías de `write_source` (huella por objeto, bloqueo, orden) y activación conjunta al
