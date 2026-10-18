@@ -938,7 +938,7 @@ Busca en SAP Community (blogs y preguntas) por mensaje de error, clase o concept
 
 ### `create_object` — Crear objeto ABAP
 
-Crea un objeto nuevo en desarrollo: programa, include, clase, interfaz, grupo o módulo de función, vista CDS o control de acceso CDS. Exige paquete y, si es transportable, la orden (nunca la elige). Fuente inicial opcional, comprobada con la sintaxis de SAP, y activación. Vista previa (validación de SAP, orden, idioma) y confirmación. Para objetos existentes, write_source.
+Crea un objeto nuevo en desarrollo: programa, include, clase, interfaz, grupo o módulo de función, vista o control de acceso CDS y, en S/4 o NW ≥ 7.51, tabla o estructura con fuente DDL (en 7.50, ddic_plan). Exige paquete y orden si es transportable. Fuente inicial opcional con sintaxis de SAP. Vista previa y confirmación. Para objetos existentes, write_source.
 
 | | |
 |---|---|
@@ -948,13 +948,13 @@ Crea un objeto nuevo en desarrollo: programa, include, clase, interfaz, grupo o 
 | Parámetro | Tipo | Por defecto | Descripción |
 |---|---|---|---|
 | `system` | string |  | Sistema SAP configurado. Obligatorio si hay varios y ninguno por defecto. |
-| `object_type` * | `PROG` \| `INCL` \| `CLAS` \| `INTF` \| `FUGR` \| `FUNC` \| `DDLS` \| `DCLS` |  | PROG programa · INCL include · CLAS clase · INTF interfaz · FUGR grupo de funciones · FUNC módulo de función · DDLS vista CDS · DCLS control de acceso CDS |
+| `object_type` * | `PROG` \| `INCL` \| `CLAS` \| `INTF` \| `FUGR` \| `FUNC` \| `DDLS` \| `DCLS` \| `TABL` \| `STRU` |  | PROG programa · INCL include · CLAS clase · INTF interfaz · FUGR grupo de funciones · FUNC módulo de función · DDLS vista CDS · DCLS control de acceso CDS · TABL tabla · STRU estructura (estas dos solo en S/4 o NW ≥ 7.51) |
 | `name` * | string |  |  |
 | `description` * | string |  | Texto breve (en el idioma del sistema) |
 | `package` | string |  | Paquete de desarrollo. Obligatorio salvo FUNC (usa el del grupo). $TMP solo si se pide expresamente |
 | `function_group` | string |  | Solo FUNC: grupo de funciones donde se crea |
 | `transport` | string |  | Orden (o tarea). Obligatoria si el paquete es transportable |
-| `source` | string |  | Fuente inicial completa. Se comprueba la sintaxis antes de guardarla; una clase, entera |
+| `source` | string |  | Fuente inicial completa. Se comprueba la sintaxis antes de guardarla; una clase, entera. Tablas y estructuras: en la sintaxis DDL de ADT (@EndUserText.label … define table ztab { key client : abap.clnt; … }) |
 | `activate` | boolean | true | Activar tras guardar la fuente inicial |
 | `confirm_token` | string |  | Token de la vista previa. Sin él la tool no escribe: devuelve qué va a cambiar y el token, que se usa tras la conformidad del usuario (un solo uso, 10 min). |
 
