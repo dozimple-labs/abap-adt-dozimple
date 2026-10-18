@@ -4,6 +4,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Unreleased]
 
+### Añadido
+- **`push_sources`** (Ola 3, punto 15): varias fuentes completas (hasta 20 objetos existentes o includes de clase) en
+  la misma orden, con una sola vista previa consolidada (sintaxis y diff por objeto), una sola confirmación, guardado
+  objeto a objeto con las garantías de `write_source` (huella por objeto, bloqueo, orden) y activación conjunta al
+  final; lo que falla se cuenta por objeto y no se activa.
+
 ## [1.8.0] - 2026-10-18
 
 Ola 2 del plan de mejoras: acceso elevado por categorías de datos, auditoría de lecturas, SQL libre analizado por

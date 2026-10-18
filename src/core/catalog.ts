@@ -151,6 +151,7 @@ export const GROUPS: Group[] = [
       { name: "create_object", credits: ["abapAdtApi", "awsAccel", "abapFs"] },
       { name: "write_source", credits: ADT },
       { name: "edit_source", credits: ADT },
+      { name: "push_sources", credits: ADT },
       { name: "revert_source", credits: ADT },
       { name: "change_package", credits: ADT },
       { name: "activate", credits: ADT },

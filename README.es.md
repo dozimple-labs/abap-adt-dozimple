@@ -61,7 +61,7 @@ El agente elige las tools, las encadena y responde con evidencia. Cada respuesta
 | [Consulta de datos](#g-datos) | Preguntar a las tablas con ABAP SQL, de solo lectura y sin tocar material de credenciales. | 8 |
 | [Diagnóstico de incidentes](#g-diagnostico) | Reunir en una conversación lo que antes exigía ST22, SM37, SLG1 y /IWFND/ERROR_LOG. | 8 |
 | [Documentación SAP](#g-documentacion) | Responder con la documentación oficial y comprobar qué sintaxis existe en cada release. | 7 |
-| [Escritura controlada](#g-escritura) | Guardar cambios solo en desarrollo, en la orden correcta y con la sintaxis verificada antes. | 8 |
+| [Escritura controlada](#g-escritura) | Guardar cambios solo en desarrollo, en la orden correcta y con la sintaxis verificada antes. | 9 |
 | [DoZimple Transport Risk](#g-transport-risk) | Decidir si un pase entero puede ir a calidad o productivo, con el porqué en lenguaje de negocio. | 7 |
 | [Operación y crecimiento](#g-operacion) | Ver qué funciona en cada sistema y decidir con datos cuál es la siguiente tool. | 4 |
 <!-- groups:end -->
@@ -209,6 +209,7 @@ la **[referencia completa](docs/TOOLS.md)**.
 | [`create_object`](docs/TOOLS.md#escritura) | **Crear objeto ABAP.** Crea un objeto nuevo en desarrollo: programa, include, clase, interfaz, grupo o módulo de función, vista o control de acceso CDS y, en S/4 o NW ≥ 7.51, tabla o estructura con fuente DDL (en 7.50, ddic_plan). | escribe (DEV autorizado) |
 | [`write_source`](docs/TOOLS.md#escritura) | **Guardar fuente en SAP.** Sustituye la fuente COMPLETA de un objeto existente (o un include de clase) en la orden indicada. | escribe (DEV autorizado) |
 | [`edit_source`](docs/TOOLS.md#escritura) | **Editar un fragmento de la fuente.** Sustituye fragmentos exactos de la fuente de un objeto sin reenviarla entera: cada edición es el texto actual y el que lo reemplaza. | escribe (DEV autorizado) |
+| [`push_sources`](docs/TOOLS.md#escritura) | **Guardar varias fuentes en una operación.** Guarda las fuentes completas de varios objetos existentes (hasta 20, includes de clase incluidos) en la misma orden con una sola vista previa consolidada (sintaxis y diff por objeto) y una sola confirmación; después los activa juntos. | escribe (DEV autorizado) |
 | [`revert_source`](docs/TOOLS.md#escritura) | **Volver a una versión anterior.** Deshace un cambio escribiendo de nuevo una versión anterior del objeto: la última activa (para limpiar un borrador inactivo tras un write_source cuya activación falló), la anterior a la activa, o una concreta del historial de object_versions. | escribe (DEV autorizado) |
 | [`change_package`](docs/TOOLS.md#escritura) | **Cambiar el paquete de un objeto.** Cambia de paquete un objeto existente (programa, clase, interfaz, grupo de funciones, CDS, diccionario) y lo registra en la orden indicada; sirve para sacar de $TMP algo que nació como prueba. | escribe (DEV autorizado) |
 | [`activate`](docs/TOOLS.md#escritura) | **Activar objetos.** Activa un objeto, una lista o todos los inactivos del usuario (opcionalmente de una orden) y devuelve los mensajes de SAP tal cual (errores con línea, avisos, inactivos). | escribe (DEV autorizado) |
@@ -399,7 +400,7 @@ abap-adt-doZimple se construye sobre el trabajo de otros, y lo reconoce: cada to
 <!-- credits:start -->
 | Proyecto | Autor / titular | Licencia | Tipo | Usado en |
 |---|---|---|---|---|
-| [abap-adt-api](https://github.com/marcellourbani/abap-adt-api) | Marcello Urbani | MIT | dependencia | todas (núcleo), `transport_diff`, `transport_contents`, `my_transports`, `inactive_objects`, `edit_preflight` y 33 más |
+| [abap-adt-api](https://github.com/marcellourbani/abap-adt-api) | Marcello Urbani | MIT | dependencia | todas (núcleo), `transport_diff`, `transport_contents`, `my_transports`, `inactive_objects`, `edit_preflight` y 34 más |
 | [Model Context Protocol TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk) | Model Context Protocol | MIT | dependencia | todas (núcleo) |
 | [mcp-sap-docs](https://github.com/marianfoo/mcp-sap-docs) | Marian Zeis (marianfoo) | Apache-2.0 | dependencia | `abap_feature_matrix`, `docs_search`, `docs_fetch`, `clean_core_objects`, `clean_core_object`, `abap_lint` y 1 más |
 | [abaplint](https://github.com/abaplint/abaplint) | Lars Hvam y contribuidores | MIT | dependencia | `code_structure`, `package_dependencies`, `unused_methods`, `abap_lint` |
