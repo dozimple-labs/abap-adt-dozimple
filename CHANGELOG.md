@@ -5,6 +5,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 ## [Unreleased]
 
 ### Añadido
+- **Protocolo de prueba comparativa** (issue #90): `docs/benchmarks/PROTOCOLO.md` (diez tareas reales, dos sistemas por
+  release, métricas y corridas) y el harness `scripts/benchmark.mjs`, que ejecuta las tareas contra un sistema con
+  este MCP, publica la mediana de tres corridas en `docs/benchmarks/run-<fecha>-<etiqueta>.json` y compara dos
+  resultados (`--compare`). Los objetos de prueba van por variables de entorno, nunca en el repositorio. La corrida
+  contra sistemas reales y la comparación con el MCP de SAP quedan pendientes de conexión (#90, #95).
 - **`object_context`** (issue #87): la ficha de un objeto en una llamada, con salida estructurada: tipo, paquete,
   responsable, sistema original, bloqueo CTS y orden, tamaño de la fuente e includes, versiones recientes, usos,
   deriva frente a calidad/productivo (módulo transport-risk) y el último ATC recordado; `depth` 0–2. Sustituye la
