@@ -5,6 +5,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 ## [Unreleased]
 
 ### Añadido
+- **Análisis de código en local con abaplint** (Ola 2, puntos 9 y 11). Nueva dependencia `@abaplint/core` (MIT,
+  versión fijada). `code_structure` (clases con métodos y visibilidad, interfaces, forms, tablas, funciones, clases
+  e includes que usa, métricas y métodos privados sin uso, de un objeto o de un fragmento), `package_dependencies`
+  (grafo de dependencias de un paquete o lista, interno/externo, destinos más usados) y `unused_methods` (métodos
+  privados o protegidos sin uso en su clase, por paquete). `object_context` añade un **resumen** de la fuente
+  (qué hay y qué toca) en vez de obligar a leerla entera. Todo local: el código no sale del equipo ni se ejecuta.
 - **Runtime de solo lectura** (Ola 2, punto 8), grupo `diagnostico`: `abap_traces` (trazas SAT grabadas: lista con
   tiempos ABAP/sistema/BD y, por traza, hit list, accesos a base de datos o sentencias), `sql_traces` (directorio y
   estado de ST05 por ADT, S/4 y NW ≥ 7.51; en 7.50 lo dice) y `system_messages` (SM02 desde TEMSI/TEMSG, con la
