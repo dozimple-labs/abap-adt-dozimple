@@ -14,7 +14,13 @@ import { decideTransport, orderHeaders, transportWarnings } from "../../core/tra
  * documento, no como fuente. Misma puerta que write_source: vista previa con el diff de propiedades, huella de lo
  * mostrado comprobada bajo el bloqueo, orden explícita y activación.
  */
-const canonical = (p: unknown) => JSON.stringify(p, Object.keys(p as object).sort(), 2);
+/** JSON con las claves ordenadas a todos los niveles (un replacer de lista solo conserva las de primer nivel). */
+function sortKeys(v: unknown): unknown {
+  if (Array.isArray(v)) return v.map(sortKeys);
+  if (v && typeof v === "object") return Object.fromEntries(Object.keys(v as object).sort().map((k) => [k, sortKeys((v as Record<string, unknown>)[k])]));
+  return v;
+}
+const canonical = (p: unknown) => JSON.stringify(sortKeys(p), null, 2);
 
 async function current(kind: DdicKind, name: string, ctx: Pick<ToolContext, "sap">) {
   const c = await ctx.sap.adt();
