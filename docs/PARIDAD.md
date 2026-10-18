@@ -4,7 +4,7 @@ Qué cubre `abap-adt-doZimple` frente al MCP oficial de SAP (ADT) y a los servid
 para el plan de mejoras. Es un documento vivo: se revisa en cada release nuestra y cada vez que SAP publica una
 versión nueva de ADT. Marca con honestidad lo verificado y lo supuesto.
 
-**Última revisión:** 2026-10-18 · **Nuestra versión:** 2.0.1 · **MCP de SAP:** el que trae ADT 3.60 (Eclipse y
+**Última revisión:** 2026-10-18 · **Nuestra versión:** 2.0.2 · **MCP de SAP:** el que trae ADT 3.60 (Eclipse y
 VS Code), según documentación pública y pruebas de terceros; **no se ha ejecutado todavía contra un sistema propio.**
 
 ## 1. Qué se puede garantizar y qué no
@@ -59,14 +59,14 @@ Estado: **V** verificado en vivo en un sistema real · **S** supuesto por docume
 | Riesgo de pase, cola, colisiones, auditoría de cambios | No | Módulo transport-risk (7 tools) | V (un cliente) | Igual |
 | Deriva DEV vs QAS/PRD antes de editar | No | `edit_preflight` con `targets` | V | Igual |
 | Diccionario: tablas y estructuras (S/4) | Sí (generadores) | `create_object` TABL/STRU/TTYP | S: sin verificar en vivo | Verificar en vivo |
-| Diccionario: dominios, elementos, tipos tabla | Sí (generadores) | `create_object` DTEL/DOMA con propiedades, `write_ddic_properties`; `ddic_type_info` | S: sin verificar en vivo | Verificar en vivo |
+| Diccionario: dominios, elementos, tipos tabla | Sí (generadores) | `create_object` DTEL/DOMA con propiedades, `write_ddic_properties`; `ddic_type_info` | V lectura y vista previa en 758; creación S (pendiente de OK) | Crear en vivo |
 | Diccionario en ECC 7.50 | No aplica | `ddic_plan` + programa generador; RFC `ddic_apply` en curso | V (plan), P (apply) | Sí |
-| RAP: BDEF, SRVD, SRVB, DDLX, business services | Sí (`business_services`, generadores) | `create_object` BDEF/SRVD/SRVB(V2)/DDLX + `write_source` | S: sin verificar en vivo; sin generadores | Verificar en vivo; generadores RAP |
+| RAP: BDEF, SRVD, SRVB, DDLX, business services | Sí (`business_services`, generadores) | `create_object` BDEF/SRVD/SRVB(V2)/DDLX + `write_source` | V vista previa y validación en 758; creación S (pendiente de OK) | Crear en vivo; generadores RAP |
 | OData clásico (SEGW) | No | `odata_model` (EDMX) | S: importación en SEGW sin verificar | Sí |
 | Consulta de datos con política (veto, masking, tope por sistema) | No | `sql_query`, `table_contents`, `count_rows`, `search_tables`, `foreign_keys` | V | Igual |
 | Diagnóstico: dumps, mensajes, jobs, SLG1, gateway, notas, ampliaciones | Parcial | `dumps`, `diagnose_message`, `jobs`, `application_log`, `gateway_errors`, `sap_notes`, `enhancements` | V | Igual |
-| Runtime: SAT, ST05, SM02 | No consta | `abap_traces`, `sql_traces` (S/4), `system_messages` | V en 7.50 (`abap_traces`, `system_messages`); `sql_traces` S en S/4 | Verificar ST05 en S/4 |
-| Análisis local de código: estructura, dependencias por paquete, métodos sin uso | No consta | `code_structure`, `package_dependencies`, `unused_methods` (abaplint) | V (7.50 en vivo) | Igual |
+| Runtime: SAT, ST05, SM02 | No consta | `abap_traces`, `sql_traces` (S/4), `system_messages` | V (7.50 y 758) | Igual |
+| Análisis local de código: estructura, dependencias por paquete, métodos sin uso | No consta | `code_structure`, `package_dependencies`, `unused_methods` (abaplint) | V (7.50 y 758) | Igual |
 | Acceso elevado por categoría de datos (seguridad, HCM, personas) con auditoría | No | `elevate_access`, `elevation_status`, `revoke_access` | V (7.50 en vivo) | Igual |
 | SQL libre analizado a tablas base; lectura productiva confirmada | No así | `sql_query`, `table_contents` | V (productivo en vivo) | Igual |
 | Depurador | Sí (el del IDE) | `debug_breakpoints`, `debug_listen`, `debug_variables`, `debug_step`, `debug_stop` (solo lectura) | V (7.50: punto de parada, adhesión, pila, variables, paso) | Verificar en S/4 |

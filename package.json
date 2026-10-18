@@ -1,6 +1,6 @@
 {
   "name": "@dozimple/abap-adt",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "DoZimple MCP server for SAP ABAP: multi-system, secure by design — code review, ATC, diagnosis and documentation for ECC and S/4HANA",
   "keywords": [
     "sap",

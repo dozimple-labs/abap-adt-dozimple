@@ -4,6 +4,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Unreleased]
 
+## [2.0.2] - 2026-10-18
+
+Correcciones de la verificación en vivo contra un S/4HANA 758: ST05 con su forma real, diff de propiedades de
+diccionario, tablas internas en el análisis local y tope de `unused_methods`.
+
 ### Corregido
 - **`sql_traces` con la forma real de ST05 en un S/4 758**: el directorio solo trae el enlace a la app «SQL Trace Analysis»
   (se muestra) y el estado viene por instancia como elementos con texto: ahora lista instancia, host, trazas activas
