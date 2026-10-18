@@ -5,6 +5,13 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 ## [Unreleased]
 
 ### Añadido
+- **SQL libre controlado** (Ola 2, punto 10). Las consultas de `sql_query`, `table_contents` y `count_rows` se
+  analizan por estructura (`core/sqlparse.ts`: FROM, JOIN, subconsultas, CTE `WITH +x`) y se resuelven a tablas
+  base antes del veto de vistas y CDS; si no se puede determinar qué leen (variables host, fuentes dinámicas,
+  paréntesis sin cerrar, `UP TO`, `INTO`), se rechazan con el motivo en vez de adivinar. El evento `data_read`
+  lleva las tablas del análisis. En sistemas con datos `prod`, `sql_query` y `table_contents` **piden confirmación
+  en dos pasos** (vista previa con tablas y tope, token o elicitación) y dejan `intent`/`result` con quién confirmó,
+  igual que una escritura; `confirmProdReads: false` en el sistema lo desactiva. `count_rows` no la pide.
 - **Protocolo de prueba comparativa** (issue #90): `docs/benchmarks/PROTOCOLO.md` (diez tareas reales, dos sistemas por
   release, métricas y corridas) y el harness `scripts/benchmark.mjs`, que ejecuta las tareas contra un sistema con
   este MCP, publica la mediana de tres corridas en `docs/benchmarks/run-<fecha>-<etiqueta>.json` y compara dos

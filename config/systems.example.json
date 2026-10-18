@@ -24,7 +24,9 @@
       "user": "USUARIO",
       "role": "PRD",
       "dataClass": "prod",
-      "maxRows": 200
+      "maxRows": 200,
+      "$comment_confirmProdReads": "Con datos prod, sql_query y table_contents piden confirmación (vista previa + token) antes de leer; false la desactiva",
+      "confirmProdReads": true
     }
   ],
   "tools": {

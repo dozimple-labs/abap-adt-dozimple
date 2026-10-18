@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { guardedQuery } from "../../core/datapolicy.js";
+import { guardedQuery, readPreview } from "../../core/datapolicy.js";
 import { tsv } from "../../core/output.js";
 import { defineTool } from "../../core/tool.js";
 
@@ -15,6 +15,7 @@ export default defineTool({
     "E070/E071/TADIR/TLOCK/DD03L y datos de negocio. En sistemas productivos las columnas personales salen " +
     "enmascaradas y hay tope de filas.",
   access: "read",
+  confirmReads: true,
   input: {
     query: z.string().min(1).describe("SELECT ... FROM ... WHERE ..."),
     max_rows: z.number().int().min(1).max(5000).default(100),
@@ -25,6 +26,9 @@ export default defineTool({
     values: z.array(z.record(z.unknown())).describe(`Filas como objetos columna→valor (hasta ${STRUCTURED_ROWS}; el texto las trae todas)`),
     truncated: z.boolean().describe("true si values no incluye todas las filas"),
     notes: z.array(z.string()).describe("Avisos de la política de datos (enmascarado, tope de filas)"),
+  },
+  async preview({ query, max_rows }, { system }) {
+    return readPreview(system, query, max_rows);
   },
   async run({ query, max_rows }, { sap, system }) {
     const r = await guardedQuery(sap, system, query, max_rows);

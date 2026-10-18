@@ -10,6 +10,7 @@ import type { ConnectionPool, SapConnection } from "./connection.js";
 import { isSessionExpired, normalizeError, renderError, ToolError, type ErrorKind } from "./errors.js";
 import { budget } from "./output.js";
 import { appendAudit, auditArgs, type AuditInput } from "./audit.js";
+import { dataClassOf } from "./datapolicy.js";
 import { mergeReads, withDataReads } from "./datareads.js";
 import { consumeTokenWithState, issueToken } from "./confirm.js";
 import { addNote, renderNotes, withNotes } from "./notes.js";
@@ -97,6 +98,7 @@ async function confirmWrite(
   token: string | undefined,
   env: ToolEnv,
   deny: (reason: string) => void,
+  what: "escritura en SAP" | "lectura de datos productivos" = "escritura en SAP",
 ): Promise<Gate> {
   const sys = ctx.system.id;
   if (token) {
@@ -108,7 +110,7 @@ async function confirmWrite(
       mismatch: "no corresponde a estos argumentos: cambiaron desde la vista previa",
     }[r];
     deny(`token ${r}`);
-    throw new ToolError("POLICY", `No se escribió nada: el confirm_token ${why}.`, "Llama sin confirm_token para obtener una vista previa nueva y enséñasela al usuario.");
+    throw new ToolError("POLICY", `No se ejecutó nada: el confirm_token ${why}.`, "Llama sin confirm_token para obtener una vista previa nueva y enséñasela al usuario.");
   }
 
   let state: string | undefined;
@@ -122,21 +124,21 @@ async function confirmWrite(
   if (env.elicit) {
     let answer: "accept" | "decline" | "cancel" | undefined;
     try {
-      answer = await env.elicit(`${def.title} en ${sys}\n\n${clip(preview, 6000)}\n\n¿Confirmas esta escritura en SAP?`);
+      answer = await env.elicit(`${def.title} en ${sys}\n\n${clip(preview, 6000)}\n\n¿Confirmas esta ${what}?`);
     } catch {
       answer = undefined; // el cliente anunció elicitación pero falló: se sigue con el token
     }
     if (answer === "accept") return { proceed: true, by: "elicitation", state };
     if (answer) {
       deny(`elicitation ${answer}`);
-      throw new ToolError("POLICY", `No se escribió nada: el usuario ${answer === "decline" ? "rechazó" : "canceló"} la escritura.`);
+      throw new ToolError("POLICY", `No se ejecutó nada: el usuario ${answer === "decline" ? "rechazó" : "canceló"} la ${what}.`);
     }
   }
   const t = issueToken(def.name, sys, args, Date.now(), state);
   return {
     proceed: false,
     text:
-      `VISTA PREVIA: todavía no se ha escrito nada.\n` +
+      `VISTA PREVIA: todavía no se ha ${what === "escritura en SAP" ? "escrito" : "leído"} nada.\n` +
       `Enséñale al usuario lo que sigue y, solo con su conformidad explícita, repite la llamada con los mismos ` +
       `argumentos y confirm_token="${t}" (un solo uso, 10 minutos).\n\n${budget(preview)}`,
   };
@@ -210,7 +212,9 @@ export async function invoke(def: ToolDef<any>, rawArgs: Record<string, unknown>
     };
     const head = resolved ? `Sistema: ${resolved.system.id} (${resolved.source})\n${SAP_DATA_NOTE}\n\n` : "";
 
-    if (resolved && (def.access === "write" || def.access === "exec")) {
+    // Lectura de datos en un sistema con datos productivos: misma confirmación y mismo rastro que una escritura.
+    const prodRead = !!def.confirmReads && !!resolved && dataClassOf(resolved.system) === "prod" && resolved.system.confirmProdReads;
+    if (resolved && (def.access === "write" || def.access === "exec" || prodRead)) {
       audit = {
         tool: def.name,
         access: def.access,
@@ -224,10 +228,10 @@ export async function invoke(def: ToolDef<any>, rawArgs: Record<string, unknown>
 
     let gate: Gate = { proceed: true, by: "token" };
     // Confirmación: toda escritura, y toda ejecución que la declare. Atada al efecto, no solo al valor "write".
-    if ((def.access === "write" || (def.access === "exec" && def.confirm === true)) && audit) {
+    if ((def.access === "write" || (def.access === "exec" && def.confirm === true) || prodRead) && audit) {
       const base = audit;
       gate = await confirmWrite(def, args, ctx, typeof confirm_token === "string" ? confirm_token : undefined, env, (reason) =>
-        appendAudit({ ...base, phase: "denied", reason }),
+        appendAudit({ ...base, phase: "denied", reason }), prodRead && def.access !== "write" ? "lectura de datos productivos" : "escritura en SAP",
       );
       if (gate.proceed) {
         audit.confirmedBy = gate.by;
@@ -364,6 +368,7 @@ function describe(def: ToolDef<any>, cfg: Config): string {
   if (def.access === "exec") notes.push(`Ejecuta código; solo en: ${where.join(", ")}.`);
   if (def.requires?.module) notes.push(`Módulo ${def.requires.module}; solo en: ${where.join(", ")}.`);
   if (def.requires?.online) notes.push("Envía la consulta a internet: sin nombres Z, órdenes, sistemas ni clientes (el servidor lo bloquea).");
+  if (def.confirmReads) notes.push("En sistemas con datos productivos (dataClass prod) lee en dos pasos: sin confirm_token devuelve qué va a leer y el token; con el token, tras la conformidad del usuario, lee.");
   return notes.length ? `${def.description}\n\n${notes.join(" ")}` : def.description;
 }
 
@@ -429,7 +434,7 @@ export function registerAll(
     const shape =
       def.access === "local"
         ? def.input
-        : { ...def.input, system: systemParam, ...(def.access === "write" ? { confirm_token: confirmParam } : {}) };
+        : { ...def.input, system: systemParam, ...(def.access === "write" || def.confirmReads ? { confirm_token: confirmParam } : {}) };
     const inputSchema = strictInput(def.name, shape);
     const tool = server.registerTool(
       def.name,

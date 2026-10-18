@@ -295,6 +295,9 @@ Designed to pass a Security and Basis review without exceptions. Details: **[SEC
 - **SAP credential material and HR data blocked** in SQL queries, also through views and CDS, even if the SAP user is
   authorized. Validated against a real S/4HANA 2023 system, where standard views and CDS read USR02 without naming it.
 - **Personal data masked and row caps** on systems with production data.
+- **Free SQL parsed, not pattern-matched**: FROM, JOIN, subqueries and CTEs are resolved to base tables; a query
+  whose sources cannot be determined (host variables, dynamic sources) is rejected. On production-data systems
+  `sql_query` and `table_contents` read in two steps: preview of tables and cap, then human confirmation, like a write.
 - **No customer data to the internet:** online documentation search is off by default and, when enabled, every query
   with objects, transports, systems, users or customer names is blocked.
 - **Third parties isolated** in their own process with a minimal environment.
