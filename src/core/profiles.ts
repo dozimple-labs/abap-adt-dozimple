@@ -18,6 +18,7 @@ export const CORE_TOOLS = new Set([
   LOAD_TOOL,
   "search_objects",
   "get_source",
+  "object_context",
   "sql_query",
   "where_used",
   "edit_preflight",

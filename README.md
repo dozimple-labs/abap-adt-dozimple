@@ -58,7 +58,7 @@ and **a failure is never presented as an empty result or as success**.
 |---|---|---|
 | [Code review and transports](#g-revision) | Know what a transport really changes and what it may break, before releasing it. | 6 |
 | [Quality, ATC and remediation](#g-calidad) | Find, understand and fix findings with SAP's real syntax check and quick fixes. | 6 |
-| [Repository exploration](#g-exploracion) | Read and understand any ABAP object and its relations, on ECC and S/4HANA. | 13 |
+| [Repository exploration](#g-exploracion) | Read and understand any ABAP object and its relations, on ECC and S/4HANA. | 14 |
 | [Data queries](#g-datos) | Query tables with ABAP SQL, read-only, with sensitive and personal data protected. | 5 |
 | [Incident diagnosis](#g-diagnostico) | One conversation for what used to take ST22, SM37, SLG1 and /IWFND/ERROR_LOG. | 5 |
 | [SAP documentation](#g-documentacion) | Answer from official documentation and check which syntax exists in each release. | 7 |
@@ -137,6 +137,7 @@ Summary per group; each tool's details — parameters, types, defaults, requirem
 |---|---|---|
 | [`search_objects`](docs/TOOLS.md#exploracion) | **Search ABAP objects.** Searches repository objects by name (supports * wildcards). | read |
 | [`get_source`](docs/TOOLS.md#exploracion) | **Read ABAP source.** Reads the source of any object: program, include, class (and its includes), interface, function module (without knowing its group), CDS, table/structure, etc. | read |
+| [`object_context`](docs/TOOLS.md#exploracion) | **An object's whole context in one call.** Type, package, responsible, CTS lock and transport, source size, recent versions, usages, drift against QA/production (transport-risk module) and the last remembered ATC run; depth 0–2. Replaces the search_objects → get_source → edit_preflight → where_used → object_versions chain. | read |
 | [`where_used`](docs/TOOLS.md#exploracion) | **Where used.** Where-used list of an object: who references it, with package and owner. | read |
 | [`source_search`](docs/TOOLS.md#exploracion) | **Search text in source code.** Searches a text or regex in the source of a package (with subpackages), a transport or a list of objects, and returns object, include, line and the matching line; reaches what where-used misses (dynamic calls, literals, Z code outside the reference index). | read |
 | [`object_versions`](docs/TOOLS.md#exploracion) | **Object versions.** Version history of an object (date, author, transport). | read |
@@ -381,7 +382,7 @@ abap-adt-doZimple is built on other people's work, and says so: each tool lists 
 <!-- credits:start -->
 | Project | Author / holder | License | Type | Used in |
 |---|---|---|---|---|
-| [abap-adt-api](https://github.com/marcellourbani/abap-adt-api) | Marcello Urbani | MIT | dependency | all (core), `transport_diff`, `transport_contents`, `my_transports`, `inactive_objects`, `edit_preflight` and 30 more |
+| [abap-adt-api](https://github.com/marcellourbani/abap-adt-api) | Marcello Urbani | MIT | dependency | all (core), `transport_diff`, `transport_contents`, `my_transports`, `inactive_objects`, `edit_preflight` and 31 more |
 | [Model Context Protocol TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk) | Model Context Protocol | MIT | dependency | all (core) |
 | [mcp-sap-docs](https://github.com/marianfoo/mcp-sap-docs) | Marian Zeis (marianfoo) | Apache-2.0 | dependency | `abap_feature_matrix`, `docs_search`, `docs_fetch`, `clean_core_objects`, `clean_core_object`, `abap_lint` and 1 more |
 | [abaplint](https://github.com/abaplint/abaplint) | Lars Hvam and contributors | MIT | dependency | `abap_lint` |
@@ -395,7 +396,7 @@ abap-adt-doZimple is built on other people's work, and says so: each tool lists 
 | [SAP Community / SAP Help Portal](https://community.sap.com) | SAP SE and community authors | SAP terms | data | `docs_community_search` |
 | [ABAP Remote FS (vscode_abap_remote_fs)](https://github.com/marcellourbani/vscode_abap_remote_fs) | Marcello Urbani | MIT | idea | `syntax_check`, `create_object` |
 | [mcp-abap-adt](https://github.com/mario-andreschak/mcp-abap-adt) | mario-andreschak | MIT | idea | `search_objects`, `get_source`, `package_contents`, `ddic_type_info`, `transaction_info`, `table_contents` |
-| [ARC-1](https://github.com/arc-mcp/arc-1) | arc-mcp (Marian Zeis and contributors) | MIT | idea | `transport_diff`, `atc_quickfix`, `gateway_errors` |
+| [ARC-1](https://github.com/arc-mcp/arc-1) | arc-mcp (Marian Zeis and contributors) | MIT | idea | `transport_diff`, `atc_quickfix`, `object_context`, `gateway_errors` |
 | [vibing-steampunk](https://github.com/oisee/vibing-steampunk) | oisee and contributors | MIT | idea | `co_change`, `api_release_state`, `source_search`, `enhancements`, `jobs`, `application_log` |
 | [ABAPilot MCP connector (catálogo de tools)](https://github.com/NicoHern/abapilot-mcp) | Crimson Consulting SL (NicoHern) | MIT | idea | `count_rows`, `search_tables`, `foreign_keys`, `diagnose_message` |
 | [ABAP Accelerator for Amazon Q Developer](https://github.com/aws-solutions-library-samples/guidance-for-deploying-sap-abap-accelerator-for-amazon-q-developer) | AWS Solutions Library Samples | MIT-0 | idea | all (core), `my_transports`, `create_object`, `usage_stats` |
