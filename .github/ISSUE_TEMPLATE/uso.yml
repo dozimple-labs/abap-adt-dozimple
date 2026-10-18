@@ -1,0 +1,59 @@
+name: "Lo estoy usando / I'm using it"
+description: "Cuéntanos dónde y para qué usas este MCP. Nos ayuda a decidir qué viene. / Tell us where and what for; it helps us decide what comes next."
+title: "Uso: "
+labels: ["uso"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Gracias por contarlo. No hace falta identificar a tu empresa ni a tus sistemas: con el país y el tipo de uso basta.
+        Thanks for telling us. No need to identify your company or systems: country and kind of use are enough.
+  - type: input
+    id: pais
+    attributes:
+      label: "País / Country"
+      placeholder: "Chile, Germany, India…"
+    validations:
+      required: true
+  - type: dropdown
+    id: release
+    attributes:
+      label: "Release SAP / SAP release"
+      options:
+        - "ECC 6.0 (NW 7.4x–7.5x)"
+        - "S/4HANA on-premise"
+        - "S/4HANA Cloud private edition"
+        - "BTP ABAP Environment / ABAP Cloud"
+        - "Otro / Other"
+    validations:
+      required: true
+  - type: dropdown
+    id: cliente
+    attributes:
+      label: "Cliente MCP / MCP client"
+      options:
+        - "Claude Code"
+        - "Claude Desktop"
+        - "Kiro"
+        - "Cursor"
+        - "VS Code (Copilot / Cline / otro)"
+        - "Otro / Other"
+    validations:
+      required: true
+  - type: dropdown
+    id: uso
+    attributes:
+      label: "Para qué / What for"
+      multiple: true
+      options:
+        - "Leer y explorar código / Read and explore code"
+        - "Revisar órdenes de transporte / Review transports"
+        - "Soporte e incidentes / Support and incidents"
+        - "Escribir código con confirmación / Write code with confirmation"
+        - "ATC y remediación / ATC and remediation"
+        - "Evaluándolo / Just evaluating"
+  - type: textarea
+    id: comentario
+    attributes:
+      label: "Lo que falta o lo que más sirve / What's missing or what helps most"
+      placeholder: "Opcional / Optional"

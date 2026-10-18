@@ -390,6 +390,12 @@ abap-adt-doZimple se construye sobre el trabajo de otros, y lo reconoce: cada to
 Licencias completas de las dependencias: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Si eres autor de alguno de
 estos proyectos y quieres ajustar cómo se te cita, escríbenos a través de [dozimple.cl](https://dozimple.cl).
 
+## ¿Lo usas?
+
+Cuéntanos dónde y para qué: **[abre un issue corto «Lo estoy usando»](https://github.com/dozimple-labs/abap-adt-dozimple/issues/new?template=uso.yml)**
+(país, release SAP, cliente MCP, tipo de uso; sin nombres de empresa ni de sistemas). npm y GitHub solo nos dan
+contadores anónimos, y lo que nos cuentes es lo que decide las próximas tools.
+
 ## Sobre DoZimple
 
 **[DoZimple](https://dozimple.cl)** — tecnología que conecta operación, datos e innovación. Consultoría y desarrollo
