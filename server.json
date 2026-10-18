@@ -1,0 +1,25 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.dozimple-labs/abap-adt-dozimple",
+  "description": "SAP ABAP MCP server for ECC and S/4HANA: multi-system, read-only by default, governed writes, transport risk, data policy",
+  "websiteUrl": "https://dozimple.cl",
+  "repository": {
+    "url": "https://github.com/dozimple-labs/abap-adt-dozimple",
+    "source": "github"
+  },
+  "version": "1.7.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "@dozimple/abap-adt",
+      "version": "1.7.0",
+      "runtimeHint": "npx",
+      "transport": { "type": "stdio" },
+      "environmentVariables": [
+        { "name": "ABAP_DZ_CONFIG", "description": "Ruta de systems.json (por defecto ~/.config/abap-adt-dozimple/systems.json)", "isRequired": false, "isSecret": false },
+        { "name": "ABAP_DZ_PROFILE", "description": "core (por defecto) o expert", "isRequired": false, "isSecret": false }
+      ]
+    }
+  ]
+}

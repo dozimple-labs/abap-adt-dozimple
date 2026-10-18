@@ -26,6 +26,7 @@
     "dist/**/*.js",
     "!dist/scripts/gen-docs.js",
     "config/systems.example.json",
+    "server.json",
     "scripts/set-password.sh",
     "docs/TOOLS.md",
     "docs/THREAT_MODEL.md",

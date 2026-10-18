@@ -13,6 +13,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 - **`create_object` crea tablas y estructuras de diccionario en S/4 (y NW ≥ 7.51)** con su fuente DDL de ADT
   (`object_type` TABL o STRU), con la misma vista previa, validación de SAP, orden y confirmación. En ECC 7.50 la
   colección no existe y la respuesta remite a `ddic_plan`. Sin verificar en vivo todavía.
+- **`abap-adt-dozimple init`** (issue #88): crea o amplía `systems.json` (permisos 600), guarda la contraseña en el
+  almacén de secretos del sistema operativo (la pide el propio almacén) y registra el servidor en Claude Code,
+  Claude Desktop, Kiro, Cursor o VS Code sin tocar las demás entradas; `--dry-run`, `--force`, `--no-password`.
+  Lo que falte se pregunta por teclado; sin terminal, dice qué opción falta. `--version` y `--help` en el binario.
+- **`server.json`** para el MCP Registry (versión sincronizada con `package.json` por test); la publicación en el
+  registro y en los directorios (Glama, sap-ai-mcp-servers) queda como tarea manual del issue #88.
 - Plantilla de issue «Lo estoy usando» (`.github/ISSUE_TEMPLATE/uso.yml`) y sección «¿Lo usas?» en el README (EN y ES):
   país, release, cliente MCP y tipo de uso, sin identificar empresa ni sistemas. Enlace de seguridad al aviso privado.
 - **`docs/PARIDAD.md`**: matriz de capacidades frente al MCP oficial de SAP (ADT 3.60) y a los servidores estudiados,

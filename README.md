@@ -310,7 +310,20 @@ Designed to pass a Security and Basis review without exceptions. Details: **[SEC
 
 ## Installation
 
-### From npm (recommended)
+### Quick start
+
+```sh
+npm install -g --ignore-scripts @dozimple/abap-adt@1.7.0
+abap-adt-dozimple init --client claude-code      # or claude-desktop · kiro · cursor · vscode
+```
+
+`init` asks for the system (id, URL, client, user, role), writes `~/.config/abap-adt-dozimple/systems.json` with
+600 permissions, stores the password in the OS secret store (the store itself prompts; nothing is written to a
+file) and registers the server in the chosen client without touching its other entries. `--dry-run` shows what it
+would do; `--force` replaces an existing system or entry; `init --help` lists every flag. Step by step, the same
+thing is:
+
+### From npm, step by step
 
 Pinned to an exact version, without install scripts, like the project's own dependencies:
 
