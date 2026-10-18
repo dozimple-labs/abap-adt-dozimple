@@ -23,11 +23,26 @@ export interface DebugSession {
   startedAt: string;
   debuggeeId?: string;
   attached: boolean;
-  /** Puntos de parada puestos desde este proceso (para poder borrarlos). */
-  breakpoints: Array<{ id: string; uri: string; line: number; object: string }>;
+}
+
+export interface SetBreakpoint {
+  id: string;
+  uri: string;
+  line: number;
+  object: string;
 }
 
 const sessions = new Map<string, DebugSession>();
+/** Puntos de parada puestos desde este proceso, por sistema: sobreviven al cierre de la sesión para poder quitarlos. */
+const breakpoints = new Map<string, SetBreakpoint[]>();
+
+export const breakpointsOf = (systemId: string): SetBreakpoint[] => breakpoints.get(systemId.toUpperCase()) ?? [];
+export function rememberBreakpoint(systemId: string, b: SetBreakpoint): void {
+  breakpoints.set(systemId.toUpperCase(), [...breakpointsOf(systemId), b]);
+}
+export function forgetBreakpoints(systemId: string): void {
+  breakpoints.delete(systemId.toUpperCase());
+}
 
 /** Id de terminal estable por máquina, como hace Eclipse: así los puntos de parada externos son «de esta máquina». */
 export function terminalId(dir = stateDir()): string {
@@ -60,7 +75,7 @@ export async function openSession(sap: SapConnection, system: SystemConfig): Pro
   const cur = sessions.get(system.id.toUpperCase());
   if (cur) return cur;
   const client = await sap.openStateful();
-  const s: DebugSession = { system: system.id, user: system.user.toUpperCase(), client, terminalId: terminalId(), startedAt: new Date().toISOString(), attached: false, breakpoints: [] };
+  const s: DebugSession = { system: system.id, user: system.user.toUpperCase(), client, terminalId: terminalId(), startedAt: new Date().toISOString(), attached: false };
   sessions.set(system.id.toUpperCase(), s);
   return s;
 }
@@ -91,6 +106,7 @@ export async function closeSession(systemId: string, how: "detachDebugger" | "te
 /** Solo para tests. */
 export function resetSessionsForTests(): void {
   sessions.clear();
+  breakpoints.clear();
 }
 
 export interface ShownVariable {

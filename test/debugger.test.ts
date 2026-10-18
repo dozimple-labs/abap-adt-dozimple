@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { beforeEach, describe, expect, it } from "vitest";
 import { parseConfig } from "../src/core/config.js";
-import { getSession, presentVariable, resetSessionsForTests, terminalId } from "../src/core/debugsession.js";
+import { breakpointsOf, getSession, presentVariable, resetSessionsForTests, terminalId } from "../src/core/debugsession.js";
 import type { ToolDef } from "../src/core/tool.js";
 import tools from "../src/tools/core/debugger.js";
 
@@ -40,6 +40,7 @@ function ctx(system = DEV, fake = fakeClient()) {
     searchObject: async (name: string) => [{ "adtcore:name": name.toUpperCase(), "adtcore:type": "PROG/P", "adtcore:uri": `/sap/bc/adt/programs/programs/${name.toLowerCase()}`, "adtcore:packageName": "ZDEMO" }],
     objectStructure: async () => { throw new Error("sin estructura"); },
     debuggerDeleteListener: async () => void fake.calls.push("deleteListener:reader"),
+    debuggerDeleteBreakpoints: async () => void fake.calls.push("deleteBp:reader"),
   };
   return { ctx: { sap: { adt: async () => reader, openStateful: async () => fake.client }, system } as any, ...fake };
 }
@@ -68,8 +69,13 @@ describe("depurador · flujo completo con cliente falso", () => {
     expect(r.isError).toBe(false);
     expect(r.text).toMatch(/1 de 2 puntos de parada puestos[\s\S]*✓ ZDEMO línea 12 \(id BP1\)[\s\S]*✗ ZDEMO línea 13: línea sin sentencia/);
     expect(t.calls[0]).toBe("bp:/sap/bc/adt/programs/programs/zdemo/source/main#start=12,/sap/bc/adt/programs/programs/zdemo/source/main#start=13");
-    expect(getSession("DEV")?.breakpoints).toHaveLength(1);
+    expect(breakpointsOf("DEV")).toHaveLength(1);
+    // tras cerrar la sesión, los puntos de parada siguen recordados y se quitan por la conexión de lectura
+    await stop.run({ terminate: false }, t.ctx);
+    expect(getSession("DEV")).toBeUndefined();
     expect(String(await bps.run({ action: "clear", breakpoints: [] }, t.ctx))).toMatch(/Quitados 1/);
+    expect(t.calls).toContain("deleteBp:reader");
+    expect(breakpointsOf("DEV")).toHaveLength(0);
     await expect(bps.preview!(args, ctx(DEV_MASK).ctx)).rejects.toThrow(/dataClass test/);
   });
   it("listen: se adhiere y muestra pila y variables; step vuelve a mostrarlas; continue cierra la sesión", async () => {

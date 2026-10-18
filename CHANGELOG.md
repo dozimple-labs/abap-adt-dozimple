@@ -5,6 +5,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 ## [Unreleased]
 
 ### Corregido
+- **`debug_breakpoints clear` olvidaba los puntos de parada al cerrar la sesión** y quedaban puestos en SAP: ahora se
+  recuerdan por sistema fuera de la sesión y se quitan por la conexión de lectura. Las variables internas del kernel
+  («{DATAAGING_…}») ya no se listan. Verificado en vivo: punto de parada externo, adhesión por una petición HTTP
+  propia, pila de 4 marcos, variables por nombre, paso «over» y cierre.
 - **`debug_listen` tardaba dos minutos en volver tras el tiempo de espera y `debug_stop` se colgaba**: la sesión
   stateful seguía ocupada con la escucha larga y cualquier petición por ella esperaba a SAP. Ahora el listener se
   retira por la conexión de lectura, el cierre tiene tope y la sesión se cierra al agotar el tiempo. Verificado en
