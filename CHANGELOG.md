@@ -5,6 +5,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 ## [Unreleased]
 
 ### Añadido
+- **Runtime de solo lectura** (Ola 2, punto 8), grupo `diagnostico`: `abap_traces` (trazas SAT grabadas: lista con
+  tiempos ABAP/sistema/BD y, por traza, hit list, accesos a base de datos o sentencias), `sql_traces` (directorio y
+  estado de ST05 por ADT, S/4 y NW ≥ 7.51; en 7.50 lo dice) y `system_messages` (SM02 desde TEMSI/TEMSG, con la
+  política de datos del sistema). Activar o borrar trazas queda fuera a propósito (es escritura). Sin verificar en vivo.
 - **SQL libre controlado** (Ola 2, punto 10). Las consultas de `sql_query`, `table_contents` y `count_rows` se
   analizan por estructura (`core/sqlparse.ts`: FROM, JOIN, subconsultas, CTE `WITH +x`) y se resuelven a tablas
   base antes del veto de vistas y CDS; si no se puede determinar qué leen (variables host, fuentes dinámicas,

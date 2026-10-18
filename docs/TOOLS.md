@@ -1,6 +1,6 @@
 # Referencia de tools — abap-adt-doZimple
 
-Generado desde el código con `npm run docs`. 62 tools en 9 grupos y 3 flujos guiados.
+Generado desde el código con `npm run docs`. 65 tools en 9 grupos y 3 flujos guiados.
 Producto de [DoZimple](https://dozimple.cl).
 
 ## Índice
@@ -9,7 +9,7 @@ Producto de [DoZimple](https://dozimple.cl).
 - [Calidad, ATC y remediación](#calidad) — 6 tools: `run_atc`, `atc_quickfix`, `api_release_state`, `sap_notes`, `syntax_check`, `run_unit_tests`
 - [Exploración del repositorio](#exploracion) — 14 tools: `search_objects`, `get_source`, `object_context`, `where_used`, `source_search`, `object_versions`, `package_contents`, `ddic_type_info`, `ddic_plan`, `odata_model`, `transaction_info`, `function_modules`, `text_elements`, `enhancements`
 - [Consulta de datos](#datos) — 5 tools: `sql_query`, `table_contents`, `count_rows`, `search_tables`, `foreign_keys`
-- [Diagnóstico de incidentes](#diagnostico) — 5 tools: `dumps`, `diagnose_message`, `jobs`, `application_log`, `gateway_errors`
+- [Diagnóstico de incidentes](#diagnostico) — 8 tools: `dumps`, `diagnose_message`, `jobs`, `application_log`, `gateway_errors`, `abap_traces`, `sql_traces`, `system_messages`
 - [Documentación SAP](#documentacion) — 7 tools: `abap_feature_matrix`, `docs_search`, `docs_fetch`, `clean_core_objects`, `clean_core_object`, `abap_lint`, `docs_community_search`
 - [Escritura controlada](#escritura) — 8 tools: `create_object`, `write_source`, `edit_source`, `revert_source`, `change_package`, `activate`, `write_text_elements`, `create_transport`
 - [DoZimple Transport Risk](#transport-risk) — 7 tools: `analyze_transport_risk`, `import_health`, `failure_ranking`, `change_audit`, `object_transport_history`, `remote_source`, `transport_source_check`
@@ -834,6 +834,61 @@ Lista los errores del log de SAP Gateway (servicios OData): servicio, error, usu
 | `user` | string |  |  |
 | `max` | number | 20 |  |
 | `detail` | number |  | Número de la lista para ver el detalle |
+
+\* obligatorio
+
+### `abap_traces` — Trazas ABAP (SAT)
+
+Trazas de rendimiento ABAP (SAT) ya grabadas en el sistema: lista las del usuario (o de otro) con tiempos de ABAP, sistema y base de datos; con trace=<id> muestra la hit list (qué consume tiempo), los accesos a base de datos o las sentencias. Solo lectura: no activa ni borra trazas (eso se hace en SAT o Eclipse).
+
+| | |
+|---|---|
+| **Acceso** | Solo lectura |
+| **Requiere** | endpoint ADT `/sap/bc/adt/runtime/traces/abaptraces` |
+| **Créditos** | [abap-adt-api](https://github.com/marcellourbani/abap-adt-api) — Marcello Urbani (MIT, dependencia)<br>[vibing-steampunk](https://github.com/oisee/vibing-steampunk) — oisee y contribuidores (MIT, idea) |
+
+| Parámetro | Tipo | Por defecto | Descripción |
+|---|---|---|---|
+| `system` | string |  | Sistema SAP configurado. Obligatorio si hay varios y ninguno por defecto. |
+| `user` | string |  | Usuario SAP cuyas trazas listar; por defecto el de la conexión |
+| `trace` | string |  | Id de una traza de la lista para ver su detalle |
+| `show` | `hitlist` \| `db` \| `statements` | "hitlist" | Con trace: hit list, accesos a BD o sentencias |
+| `top` | number | 30 |  |
+
+\* obligatorio
+
+### `sql_traces` — Trazas SQL (ST05)
+
+Directorio y estado de las trazas SQL de ST05 que expone ADT (S/4HANA y NW ≥ 7.51): qué trazas hay, de quién, cuándo y si la grabación está activa. Solo lectura: no activa ni desactiva la traza. En ECC 7.50 no existe el endpoint y la tool lo dice.
+
+| | |
+|---|---|
+| **Acceso** | Solo lectura |
+| **Requiere** | endpoint ADT `/sap/bc/adt/st05/trace/directory` |
+| **Créditos** | [abap-adt-api](https://github.com/marcellourbani/abap-adt-api) — Marcello Urbani (MIT, dependencia) |
+
+| Parámetro | Tipo | Por defecto | Descripción |
+|---|---|---|---|
+| `system` | string |  | Sistema SAP configurado. Obligatorio si hay varios y ninguno por defecto. |
+| `show` | `directory` \| `state` | "directory" |  |
+| `top` | number | 50 |  |
+
+\* obligatorio
+
+### `system_messages` — Mensajes de sistema (SM02)
+
+Mensajes de sistema de SM02 (aviso de parada, mantenimiento…): texto, mandante, servidor, vigencia y quién lo creó, leídos de las tablas TEMSI y TEMSG. Solo lectura. Si el release guarda los mensajes de otra forma, la tool lo dice en vez de devolver vacío.
+
+| | |
+|---|---|
+| **Acceso** | Solo lectura |
+| **Créditos** | Desarrollo propio de DoZimple |
+
+| Parámetro | Tipo | Por defecto | Descripción |
+|---|---|---|---|
+| `system` | string |  | Sistema SAP configurado. Obligatorio si hay varios y ninguno por defecto. |
+| `only_active` | boolean | true | Solo los vigentes hoy |
+| `max` | number | 50 |  |
 
 \* obligatorio
 
