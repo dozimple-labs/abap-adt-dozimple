@@ -1,25 +1,13 @@
 import { z } from "zod";
 import { normalizeError } from "../../core/errors.js";
-import { resolveObject, sqlLiteral, TYPE_HELP, type ResolvedObject } from "../../core/objects.js";
+import { resolveObject, TYPE_HELP } from "../../core/objects.js";
 import { assertTrkorr } from "../../core/policy.js";
+import { ctsLocks, tadirInfo, tadirKey } from "../../core/preflight.js";
 import { describeOrder, isOpen, orderHeaders, transportWarnings } from "../../core/transport.js";
 import { defineTool } from "../../core/tool.js";
-import type { SapConnection } from "../../core/connection.js";
 import { sourceUrl } from "../../core/objects.js";
 import { driftVerdict, versionDrift } from "../transport-risk/_drift.js";
 import { RISK_MODULE } from "../transport-risk/_service.js";
-
-/** Entrada de TADIR que manda sobre el objeto (un FM pertenece a su grupo). */
-async function tadirKey(sap: SapConnection, obj: ResolvedObject): Promise<{ object: string; name: string }> {
-  if (obj.type.startsWith("FUGR/FF")) {
-    const r = await sap.query(`SELECT area FROM enlfdir WHERE funcname = ${sqlLiteral(obj.name)}`, 1);
-    if (r.values[0]?.AREA) return { object: "FUGR", name: r.values[0].AREA };
-  }
-  return { object: obj.type.slice(0, 4), name: obj.name };
-}
-
-const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&");
-const likeEscape = (s: string) => s.replace(/[#%_]/g, (c) => "#" + c);
 
 export default defineTool({
   name: "edit_preflight",
@@ -46,13 +34,9 @@ export default defineTool({
     const verdict: string[] = [];
 
     // 1. Directorio: paquete y sistema original.
-    const tadir = await sap.query(
-      `SELECT devclass, srcsystem, author FROM tadir WHERE pgmid = 'R3TR' AND object = ${sqlLiteral(key.object)} AND obj_name = ${sqlLiteral(key.name)}`,
-      1,
-    );
-    const t = tadir.values[0];
-    const devclass: string = t?.DEVCLASS ?? obj.packageName ?? "";
-    if (t) out.push(`Paquete ${devclass} · sistema original ${t.SRCSYSTEM} · autor ${t.AUTHOR}`);
+    const t = await tadirInfo(sap, key, obj.packageName ?? "");
+    const devclass = t.devclass;
+    if (t.found) out.push(`Paquete ${devclass} · sistema original ${t.srcsystem} · autor ${t.author}`);
     else out.push(`Sin entrada R3TR ${key.object} ${key.name} en TADIR.`);
     const isLocal = devclass.startsWith("$");
 
@@ -67,31 +51,18 @@ export default defineTool({
     }
 
     // 3. Bloqueos reales del CTS.
-    const locks = await sap.query(
-      `SELECT object, lokey, trkorr FROM tlock WHERE lokey LIKE ${sqlLiteral("%" + likeEscape(key.name) + "%")} ESCAPE '#'`,
-      200,
-    );
-    const re = new RegExp(`(^|[^A-Z0-9_/])${escapeRegExp(key.name)}($|[^A-Z0-9_])`);
-    const mine = locks.values.filter((l) => re.test(String(l.LOKEY).trimEnd()) || String(l.LOKEY).trimEnd().startsWith(key.name));
-    const heads = await orderHeaders(sap, mine.map((l) => l.TRKORR));
-    const parents = await orderHeaders(sap, [...heads.values()].map((h) => h.parent));
-    const lockOrders = new Map<string, string>(); // orden padre → descripción
-    for (const l of mine) {
-      const task = heads.get(l.TRKORR);
-      const order = task?.parent ? parents.get(task.parent) ?? task : task;
-      const id = order?.trkorr ?? l.TRKORR;
-      if (!lockOrders.has(id)) lockOrders.set(id, `${order ? describeOrder(order) : id} [TLOCK ${l.OBJECT} ${String(l.LOKEY).trim()}]`);
-    }
+    const locks = await ctsLocks(sap, key);
+    const lockOrders = new Map(locks.map((l) => [l.order, l.description])); // orden padre → descripción
     if (lockOrders.size) out.push("", "Bloqueos del CTS:", ...[...lockOrders.values()].map((d) => "  " + d));
 
     // 4. Veredicto.
-    const sid = system.sid ?? (info?.TRANSPORTS?.[0]?.TRKORR ?? info?.LOCKS?.HEADER?.TRKORR ?? [...heads.keys()][0])?.slice(0, 3);
+    const sid = system.sid ?? (info?.TRANSPORTS?.[0]?.TRKORR ?? info?.LOCKS?.HEADER?.TRKORR ?? locks[0]?.order)?.slice(0, 3);
     if (isLocal) verdict.push("Objeto local: el cambio no se registra en ninguna orden y no viaja.");
-    if (t && sid && t.SRCSYSTEM && t.SRCSYSTEM !== sid && !isLocal) {
+    if (t.found && sid && t.srcsystem && t.srcsystem !== sid && !isLocal) {
       verdict.push(
-        `REPARACIÓN: el sistema original es ${t.SRCSYSTEM}, no ${sid}. El cambio se registra en una tarea de reparación: ` +
+        `REPARACIÓN: el sistema original es ${t.srcsystem}, no ${sid}. El cambio se registra en una tarea de reparación: ` +
           `si su orden no tiene destino no sale del sistema, y si viaja, lo pisará cualquier transporte que llegue desde ` +
-          `${t.SRCSYSTEM}. Si ${sid} debe ser el original: SE03 → Cambiar sistema original.`,
+          `${t.srcsystem}. Si ${sid} debe ser el original: SE03 → Cambiar sistema original.`,
       );
     }
     if (lockOrders.size) {

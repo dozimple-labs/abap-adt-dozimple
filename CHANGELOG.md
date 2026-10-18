@@ -5,6 +5,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 ## [Unreleased]
 
 ### Añadido
+- **`object_context`** (issue #87): la ficha de un objeto en una llamada, con salida estructurada: tipo, paquete,
+  responsable, sistema original, bloqueo CTS y orden, tamaño de la fuente e includes, versiones recientes, usos,
+  deriva frente a calidad/productivo (módulo transport-risk) y el último ATC recordado; `depth` 0–2. Sustituye la
+  cadena `search_objects` → `get_source` → `edit_preflight` → `where_used` → `object_versions`. Lo que no se puede
+  leer se dice en `skipped`, nunca se omite. Entra en el perfil `core`. El bloqueo CTS y la lectura de TADIR salen
+  de `edit_preflight` a `core/preflight.ts` y las comparten las dos tools.
 - **Auditoría de lecturas de datos (`data_read`)** (issue #89). Cada consulta de datos de negocio (`sql_query`,
   `table_contents`, `count_rows`) deja en `audit.jsonl` una entrada encadenada y firmada con tool, sistema, usuario
   SAP, tablas leídas, columnas enmascaradas, filas entregadas, si se alcanzó el tope y la huella sha256 de los

@@ -1,13 +1,13 @@
 # Referencia de tools — abap-adt-doZimple
 
-Generado desde el código con `npm run docs`. 61 tools en 9 grupos y 3 flujos guiados.
+Generado desde el código con `npm run docs`. 62 tools en 9 grupos y 3 flujos guiados.
 Producto de [DoZimple](https://dozimple.cl).
 
 ## Índice
 
 - [Revisión de código y pases](#revision) — 6 tools: `transport_diff`, `transport_contents`, `my_transports`, `co_change`, `inactive_objects`, `edit_preflight`
 - [Calidad, ATC y remediación](#calidad) — 6 tools: `run_atc`, `atc_quickfix`, `api_release_state`, `sap_notes`, `syntax_check`, `run_unit_tests`
-- [Exploración del repositorio](#exploracion) — 13 tools: `search_objects`, `get_source`, `where_used`, `source_search`, `object_versions`, `package_contents`, `ddic_type_info`, `ddic_plan`, `odata_model`, `transaction_info`, `function_modules`, `text_elements`, `enhancements`
+- [Exploración del repositorio](#exploracion) — 14 tools: `search_objects`, `get_source`, `object_context`, `where_used`, `source_search`, `object_versions`, `package_contents`, `ddic_type_info`, `ddic_plan`, `odata_model`, `transaction_info`, `function_modules`, `text_elements`, `enhancements`
 - [Consulta de datos](#datos) — 5 tools: `sql_query`, `table_contents`, `count_rows`, `search_tables`, `foreign_keys`
 - [Diagnóstico de incidentes](#diagnostico) — 5 tools: `dumps`, `diagnose_message`, `jobs`, `application_log`, `gateway_errors`
 - [Documentación SAP](#documentacion) — 7 tools: `abap_feature_matrix`, `docs_search`, `docs_fetch`, `clean_core_objects`, `clean_core_object`, `abap_lint`, `docs_community_search`
@@ -336,6 +336,45 @@ Lee la fuente de cualquier objeto: programa, include, clase (y sus includes), in
 | `line_count` | number |  |  |
 
 \* obligatorio
+
+### `object_context` — Contexto de un objeto en una llamada
+
+Ficha completa de un objeto en una llamada: tipo, paquete, responsable, bloqueo CTS y orden, tamaño de la fuente, versiones recientes, usos, deriva frente a calidad/productivo (módulo transport-risk) y último ATC recordado. depth 0 identidad y bloqueo; 1 añade versiones y usos; 2 añade deriva y ATC. Úsala antes de get_source, edit_preflight, where_used u object_versions por separado.
+
+| | |
+|---|---|
+| **Acceso** | Solo lectura |
+| **Créditos** | [abap-adt-api](https://github.com/marcellourbani/abap-adt-api) — Marcello Urbani (MIT, dependencia)<br>[ARC-1](https://github.com/arc-mcp/arc-1) — arc-mcp (Marian Zeis y contribuidores) (MIT, idea) |
+
+| Parámetro | Tipo | Por defecto | Descripción |
+|---|---|---|---|
+| `system` | string |  | Sistema SAP configurado. Obligatorio si hay varios y ninguno por defecto. |
+| `object_name` * | string |  |  |
+| `object_type` | string |  | Tipo corto: PROG, INCL, CLAS, INTF, FUGR, FUNC, DDLS, DDLX, DCLS, TABL, STRU, VIEW, DTEL, DOMA, TTYP, MSAG, XSLT, BDEF, SRVD, SRVB, ENHO. También vale el tipo ADT (p. ej. PROG/P). |
+| `depth` | number | 1 | 0 identidad, bloqueo y tamaño · 1 + versiones y usos · 2 + deriva y ATC |
+| `max_usages` | number | 10 |  |
+
+\* obligatorio
+
+Salida estructurada (`structuredContent`, además del texto):
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `name` | string |  |
+| `type` | string |  |
+| `package` | string |  |
+| `description` | string |  |
+| `responsible` | string |  |
+| `original_system` | string |  |
+| `local` | boolean |  |
+| `locks` | lista de { order, description } | Órdenes con bloqueo CTS: cualquier cambio irá ahí |
+| `source` | nullable |  |
+| `versions` | lista de { date, author, transport, title } |  |
+| `usages` | nullable |  |
+| `drift` | nullable |  |
+| `atc` | nullable |  |
+| `depth` | number |  |
+| `skipped` | lista de string | Secciones que no se pudieron leer, con el motivo |
 
 ### `where_used` — Dónde se usa
 

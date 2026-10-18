@@ -82,6 +82,7 @@ export const GROUPS: Group[] = [
     tools: [
       { name: "search_objects", credits: ["abapAdtApi", "marioAdt"] },
       { name: "get_source", credits: ["abapAdtApi", "marioAdt"] },
+      { name: "object_context", credits: ["abapAdtApi", "arc1"] },
       { name: "where_used", credits: ADT },
       { name: "source_search", credits: ["abapAdtApi", "vsp"] },
       { name: "object_versions", credits: ADT },
