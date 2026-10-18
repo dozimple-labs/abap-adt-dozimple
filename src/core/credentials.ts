@@ -12,6 +12,18 @@ export const KEYCHAIN_SERVICE = "abap-adt-dozimple";
 const CACHE_TTL_MS = 15 * 60_000;
 const cache = new Map<string, { pwd: string; exp: number }>();
 
+/** Modo HTTP: la contraseña de cada sesión vive solo en memoria mientras dura la sesión (password = "session:<id>"). */
+const sessionPasswords = new Map<string, string>();
+export function setSessionPassword(sessionId: string, pwd: string): void {
+  sessionPasswords.set(sessionId, pwd);
+}
+export function clearSessionPassword(sessionId: string): void {
+  sessionPasswords.delete(sessionId);
+}
+export function hasSessionPassword(sessionId: string): boolean {
+  return sessionPasswords.has(sessionId);
+}
+
 /**
  * Devuelve la contraseña del sistema. Nunca se escribe en logs ni en la
  * respuesta de una tool: solo viaja a la cabecera Basic de ADT.
@@ -22,6 +34,11 @@ export async function getPassword(s: SystemConfig): Promise<string> {
   cache.delete(s.id);
 
   let pwd: string | undefined;
+  if (s.password.startsWith("session:")) {
+    pwd = sessionPasswords.get(s.password.slice(8));
+    if (!pwd) throw new ToolError("AUTH", `La sesión HTTP de ${s.id} ya no tiene credenciales: vuelve a iniciar sesión.`);
+    return pwd; // sin caché: se borra con la sesión
+  }
   if (s.password.startsWith("env:")) {
     pwd = process.env[s.password.slice(4)];
     if (!pwd) {
@@ -55,4 +72,5 @@ export function forgetPassword(id: string): void {
 /** Al cerrar el servidor: ninguna contraseña queda en memoria más de lo necesario. */
 export function clearPasswords(): void {
   cache.clear();
+  sessionPasswords.clear();
 }

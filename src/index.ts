@@ -32,12 +32,34 @@ async function cli(argv: string[]): Promise<boolean> {
     const { runInit } = await import("./scripts/init.js");
     process.exit(await runInit(argv.slice(1)));
   }
+  if (cmd === "serve") {
+    const { parseServeArgs, startHttp } = await import("./http.js");
+    const { loadTools } = await import("./core/registry.js");
+    const { SidecarPool } = await import("./core/sidecar.js");
+    const { loadConfig, startupWarnings } = await import("./core/config.js");
+    let opts;
+    try {
+      opts = parseServeArgs(argv.slice(1));
+    } catch (e) {
+      log((e as Error).message);
+      process.exit(2);
+    }
+    const config = loadConfig();
+    for (const w of startupWarnings(config)) log(`⚠ ${w}`);
+    const defs = await loadTools(join(here, "tools"));
+    const sidecars = new SidecarPool(config);
+    const handle = await startHttp(config, defs, sidecars, { ...opts, log }, packageVersion());
+    const stop = () => void handle.close().then(() => sidecars.closeAll()).finally(() => process.exit(0));
+    process.on("SIGTERM", stop);
+    process.on("SIGINT", stop);
+    return true;
+  }
   if (cmd === "--version" || cmd === "-v") {
     console.log(packageVersion());
     return true;
   }
   if (cmd === "--help" || cmd === "-h") {
-    console.error("abap-adt-dozimple            arranca el servidor MCP (stdio)\nabap-adt-dozimple init …     configura sistemas, contraseña y cliente MCP (init --help)\nabap-adt-dozimple --version");
+    console.error("abap-adt-dozimple            arranca el servidor MCP (stdio)\nabap-adt-dozimple init …     configura sistemas, contraseña y cliente MCP (init --help)\nabap-adt-dozimple serve …    modo HTTP de equipo con identidad por persona (--host, --port, --path, --cert, --key)\nabap-adt-dozimple --version");
     return true;
   }
   return false;

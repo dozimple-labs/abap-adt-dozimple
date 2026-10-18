@@ -11,6 +11,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
   `debug_stop`. Sesión stateful por sistema en memoria del proceso; variables personales enmascaradas en sistemas
   `masked`; deshabilitado con datos `prod`; nunca cambia valores. Todo `exec`: solo DEV y con rastro en el registro.
   `SapConnection.openStateful()` para sesiones que duran más de una llamada. Sin verificar en vivo.
+- **Modo HTTP de equipo con identidad por persona** (Ola 3, punto 14): `abap-adt-dozimple serve` publica el servidor por
+  Streamable HTTP (`/mcp`). Cada petición lleva `Authorization: Basic usuario:contraseña` y el servidor conecta a SAP
+  como esa persona (usuario en conexiones, bloqueos, órdenes y registro de auditoría); la contraseña vive solo en
+  memoria mientras dura la sesión (`password: "session:<id>"`). Sin TLS no escucha fuera de loopback (`--cert`/`--key`
+  o proxy TLS); protección contra DNS rebinding en loopback; tope de sesiones, caducidad por inactividad y 403 si otra
+  identidad intenta usar una sesión. stdio sigue siendo el modo individual.
 
 ### Añadido
 - **RAP y diccionario con escritura en S/4** (Ola 3, punto 12). `create_object` admite tipos tabla (TTYP), elementos
