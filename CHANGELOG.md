@@ -5,6 +5,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 ## [Unreleased]
 
 ### Añadido
+- **Auditoría de lecturas de datos (`data_read`)** (issue #89). Cada consulta de datos de negocio (`sql_query`,
+  `table_contents`, `count_rows`) deja en `audit.jsonl` una entrada encadenada y firmada con tool, sistema, usuario
+  SAP, tablas leídas, columnas enmascaradas, filas entregadas, si se alcanzó el tope y la huella sha256 de los
+  argumentos; nunca los valores. Fail-closed: si no se puede anotar, el resultado no se entrega. `npm run audit:verify`
+  resume lecturas, tablas distintas y filas. Es el prerrequisito del módulo de acceso elevado (Ola 2).
 - **`create_object` crea tablas y estructuras de diccionario en S/4 (y NW ≥ 7.51)** con su fuente DDL de ADT
   (`object_type` TABL o STRU), con la misma vista previa, validación de SAP, orden y confirmación. En ECC 7.50 la
   colección no existe y la respuesta remite a `ddic_plan`. Sin verificar en vivo todavía.

@@ -10,6 +10,7 @@ import type { ConnectionPool, SapConnection } from "./connection.js";
 import { isSessionExpired, normalizeError, renderError, ToolError, type ErrorKind } from "./errors.js";
 import { budget } from "./output.js";
 import { appendAudit, auditArgs, type AuditInput } from "./audit.js";
+import { mergeReads, withDataReads } from "./datareads.js";
 import { consumeTokenWithState, issueToken } from "./confirm.js";
 import { addNote, renderNotes, withNotes } from "./notes.js";
 import { assertAccess } from "./policy.js";
@@ -245,7 +246,26 @@ export async function invoke(def: ToolDef<any>, rawArgs: Record<string, unknown>
           throw new ToolError("INTERNAL", `No se ejecutó: no se pudo escribir el registro de auditoría (${(e as Error).message}).`);
         }
       }
-      const { result: res, notes } = await withNotes(() => runGuarded(def, args, ctx, sapConn, systemId));
+      const { result: guarded, notes } = await withNotes(() => withDataReads(() => runGuarded(def, args, ctx, sapConn, systemId)));
+      const res = guarded.result;
+      // Toda lectura de datos de negocio deja rastro ANTES de entregarse: sin registro, el resultado no sale
+      // (fail-closed, igual que las escrituras). Lo que queda es qué se leyó, nunca los valores.
+      if (guarded.reads.length && resolved) {
+        try {
+          appendAudit({
+            phase: "data_read",
+            tool: def.name,
+            access: def.access,
+            system: resolved.system.id,
+            sapUser: resolved.system.user,
+            client: resolved.system.client,
+            args,
+            read: mergeReads(guarded.reads),
+          });
+        } catch (e) {
+          throw new ToolError("INTERNAL", `No se entregó el resultado: no se pudo anotar la lectura en el registro de auditoría (${(e as Error).message}).`, "Revisa el directorio de estado (ABAP_DZ_STATE_DIR o ~/.local/state/abap-adt-dozimple): permisos o disco.");
+        }
+      }
       const text = renderNotes(notes) + (typeof res === "string" ? res : res.text);
       const isError = typeof res === "string" ? false : !!res.isError;
       const structured = typeof res === "string" ? undefined : res.structured;

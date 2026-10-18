@@ -288,7 +288,8 @@ Designed to pass a Security and Basis review without exceptions. Details: **[SEC
 - **Strict parameters:** an unknown or misspelled parameter is an error listing the accepted ones, never silently ignored.
 - **No write without human confirmation:** a preview with SAP's syntax check and the real diff, confirmed through MCP
   elicitation or a single-use token bound to those exact arguments.
-- **Hash-chained audit log** of every write and execution, fail-closed (no log, no write), verifiable with
+- **Hash-chained audit log** of every write and execution, and of every business-data read (`data_read`: tables,
+  masked columns, row count; never the values), fail-closed (no log, no write and no result), verifiable with
   `npm run audit:verify`.
 - **SAP credential material and HR data blocked** in SQL queries, also through views and CDS, even if the SAP user is
   authorized. Validated against a real S/4HANA 2023 system, where standard views and CDS read USR02 without naming it.
