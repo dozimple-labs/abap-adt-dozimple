@@ -4,6 +4,14 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Unreleased]
 
+### Corregido
+- **`create_object` con DTEL y DOMA fallaba al escribir las propiedades** («Verificación de condición fallida»): los
+  metadatos se construían a mano con un sistema maestro vacío; ahora se toman de lo que SAP acaba de crear.
+  Verificado en vivo en un S/4 758 (dominio con valores fijos y elemento de datos sobre ese dominio).
+- **`create_object` BDEF** se crea como «blue source» con el tipo de contenido que anuncia el discovery
+  (`application/vnd.sap.adt.blues.v1+xml`): antes SAP respondía 415. El tipo de implementación lo declara la
+  fuente, así que `implementation_type` desaparece. Verificado en vivo (HTTP 201).
+
 ## [2.0.2] - 2026-10-18
 
 Correcciones de la verificación en vivo contra un S/4HANA 758: ST05 con su forma real, diff de propiedades de

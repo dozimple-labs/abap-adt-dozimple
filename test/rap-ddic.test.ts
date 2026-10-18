@@ -41,12 +41,13 @@ function setup(type: string, uriBase: string, preExisting = false) {
       setDomainProperties: async (...a: any[]) => void set.push(["DOMA", ...a]),
       setDataElementProperties: async (...a: any[]) => void set.push(["DTEL", ...a]),
       getDomainProperties: async () => ({ metaData: { name: "ZDO_DEMO", description: "Dominio demo", language: "ES", masterLanguage: "ES", masterSystem: "", responsible: "DEV_ME", packageName: "ZDEMO" }, properties: { typeInformation: { datatype: "CHAR", length: 5, decimals: 0 }, outputInformation: { length: 5, signExists: false, lowercase: false, ampmFormat: false } } }),
+      getDataElementProperties: async () => ({ metaData: { name: "ZDE_DEMO", description: "", language: "ES", masterLanguage: "ES", masterSystem: "", responsible: "DEV_ME", packageName: "ZDEMO" }, properties: {} }),
     }),
   };
   const ctx = (confirmedState?: string) => ({ sap, system: { id: "DEV", user: "DEV_ME", language: "ES", sid: "DEV" }, confirmedState }) as any;
   return { ctx, created, posts, set };
 }
-const base = { description: "Demo", package: "ZDEMO", transport: "DEVK900123", activate: true, implementation_type: "managed" };
+const base = { description: "Demo", package: "ZDEMO", transport: "DEVK900123", activate: true };
 
 describe("ddic_properties", () => {
   it("valida la forma antes de tocar SAP y completa la salida del dominio", () => {
@@ -67,6 +68,7 @@ describe("create_object · diccionario y RAP", () => {
     expect(created[0]).toMatchObject({ objtype: "DOMA/DD", name: "ZDO_DEMO", transport: "DEVK900123" });
     expect(set[0][0]).toBe("DOMA");
     expect(set[0][2]).toMatchObject({ typeInformation: { datatype: "CHAR", length: 10 } });
+    expect(set[0][3]).toMatchObject({ masterSystem: "", packageName: "ZDEMO", description: "Demo" }); // metadatos leídos de SAP
     expect(set[0][5]).toBe("DEVK900123");
     expect(r.text).toMatch(/Propiedades guardadas[\s\S]*Activado/);
   });
@@ -86,16 +88,17 @@ describe("create_object · diccionario y RAP", () => {
     await create.run(args, ctx(p.state));
     expect(created[0]).toMatchObject({ objtype: "SRVB/SVB", service: "ZUI_DEMO", bindingtype: "ODATA", category: "0" });
   });
-  it("definición de comportamiento: petición ADT directa con el tipo de implementación", async () => {
+  it("definición de comportamiento: blue source con el tipo de contenido que anuncia el discovery", async () => {
     const { ctx, posts } = setup("BDEF/BDO", "/sap/bc/adt/bo/behaviordefinitions");
-    const args = { ...base, object_type: "BDEF", name: "ZI_DEMO", implementation_type: "projection" };
+    const args = { ...base, object_type: "BDEF", name: "ZI_DEMO" };
     const p: any = await create.preview!(args, ctx());
-    expect(p.text).toMatch(/Tipo de implementación: projection/);
+    expect(p.text).toMatch(/tipo de implementación .* lo declara la fuente/);
     await create.run(args, ctx(p.state));
     expect(posts[0].path).toBe("/sap/bc/adt/bo/behaviordefinitions");
     expect(posts[0].qs).toEqual({ corrNr: "DEVK900123" });
-    expect(posts[0].body).toMatch(/bdef:implementationType="projection"[\s\S]*packageRef adtcore:name="ZDEMO"/);
-    expect(behaviorDefinitionBody({ name: "Z<X", description: 'a"b', pkg: "P", responsible: "U", language: "ES", implementationType: "managed" })).toMatch(/adtcore:description="a&quot;b"[\s\S]*adtcore:name="Z&lt;X"/);
+    expect(posts[0].headers["Content-Type"]).toBe("application/vnd.sap.adt.blues.v1+xml");
+    expect(posts[0].body).toMatch(/<blue:blueSource[\s\S]*adtcore:type="BDEF\/BDO"[\s\S]*packageRef adtcore:name="ZDEMO"/);
+    expect(behaviorDefinitionBody({ name: "Z<X", description: 'a"b', pkg: "P", responsible: "U", language: "ES" })).toMatch(/adtcore:description="a&quot;b"[\s\S]*adtcore:name="Z&lt;X"/);
   });
 });
 
