@@ -5,9 +5,9 @@ import { auditKey, macOf, type AuditKey } from "./auditkey.js";
 import { stateDir } from "./telemetry.js";
 
 /**
- * Registro de auditoría de todo lo que modifica o ejecuta en SAP. Solo
- * añade líneas y cada una lleva el hash de la anterior: borrar o retocar una
- * entrada rompe la cadena y `npm run audit:verify` lo detecta.
+ * Registro de auditoría de todo lo que modifica o ejecuta en SAP, y de toda lectura de datos de negocio (`data_read`:
+ * tablas, columnas enmascaradas y filas; nunca los valores). Solo añade líneas y cada una lleva el hash de la
+ * anterior: borrar o retocar una entrada rompe la cadena y `npm run audit:verify` lo detecta.
  *
  * Nunca guarda fuente, textos ni datos: de los argumentos largos o
  * compuestos queda solo su huella (sha256 y tamaño), suficiente para probar
@@ -17,7 +17,8 @@ export const AUDIT_FILE = "audit.jsonl";
 const GENESIS = "0".repeat(64);
 const INLINE_MAX = 120;
 
-export type AuditPhase = "intent" | "result" | "denied";
+/** intent/result/denied: escrituras y ejecuciones. data_read: una tool devolvió datos de negocio (qué tablas, cuántas filas; nunca los valores). */
+export type AuditPhase = "intent" | "result" | "denied" | "data_read";
 
 export interface AuditInput {
   phase: AuditPhase;
@@ -31,6 +32,8 @@ export interface AuditInput {
   ok?: boolean;
   kind?: string;
   reason?: string;
+  /** Solo en data_read. */
+  read?: { tables: string[]; maskedColumns: string[]; rows: number; capped: boolean; queries: number };
 }
 
 export interface AuditEntry extends Omit<AuditInput, "args"> {

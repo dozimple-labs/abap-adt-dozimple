@@ -27,6 +27,9 @@ const entries = text.split("\n").filter(Boolean).map((l) => JSON.parse(l) as Aud
 const writes = entries.filter((e) => e.phase === "intent" && e.access === "write");
 const by = (k: string) => writes.filter((e) => e.confirmedBy === k).length;
 const denied = entries.filter((e) => e.phase === "denied").length;
+const reads = entries.filter((e) => e.phase === "data_read");
+const readTables = new Set(reads.flatMap((e) => e.read?.tables ?? []));
+const readRows = reads.reduce((n, e) => n + (e.read?.rows ?? 0), 0);
 const last = entries.at(-1);
 console.log(`Registro íntegro: ${v.entries} entradas encadenadas (${path}).`);
 console.log(
@@ -38,4 +41,5 @@ console.log(
   `Escrituras: ${writes.length} · confirmadas por elicitación (una persona respondió en el cliente): ${by("elicitation")} · ` +
     `por token (garantía de aviso: el cliente debe no autoaprobar): ${by("token")} · denegadas: ${denied}.`,
 );
+console.log(`Lecturas de datos (data_read): ${reads.length} · tablas distintas: ${readTables.size} · filas entregadas: ${readRows} (el registro guarda qué se leyó, nunca los valores).`);
 if (last) console.log(`Último hash (anótalo fuera del equipo para detectar una reescritura completa): ${last.hash} · seq ${last.seq} · ${last.ts}`);

@@ -1,5 +1,6 @@
 import type { SystemConfig } from "./config.js";
 import type { SapConnection } from "./connection.js";
+import { noteDataRead, tablesOf } from "./datareads.js";
 import { normalizeError, ToolError } from "./errors.js";
 import { adtPathName, sqlLiteral } from "./objects.js";
 import { assertNotSensitive, assertSelectOnly, rejectSensitive, SENSITIVE_COLUMNS, sensitiveHits, sqlWords } from "./policy.js";
@@ -210,6 +211,8 @@ export async function guardedQuery(sap: SapConnection, system: SystemConfig, sql
   const masked = maskPii(cls, q, columns, r.values, system.piiColumns ?? []);
   if (masked.length) notes.push(`Columnas personales enmascaradas (sistema con datos ${cls === "prod" ? "productivos" : "enmascarados"}): ${masked.join(", ")}.`);
   const capped = r.values.length >= cap;
+  // Queda en el registro de auditoría qué se leyó (tablas, columnas enmascaradas, filas), nunca qué valores.
+  noteDataRead({ tables: tablesOf(q), maskedColumns: masked, rows: r.values.length, capped });
   if (capped) {
     notes.push(
       cap < requestedRows

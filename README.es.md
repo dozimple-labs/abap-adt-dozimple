@@ -287,7 +287,9 @@ Diseñado para poder presentarse ante Seguridad y Basis sin excepciones. Detalle
 - **Parámetros estrictos:** un parámetro desconocido o mal escrito es un error con la lista de los admitidos, nunca se ignora en silencio.
 - **Ninguna escritura sin confirmación humana:** vista previa con la sintaxis de SAP y el diff real, y confirmación
   por elicitación o con un token de un solo uso atado a esos argumentos exactos.
-- **Registro de auditoría encadenado por hash** de toda escritura y ejecución, verificable con `npm run audit:verify`.
+- **Registro de auditoría encadenado por hash** de toda escritura y ejecución, y de toda lectura de datos de negocio
+  (`data_read`: tablas, columnas enmascaradas y filas; nunca los valores), fail-closed (sin registro no hay escritura ni
+  resultado), verificable con `npm run audit:verify`.
 - **Material de credenciales y datos de personal de SAP bloqueados** en las consultas SQL, también a través de vistas
   y CDS, aunque el usuario tenga autorización.
 - **Datos personales enmascarados y tope de filas** en sistemas con datos productivos.
