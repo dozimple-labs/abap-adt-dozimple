@@ -243,7 +243,9 @@ export async function invoke(def: ToolDef<any>, rawArgs: Record<string, unknown>
     }
 
     if (!gate.proceed) {
-      outcome = { text: head + gate.text, isError: false, system: systemId };
+      // Una tool con esquema de salida no puede responder sin datos estructurados (el cliente lo valida): lo pone ella.
+      if (def.output && !def.previewStructured) throw new ToolError("INTERNAL", `${def.name} declara salida estructurada y confirmación, pero no previewStructured.`);
+      outcome = { text: head + gate.text, isError: false, system: systemId, structured: def.output ? def.previewStructured!(args, gate.text) : undefined };
     } else {
       if (audit) {
         try {

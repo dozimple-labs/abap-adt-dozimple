@@ -4,6 +4,14 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Unreleased]
 
+### Corregido
+- **`system_messages` leía columnas que no existen**: en un NW 7.50 real TEMSI es solo un contador y TEMSG trae todo
+  (ID, EMTEXT, DATCRE/TIMCRE, DATDEL/TIMDEL, AUTHOR, APPLSERVER, CLIENT, LANGU). Ahora lee TEMSG. Verificado en vivo.
+- **La vista previa de `sql_query` en sistemas con datos productivos fallaba en el cliente** («Output validation error»):
+  una tool con esquema de salida no puede responder sin contenido estructurado. Nuevo `previewStructured` en la
+  definición de tool (obligatorio, por test, en toda tool con `output` y confirmación); `sql_query` devuelve una
+  respuesta vacía con la nota de vista previa. Verificado en vivo.
+
 ## [2.0.0] - 2026-10-18
 
 Ola 3 del plan de mejoras: modo HTTP de equipo con identidad por persona, depurador de solo lectura, RAP y

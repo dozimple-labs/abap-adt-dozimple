@@ -60,6 +60,24 @@ describe("lecturas de datos productivos con confirmación", () => {
   });
 });
 
+describe("vista previa con esquema de salida", () => {
+  it("toda tool con output y confirmación (confirmReads o confirm) define previewStructured", async () => {
+    const { loadTools } = await import("../src/core/registry.js");
+    const defs = await loadTools(new URL("../src/tools", import.meta.url).pathname);
+    const bad = defs.filter((d) => d.output && (d.confirmReads || d.confirm === true || d.access === "write") && !d.previewStructured).map((d) => d.name);
+    expect(bad).toEqual([]);
+  });
+  it("sql_query en PRD devuelve la vista previa con contenido estructurado válido", async () => {
+    const { default: sqlQuery } = await import("../src/tools/core/sql_query.js");
+    const { z } = await import("zod");
+    const r = await invoke(sqlQuery as ToolDef<any>, { system: "PRD", query: "SELECT * FROM t000", max_rows: 5 }, { config: cfg, pool, tools: [] });
+    expect(r.isError).toBe(false);
+    expect(r.text).toMatch(/VISTA PREVIA/);
+    expect(() => z.object((sqlQuery as ToolDef<any>).output!).parse(r.structured)).not.toThrow();
+    expect((r.structured as any).notes[0]).toMatch(/no se ha ejecutado/);
+  });
+});
+
 describe("guardedQuery · análisis de fuentes", () => {
   const sap = { query: async (sql: string) => (/dd26s|ddldependency/i.test(sql) ? { columns: [], values: [] } : { columns: [{ name: "MANDT" }], values: [{ MANDT: "100" }] }), adt: async () => ({}) } as any;
   it("rechaza una consulta cuyas fuentes no se pueden determinar y acepta la equivalente explícita", async () => {

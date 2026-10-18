@@ -1019,7 +1019,7 @@ Directorio y estado de las trazas SQL de ST05 que expone ADT (S/4HANA y NW ≥ 7
 
 ### `system_messages` — Mensajes de sistema (SM02)
 
-Mensajes de sistema de SM02 (aviso de parada, mantenimiento…): texto, mandante, servidor, vigencia y quién lo creó, leídos de las tablas TEMSI y TEMSG. Solo lectura. Si el release guarda los mensajes de otra forma, la tool lo dice en vez de devolver vacío.
+Mensajes de sistema de SM02 (aviso de parada, mantenimiento…): texto, mandante, servidor, vigencia y quién lo creó, leídos de la tabla TEMSG. Solo lectura. Si el release guarda los mensajes de otra forma, la tool lo dice en vez de devolver vacío.
 
 | | |
 |---|---|
