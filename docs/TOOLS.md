@@ -1336,7 +1336,7 @@ Sustituye fragmentos exactos de la fuente de un objeto sin reenviarla entera: ca
 
 ### `push_sources` — Guardar varias fuentes en una operación
 
-Guarda las fuentes completas de varios objetos existentes (hasta 20, includes de clase incluidos) en la misma orden con una sola vista previa consolidada (sintaxis y diff por objeto) y una sola confirmación; después los activa juntos. Lo que falle se dice por objeto y no se activa. Objetos nuevos: create_object.
+Varios objetos existentes (hasta 20) en la misma orden con una sola vista previa consolidada (sintaxis y diff por objeto), una sola confirmación y activación conjunta. Cada objeto lleva su fuente completa o sus ediciones (texto actual → nuevo, como edit_source). Lo que falle se dice y no se activa. Nuevos: create_object.
 
 | | |
 |---|---|
@@ -1346,7 +1346,7 @@ Guarda las fuentes completas de varios objetos existentes (hasta 20, includes de
 | Parámetro | Tipo | Por defecto | Descripción |
 |---|---|---|---|
 | `system` | string |  | Sistema SAP configurado. Obligatorio si hay varios y ninguno por defecto. |
-| `files` * | lista de { object_name, object_type, include, source } |  |  |
+| `files` * | lista de { object_name, object_type, include, source, edits } |  |  |
 | `transport` | string |  | Orden (o tarea) para todos. Obligatoria salvo objetos locales |
 | `activate` | boolean | true | Activar todos juntos al final |
 | `skip_syntax_check` | boolean | false |  |

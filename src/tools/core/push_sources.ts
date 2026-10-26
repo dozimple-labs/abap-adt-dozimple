@@ -5,6 +5,7 @@ import { stateOf } from "../../core/confirm.js";
 import { ToolError } from "../../core/errors.js";
 import { CLASS_INCLUDES, resolveObject, sourceUrl, TYPE_HELP } from "../../core/objects.js";
 import { defineTool, type ToolContext } from "../../core/tool.js";
+import { applySourceEdits } from "./edit_source.js";
 import { previewSave, runSave } from "./write_source.js";
 
 /**
@@ -14,13 +15,22 @@ import { previewSave, runSave } from "./write_source.js";
  */
 const MAX_FILES = 20;
 
+const EDIT = z.object({
+  old_text: z.string().min(1).describe("Texto exacto que hay ahora (una sola aparición, salvo replace_all)"),
+  new_text: z.string().describe("Texto nuevo; vacío borra"),
+  replace_all: z.boolean().default(false),
+});
 const FILE = z.object({
   object_name: z.string().min(1),
   object_type: z.string().optional().describe(TYPE_HELP),
   include: z.enum(CLASS_INCLUDES).default("main"),
-  source: z.string().min(1).describe("Fuente completa nueva de ese objeto o include"),
+  source: z.string().min(1).optional().describe("Fuente completa nueva de ese objeto o include (o bien edits)"),
+  edits: z.array(EDIT).min(1).max(50).optional().describe("Sustituciones sobre la fuente actual, como en edit_source (o bien source)"),
 });
 type File = z.infer<typeof FILE>;
+
+/** Cómo se obtiene la fuente nueva de cada archivo: completa, o la actual con las sustituciones aplicadas. */
+const builder = (f: File) => (current: string) => (f.source !== undefined ? f.source : applySourceEdits(current, f.edits!));
 
 const keyOf = (f: File) => `${f.object_name.trim().toUpperCase()}|${(f.object_type ?? "").toUpperCase()}|${f.include}`;
 
@@ -29,6 +39,7 @@ function checkFiles(files: File[]): void {
   for (const f of files) {
     const k = keyOf(f);
     if (seen.has(k)) throw new ToolError("INPUT", `${f.object_name} (${f.include}) aparece dos veces en files.`);
+    if ((f.source === undefined) === (f.edits === undefined)) throw new ToolError("INPUT", `${f.object_name}: indica source o edits, uno de los dos.`);
     seen.add(k);
   }
 }
@@ -52,9 +63,9 @@ export default defineTool({
   title: "Guardar varias fuentes en una operación",
   timeoutMs: 300_000,
   description:
-    "Guarda las fuentes completas de varios objetos existentes (hasta 20, includes de clase incluidos) en la misma " +
-    "orden con una sola vista previa consolidada (sintaxis y diff por objeto) y una sola confirmación; después los " +
-    "activa juntos. Lo que falle se dice por objeto y no se activa. Objetos nuevos: create_object.",
+    "Varios objetos existentes (hasta 20) en la misma orden con una sola vista previa consolidada (sintaxis y diff " +
+    "por objeto), una sola confirmación y activación conjunta. Cada objeto lleva su fuente completa o sus " +
+    "ediciones (texto actual → nuevo, como edit_source). Lo que falle se dice y no se activa. Nuevos: create_object.",
   access: "write",
   input: {
     files: z.array(FILE).min(1).max(MAX_FILES),
@@ -68,7 +79,7 @@ export default defineTool({
     for (const [i, f] of files.entries()) {
       ctx.signal?.throwIfAborted();
       ctx.progress?.(`Vista previa ${i + 1} de ${files.length}: ${f.object_name}`, i + 1, files.length);
-      const p = await previewSave({ ...f, transport, activate: false, skip_syntax_check }, ctx, () => f.source);
+      const p = await previewSave({ ...f, transport, activate: false, skip_syntax_check }, ctx, builder(f));
       const text = typeof p === "string" ? p : p.text;
       parts.push("", `━━ ${i + 1}/${files.length} ━━`, text.replace(/\n\nSi el objeto está bloqueado en otra orden[^\n]*/, "").replace(/\nOrden: [^\n]*activar después: no/, ""));
     }
@@ -88,7 +99,7 @@ export default defineTool({
     for (const [i, f] of files.entries()) {
       ctx.signal?.throwIfAborted();
       ctx.progress?.(`Guardando ${i + 1} de ${files.length}: ${f.object_name}`, i + 1, files.length);
-      const r = await runSave({ ...f, transport, activate: false, skip_syntax_check }, { sap: ctx.sap, confirmedState: states[i] }, () => f.source);
+      const r = await runSave({ ...f, transport, activate: false, skip_syntax_check }, { sap: ctx.sap, confirmedState: states[i] }, builder(f));
       const text = typeof r === "string" ? r : r.text;
       const ok = typeof r === "string" ? true : !r.isError;
       if (ok) {

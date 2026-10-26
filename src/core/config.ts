@@ -88,6 +88,8 @@ const ConfigSchema = z.object({
       except: ToolListSchema.default([]),
       /** core: publica las de uso diario y carga el resto con load_tools; expert: todas desde el arranque. ABAP_DZ_PROFILE lo cambia. */
       profile: z.enum(["core", "expert"]).default("core"),
+      /** Minutos que vale un token de confirmación (vista previa → escritura). Por defecto 20; tope 60. */
+      confirmMinutes: z.number().int().min(1).max(60).default(20),
     })
     .default({}),
 });
