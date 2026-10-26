@@ -4,7 +4,7 @@ Qué cubre `abap-adt-doZimple` frente al MCP oficial de SAP (ADT) y a los servid
 para el plan de mejoras. Es un documento vivo: se revisa en cada release nuestra y cada vez que SAP publica una
 versión nueva de ADT. Marca con honestidad lo verificado y lo supuesto.
 
-**Última revisión:** 2026-10-18 · **Nuestra versión:** 2.0.3 · **MCP de SAP:** el que trae ADT 3.60 (Eclipse y
+**Última revisión:** 2026-10-18 · **Nuestra versión:** 2.1.0 · **MCP de SAP:** el que trae ADT 3.60 (Eclipse y
 VS Code), según documentación pública y pruebas de terceros; **no se ha ejecutado todavía contra un sistema propio.**
 
 ## 1. Qué se puede garantizar y qué no
