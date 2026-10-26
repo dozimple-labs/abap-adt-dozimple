@@ -4,6 +4,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Unreleased]
 
+### Seguridad
+- **zod 4** (issue #4): cierra el aviso alto GHSA-mrhx-c7xc-m3w5 sin excepciones en la auditoría. Dependencias de
+  producción al día tras `npm audit fix` (body-parser, follow-redirects, fast-uri, hono, ip-address). La
+  introspección de esquemas de `docs/TOOLS.md` y el mensaje de «parámetro desconocido» se adaptaron a la API nueva.
+
 ### Añadido
 - **Confirmaciones más cómodas sin perder control.** `tools.confirmMinutes` (por defecto 20, antes 10; tope 60) fija cuánto
   vale un token. Si un token caduca con los mismos argumentos, el servidor repite la vista previa con un token nuevo y

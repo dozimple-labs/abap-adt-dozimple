@@ -27,27 +27,30 @@ const ACCESS: Record<string, string> = {
 };
 
 /** Tipo, valor por defecto y descripción de un parámetro zod. */
+/** Tipo, valor por defecto y descripción de un parámetro zod (zod 4: la definición vive en `_zod.def`). */
 function describeParam(t: ZodTypeAny): { type: string; def?: string; desc: string; optional: boolean } {
   let cur: any = t;
   let optional = false;
   let def: string | undefined;
   let desc = cur.description ?? "";
+  const kind = (s: any): string => s?._zod?.def?.type ?? "?";
   for (let i = 0; i < 6; i++) {
-    const tn = cur._def?.typeName;
-    if (tn === "ZodOptional") optional = true;
-    else if (tn === "ZodDefault") {
+    const tn = kind(cur);
+    if (tn === "optional" || tn === "nullable") optional = true;
+    else if (tn === "default") {
       optional = true;
-      def = JSON.stringify(cur._def.defaultValue());
-    } else if (tn !== "ZodEffects") break;
-    cur = cur._def.innerType ?? cur._def.schema;
-    desc ||= cur.description ?? "";
+      const dv = cur._zod.def.defaultValue;
+      def = JSON.stringify(typeof dv === "function" ? dv() : dv);
+    } else if (tn !== "pipe" && tn !== "transform") break;
+    cur = cur._zod.def.innerType ?? cur._zod.def.in ?? cur._zod.def.schema;
+    desc ||= cur?.description ?? "";
   }
-  const tn = cur._def?.typeName;
-  let type = String(tn ?? "?").replace(/^Zod/, "").toLowerCase();
-  if (tn === "ZodEnum") type = cur._def.values.map((v: string) => `\`${v}\``).join(" \\| ");
-  if (tn === "ZodArray") {
-    const el = cur._def.type;
-    type = el._def?.typeName === "ZodObject" ? `lista de { ${Object.keys(el.shape).join(", ")} }` : `lista de ${describeParam(el).type}`;
+  const tn = kind(cur);
+  let type = tn;
+  if (tn === "enum") type = Object.values(cur._zod.def.entries as Record<string, string>).map((v) => `\`${v}\``).join(" \\| ");
+  if (tn === "array") {
+    const el = cur._zod.def.element;
+    type = kind(el) === "object" ? `lista de { ${Object.keys(el.shape).join(", ")} }` : `lista de ${describeParam(el).type}`;
   }
   return { type, def, desc: mdCell(desc), optional };
 }

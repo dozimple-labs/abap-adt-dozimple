@@ -63,7 +63,7 @@ export const DDIC_SPEC = {
       tables: z.array(z.object({ name: NAME(30), text: TEXT(60).optional(), fields: z.array(z.object({ name: NAME(30), data_element: NAME(30) })).default([]).describe("Campo nuevo = se añade al final; existente = cambia su elemento. No toca claves") })).default([]),
       table_types: z.array(z.object({ name: NAME(30), row_type: NAME(30).optional(), text: TEXT(60).optional() })).default([]),
     })
-    .default({})
+    .prefault({})
     .describe("Objetos que YA existen: solo se indica lo que cambia"),
 };
 const SPEC = z.object(DDIC_SPEC);

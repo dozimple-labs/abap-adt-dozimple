@@ -80,7 +80,7 @@ const ToolListSchema = z.array(z.string().min(1));
 const ConfigSchema = z.object({
   defaultSystem: z.string().optional(),
   systems: z.array(SystemSchema).min(1),
-  sidecars: z.record(SidecarSchema).default({}),
+  sidecars: z.record(z.string(), SidecarSchema).prefault({}),
   /** Exposición selectiva: `only` deja solo lo listado, `except` quita lo listado. ABAP_DZ_TOOLS (coma) es otro `only`. */
   tools: z
     .object({
@@ -91,7 +91,7 @@ const ConfigSchema = z.object({
       /** Minutos que vale un token de confirmación (vista previa → escritura). Por defecto 20; tope 60. */
       confirmMinutes: z.number().int().min(1).max(60).default(20),
     })
-    .default({}),
+    .prefault({}),
 });
 
 export type SystemConfig = z.infer<typeof SystemSchema>;

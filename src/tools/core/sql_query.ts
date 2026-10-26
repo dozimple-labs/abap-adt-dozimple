@@ -23,7 +23,7 @@ export default defineTool({
   output: {
     rows: z.number().int().describe("Filas devueltas"),
     columns: z.array(z.string()),
-    values: z.array(z.record(z.unknown())).describe(`Filas como objetos columna→valor (hasta ${STRUCTURED_ROWS}; el texto las trae todas)`),
+    values: z.array(z.record(z.string(), z.unknown())).describe(`Filas como objetos columna→valor (hasta ${STRUCTURED_ROWS}; el texto las trae todas)`),
     truncated: z.boolean().describe("true si values no incluye todas las filas"),
     notes: z.array(z.string()).describe("Avisos de la política de datos (enmascarado, tope de filas)"),
   },

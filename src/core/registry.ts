@@ -404,9 +404,8 @@ function describe(def: ToolDef<any>, cfg: Config): string {
  */
 export function strictInput(tool: string, shape: z.ZodRawShape) {
   const known = Object.keys(shape);
-  return z.object(shape).strict(
-    `Parámetro desconocido para ${tool}: no se ejecutó nada. Admitidos: ${known.length ? known.join(", ") : "ninguno"}.`,
-  );
+  const message = `Parámetro desconocido para ${tool}: no se ejecutó nada. Admitidos: ${known.length ? known.join(", ") : "ninguno"}.`;
+  return z.strictObject(shape, { error: (issue) => (issue.code === "unrecognized_keys" ? message : undefined) });
 }
 
 /** Pistas MCP para el cliente: las escrituras se marcan destructivas para que pida confirmación. */

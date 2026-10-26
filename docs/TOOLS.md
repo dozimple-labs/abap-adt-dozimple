@@ -369,12 +369,12 @@ Salida estructurada (`structuredContent`, además del texto):
 | `original_system` | string |  |
 | `local` | boolean |  |
 | `locks` | lista de { order, description } | Órdenes con bloqueo CTS: cualquier cambio irá ahí |
-| `source` | nullable |  |
-| `summary` | nullable | Resumen local de la fuente (abaplint): qué hay y qué toca, sin la fuente |
+| `source` | object |  |
+| `summary` | object | Resumen local de la fuente (abaplint): qué hay y qué toca, sin la fuente |
 | `versions` | lista de { date, author, transport, title } |  |
-| `usages` | nullable |  |
-| `drift` | nullable |  |
-| `atc` | nullable |  |
+| `usages` | object |  |
+| `drift` | lista de { target, status, detail } |  |
+| `atc` | object |  |
 | `depth` | number |  |
 | `skipped` | lista de string | Secciones que no se pudieron leer, con el motivo |
 
@@ -509,7 +509,7 @@ Donde ADT no crea ni modifica diccionario (ECC / NW 7.50): valida una especifica
 | `table_types` | lista de { name, row_type, text } | [] |  |
 | `function_groups` | lista de { name, text } | [] |  |
 | `functions` | lista de { name, group, text, rfc, importing, exporting, tables } | [] |  |
-| `modify` | object | {} | Objetos que YA existen: solo se indica lo que cambia |
+| `modify` * | prefault |  | Objetos que YA existen: solo se indica lo que cambia |
 
 \* obligatorio
 
