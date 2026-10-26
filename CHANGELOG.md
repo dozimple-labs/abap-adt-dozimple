@@ -4,6 +4,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-10-26
+
+Confirmaciones más cómodas sin perder control: caducidad configurable (20 minutos por defecto), renovación controlada
+del token y `push_sources` con ediciones. zod 4 y dependencias al día.
+
 ### Seguridad
 - **zod 4** (issue #4): cierra el aviso alto GHSA-mrhx-c7xc-m3w5 sin excepciones en la auditoría. Dependencias de
   producción al día tras `npm audit fix` (body-parser, follow-redirects, fast-uri, hono, ip-address). La
