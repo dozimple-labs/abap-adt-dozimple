@@ -1,4 +1,7 @@
 import type { z, ZodRawShape } from "zod";
+
+/** Argumentos ya validados de una tool a partir de su `input` (zod 4 no exporta objectOutputType). */
+export type ArgsOf<S extends ZodRawShape> = z.infer<z.ZodObject<S>>;
 import type { Config, SystemConfig, SystemSource } from "./config.js";
 import type { ConnectionPool, SapConnection } from "./connection.js";
 import type { Sidecar, SidecarPool } from "./sidecar.js";
@@ -95,7 +98,7 @@ export interface ToolDef<S extends ZodRawShape = ZodRawShape> {
    * Tools con `output` que pueden responder con una vista previa (confirmReads, confirm): el contenido estructurado
    * de esa respuesta, conforme al esquema, porque el cliente lo valida aunque no se haya ejecutado nada.
    */
-  previewStructured?(args: z.objectOutputType<S, z.ZodTypeAny>, previewText: string): Record<string, unknown>;
+  previewStructured?(args: ArgsOf<S>, previewText: string): Record<string, unknown>;
   /** Tiempo máximo de una ejecución (por defecto 60 s). Las lentas (ATC, where-used, diff) declaran el suyo. */
   timeoutMs?: number;
   /**
@@ -103,12 +106,12 @@ export interface ToolDef<S extends ZodRawShape = ZodRawShape> {
    * traer `structured` conforme a él: el registro lo exige y el SDK lo valida antes de responder.
    */
   output?: ZodRawShape;
-  run(args: z.objectOutputType<S, z.ZodTypeAny>, ctx: ToolContext): Promise<ToolResult>;
+  run(args: ArgsOf<S>, ctx: ToolContext): Promise<ToolResult>;
   /**
    * Solo tools write: qué va a cambiar, sin cambiar nada (diff, sintaxis,
    * orden). Es lo que el usuario confirma antes de que run() escriba.
    */
-  preview?(args: z.objectOutputType<S, z.ZodTypeAny>, ctx: ToolContext): Promise<PreviewResult>;
+  preview?(args: ArgsOf<S>, ctx: ToolContext): Promise<PreviewResult>;
 }
 
 /** Identidad tipada: da inferencia de los argumentos a partir de `input`. */

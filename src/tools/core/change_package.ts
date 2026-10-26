@@ -5,7 +5,7 @@ import type { SapConnection } from "../../core/connection.js";
 import { normalizeError, ToolError } from "../../core/errors.js";
 import { resolveObject, sqlLiteral, TYPE_HELP } from "../../core/objects.js";
 import { assertTrkorr } from "../../core/policy.js";
-import { defineTool } from "../../core/tool.js";
+import { defineTool, type ArgsOf } from "../../core/tool.js";
 import { transportWarnings } from "../../core/transport.js";
 
 /**
@@ -18,7 +18,7 @@ const input = {
   package: z.string().min(1).describe("Paquete de destino. Debe existir (los paquetes se crean en SE21)"),
   transport: z.string().optional().describe("Orden (o tarea) donde se registra el objeto. Obligatoria si el paquete de destino es transportable"),
 };
-type Args = z.objectOutputType<typeof input, z.ZodTypeAny>;
+type Args = ArgsOf<typeof input>;
 
 const isLocal = (pkg: string) => pkg.startsWith("$");
 

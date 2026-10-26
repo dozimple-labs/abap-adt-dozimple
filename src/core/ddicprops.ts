@@ -24,7 +24,7 @@ export const DomainPropsSchema = z.object({
       lowercase: z.boolean().default(false),
       ampmFormat: z.boolean().default(false),
     })
-    .default({}),
+    .prefault({}),
   valueInformation: z
     .object({
       valueTableRef: z.string().default(""),

@@ -58,7 +58,7 @@ export default defineTool({
   output: {
     mode: z.enum(["badi", "program", "prefix"]),
     target: z.string(),
-    rows: z.array(z.record(z.union([z.string(), z.number(), z.boolean()]))),
+    rows: z.array(z.record(z.string(), z.union([z.string(), z.number(), z.boolean()]))),
     total: z.number().int(),
     truncated: z.boolean(),
   },

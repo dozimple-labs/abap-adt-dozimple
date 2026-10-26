@@ -32,7 +32,9 @@
     }
   ],
   "tools": {
-    "except": ["exec"]
+    "except": ["exec"],
+    "$comment_confirmMinutes": "Minutos que vale un token de confirmación (vista previa → escritura). Por defecto 20, tope 60",
+    "confirmMinutes": 20
   },
   "sidecars": {
     "docs": {

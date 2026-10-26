@@ -4,6 +4,21 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Unreleased]
 
+### Seguridad
+- **zod 4** (issue #4): cierra el aviso alto GHSA-mrhx-c7xc-m3w5 sin excepciones en la auditoría. Dependencias de
+  producción al día tras `npm audit fix` (body-parser, follow-redirects, fast-uri, hono, ip-address). La
+  introspección de esquemas de `docs/TOOLS.md` y el mensaje de «parámetro desconocido» se adaptaron a la API nueva.
+
+### Añadido
+- **Confirmaciones más cómodas sin perder control.** `tools.confirmMinutes` (por defecto 20, antes 10; tope 60) fija cuánto
+  vale un token. Si un token caduca con los mismos argumentos, el servidor repite la vista previa con un token nuevo y
+  dice si el objeto cambió en SAP o no: cuando no cambió, basta con pedir el OK en una línea. La persona sigue
+  confirmando siempre; la vista previa y la descripción de las tools lo recuerdan («una vista previa, un OK, una
+  escritura»).
+- **`push_sources` admite ediciones**: cada archivo lleva `source` completa o `edits` (texto actual → nuevo, como
+  `edit_source`), así varios cambios pequeños en varios objetos son una sola vista previa, una confirmación y una
+  activación conjunta.
+
 ## [2.0.3] - 2026-10-18
 
 Diccionario y RAP con escritura verificados en vivo en un S/4HANA 758: dominios y elementos con propiedades, tipo tabla,

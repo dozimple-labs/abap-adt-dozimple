@@ -101,12 +101,36 @@ async function confirmWrite(
   what = "escritura en SAP",
 ): Promise<Gate> {
   const sys = ctx.system.id;
+  const ttlMs = env.config.tools.confirmMinutes * 60_000;
+  const minutes = env.config.tools.confirmMinutes;
   if (token) {
-    const { check: r, state } = consumeTokenWithState(token, def.name, sys, args);
+    const { check: r, state, sameArgs } = consumeTokenWithState(token, def.name, sys, args);
     if (r === "ok") return { proceed: true, by: "token", state };
+    if (r === "expired" && sameArgs && def.preview) {
+      // Mismo cambio, solo pasó el tiempo: se vuelve a mostrar la vista previa con un token nuevo. Si además el
+      // objeto no cambió en SAP, se dice, para que el OK se pueda pedir con una línea. Sigue decidiendo la persona.
+      deny("token expired");
+      let newState: string | undefined;
+      const preview = await withNotes(() => def.preview!(args, ctx)).then(({ result, notes }) => {
+        if (typeof result === "string") return renderNotes(notes) + result;
+        newState = result.state;
+        return renderNotes(notes) + result.text;
+      });
+      const unchanged = state !== undefined && newState !== undefined && state === newState;
+      const t = issueToken(def.name, sys, args, Date.now(), newState, ttlMs);
+      return {
+        proceed: false,
+        text:
+          `El confirm_token caducó (${minutes} minutos) y NO se ha ${what === "escritura en SAP" ? "escrito" : "ejecutado"} nada. ` +
+          (unchanged
+            ? `Es el MISMO cambio y el objeto no cambió en SAP desde la vista previa que el usuario aprobó: basta con pedirle el OK de nuevo en una línea (no hace falta repetir el diff) y repetir con confirm_token="${t}" (${minutes} minutos).\n\n`
+            : `Los argumentos son los mismos pero el objeto CAMBIÓ en SAP desde la vista previa aprobada: enséñale al usuario esta vista previa nueva y pide su OK antes de repetir con confirm_token="${t}" (${minutes} minutos).\n\n`) +
+          budget(preview),
+      };
+    }
     const why = {
       unknown: "no existe o ya se usó (vale una sola vez y se pierde si el servidor se reinicia)",
-      expired: "caducó (dura 10 minutos)",
+      expired: `caducó (dura ${minutes} minutos)`,
       mismatch: "no corresponde a estos argumentos: cambiaron desde la vista previa",
     }[r];
     deny(`token ${r}`);
@@ -134,13 +158,14 @@ async function confirmWrite(
       throw new ToolError("POLICY", `No se ejecutó nada: el usuario ${answer === "decline" ? "rechazó" : "canceló"} la ${what}.`);
     }
   }
-  const t = issueToken(def.name, sys, args, Date.now(), state);
+  const t = issueToken(def.name, sys, args, Date.now(), state, ttlMs);
   return {
     proceed: false,
     text:
       `VISTA PREVIA: todavía no se ha ${what === "escritura en SAP" ? "escrito" : what.startsWith("lectura") ? "leído" : "ejecutado"} nada.\n` +
       `Enséñale al usuario lo que sigue y, solo con su conformidad explícita, repite la llamada con los mismos ` +
-      `argumentos y confirm_token="${t}" (un solo uso, 10 minutos).\n\n${budget(preview)}`,
+      `argumentos y confirm_token="${t}" (un solo uso, ${minutes} minutos). Una vista previa, un OK, una escritura: no acumules ` +
+      `varias vistas previas para confirmarlas después.\n\n${budget(preview)}`,
   };
 }
 
@@ -363,7 +388,7 @@ function elicitFor(server: McpServer): ToolEnv["elicit"] {
 function describe(def: ToolDef<any>, cfg: Config): string {
   const where = eligibleSystems(def, cfg).map((s) => s.id);
   const notes: string[] = [];
-  if (def.access === "write") notes.push(`Escribe en SAP; solo en: ${where.join(", ")}. Dos pasos: sin confirm_token devuelve la vista previa; con el token, tras la conformidad del usuario, escribe.`);
+  if (def.access === "write") notes.push(`Escribe en SAP; solo en: ${where.join(", ")}. Dos pasos: sin confirm_token devuelve la vista previa; con el token, tras la conformidad del usuario, escribe. Un OK por escritura; para varios objetos, push_sources. Si el token caduca, enseña la vista previa nueva y pide el OK otra vez: nunca confirmes por tu cuenta.`);
   if (def.access === "exec") notes.push(`Ejecuta código; solo en: ${where.join(", ")}.`);
   if (def.requires?.module) notes.push(`Módulo ${def.requires.module}; solo en: ${where.join(", ")}.`);
   if (def.requires?.online) notes.push("Envía la consulta a internet: sin nombres Z, órdenes, sistemas ni clientes (el servidor lo bloquea).");
@@ -379,9 +404,8 @@ function describe(def: ToolDef<any>, cfg: Config): string {
  */
 export function strictInput(tool: string, shape: z.ZodRawShape) {
   const known = Object.keys(shape);
-  return z.object(shape).strict(
-    `Parámetro desconocido para ${tool}: no se ejecutó nada. Admitidos: ${known.length ? known.join(", ") : "ninguno"}.`,
-  );
+  const message = `Parámetro desconocido para ${tool}: no se ejecutó nada. Admitidos: ${known.length ? known.join(", ") : "ninguno"}.`;
+  return z.strictObject(shape, { error: (issue) => (issue.code === "unrecognized_keys" ? message : undefined) });
 }
 
 /** Pistas MCP para el cliente: las escrituras se marcan destructivas para que pida confirmación. */

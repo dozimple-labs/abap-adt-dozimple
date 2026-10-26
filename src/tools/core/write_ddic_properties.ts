@@ -40,7 +40,7 @@ export default defineTool({
   input: {
     object_type: z.enum(["DTEL", "DOMA"]),
     name: z.string().min(1),
-    properties: z.record(z.unknown()).describe("Propiedades completas, como en create_object (ddic_properties)"),
+    properties: z.record(z.string(), z.unknown()).describe("Propiedades completas, como en create_object (ddic_properties)"),
     description: z.string().max(60).optional().describe("Texto breve nuevo; si se omite, se conserva"),
     transport: z.string().optional().describe("Orden (o tarea). Obligatoria salvo objetos locales"),
     activate: z.boolean().default(true),

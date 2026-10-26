@@ -5,7 +5,7 @@ import { stateOf } from "../../core/confirm.js";
 import { ToolError } from "../../core/errors.js";
 import { resolveObject, TYPE_HELP } from "../../core/objects.js";
 import { assertTrkorr } from "../../core/policy.js";
-import { defineTool, type ToolContext } from "../../core/tool.js";
+import { defineTool, type ArgsOf, type ToolContext } from "../../core/tool.js";
 
 /**
  * Activar uno o varios objetos. Varios van en UNA sola activación de SAP (como «Activar» con varios objetos en Eclipse
@@ -30,7 +30,7 @@ const input = {
   all_inactive: z.boolean().default(false).describe("Todos los objetos inactivos del usuario de la conexión (como «activar todo» en Eclipse)"),
   transport: z.string().optional().describe("Con all_inactive: solo los inactivos de esta orden"),
 };
-type Args = z.objectOutputType<typeof input, z.ZodTypeAny>;
+type Args = ArgsOf<typeof input>;
 
 interface Plan {
   targets: InactiveObject[];

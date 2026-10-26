@@ -369,12 +369,12 @@ Salida estructurada (`structuredContent`, además del texto):
 | `original_system` | string |  |
 | `local` | boolean |  |
 | `locks` | lista de { order, description } | Órdenes con bloqueo CTS: cualquier cambio irá ahí |
-| `source` | nullable |  |
-| `summary` | nullable | Resumen local de la fuente (abaplint): qué hay y qué toca, sin la fuente |
+| `source` | object |  |
+| `summary` | object | Resumen local de la fuente (abaplint): qué hay y qué toca, sin la fuente |
 | `versions` | lista de { date, author, transport, title } |  |
-| `usages` | nullable |  |
-| `drift` | nullable |  |
-| `atc` | nullable |  |
+| `usages` | object |  |
+| `drift` | lista de { target, status, detail } |  |
+| `atc` | object |  |
 | `depth` | number |  |
 | `skipped` | lista de string | Secciones que no se pudieron leer, con el motivo |
 
@@ -509,7 +509,7 @@ Donde ADT no crea ni modifica diccionario (ECC / NW 7.50): valida una especifica
 | `table_types` | lista de { name, row_type, text } | [] |  |
 | `function_groups` | lista de { name, text } | [] |  |
 | `functions` | lista de { name, group, text, rfc, importing, exporting, tables } | [] |  |
-| `modify` | object | {} | Objetos que YA existen: solo se indica lo que cambia |
+| `modify` * | prefault |  | Objetos que YA existen: solo se indica lo que cambia |
 
 \* obligatorio
 
@@ -1336,7 +1336,7 @@ Sustituye fragmentos exactos de la fuente de un objeto sin reenviarla entera: ca
 
 ### `push_sources` — Guardar varias fuentes en una operación
 
-Guarda las fuentes completas de varios objetos existentes (hasta 20, includes de clase incluidos) en la misma orden con una sola vista previa consolidada (sintaxis y diff por objeto) y una sola confirmación; después los activa juntos. Lo que falle se dice por objeto y no se activa. Objetos nuevos: create_object.
+Varios objetos existentes (hasta 20) en la misma orden con una sola vista previa consolidada (sintaxis y diff por objeto), una sola confirmación y activación conjunta. Cada objeto lleva su fuente completa o sus ediciones (texto actual → nuevo, como edit_source). Lo que falle se dice y no se activa. Nuevos: create_object.
 
 | | |
 |---|---|
@@ -1346,7 +1346,7 @@ Guarda las fuentes completas de varios objetos existentes (hasta 20, includes de
 | Parámetro | Tipo | Por defecto | Descripción |
 |---|---|---|---|
 | `system` | string |  | Sistema SAP configurado. Obligatorio si hay varios y ninguno por defecto. |
-| `files` * | lista de { object_name, object_type, include, source } |  |  |
+| `files` * | lista de { object_name, object_type, include, source, edits } |  |  |
 | `transport` | string |  | Orden (o tarea) para todos. Obligatoria salvo objetos locales |
 | `activate` | boolean | true | Activar todos juntos al final |
 | `skip_syntax_check` | boolean | false |  |

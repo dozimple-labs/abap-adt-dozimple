@@ -8,7 +8,7 @@ import { describeDdicProps, parseDdicProps, type DataElementProperties, type Dom
 import { normalizeError, ToolError } from "../../core/errors.js";
 import { resolveObject, sourceUrl, sqlLiteral, type ResolvedObject } from "../../core/objects.js";
 import { assertTrkorr } from "../../core/policy.js";
-import { defineTool } from "../../core/tool.js";
+import { defineTool, type ArgsOf } from "../../core/tool.js";
 import { transportWarnings } from "../../core/transport.js";
 
 /**
@@ -173,11 +173,11 @@ const input = {
   function_group: z.string().optional().describe("Solo FUNC: grupo de funciones donde se crea"),
   transport: z.string().optional().describe("Orden (o tarea). Obligatoria si el paquete es transportable"),
   source: z.string().optional().describe("Fuente inicial completa. Se comprueba la sintaxis antes de guardarla; una clase, entera. Tablas, estructuras y tipos tabla: sintaxis DDL de ADT (@EndUserText.label … define table ztab { key client : abap.clnt; … }). BDEF/SRVD/DDLX: su fuente RAP"),
-  ddic_properties: z.record(z.unknown()).optional().describe("Solo DTEL y DOMA: propiedades como en ADT. DOMA: { typeInformation: { datatype, length, decimals }, outputInformation: { length, conversionExit, lowercase, signExists }, valueInformation: { valueTableRef, fixValues: [{ low, high, text }] } }. DTEL: { dataType: 'DOMAIN'|'PREDEFINED', typeName, dataTypeLength, dataTypeDecimals, fieldLabels: { shortFieldLabel, mediumFieldLabel, longFieldLabel, headingFieldLabel }, searchHelp }"),
+  ddic_properties: z.record(z.string(), z.unknown()).optional().describe("Solo DTEL y DOMA: propiedades como en ADT. DOMA: { typeInformation: { datatype, length, decimals }, outputInformation: { length, conversionExit, lowercase, signExists }, valueInformation: { valueTableRef, fixValues: [{ low, high, text }] } }. DTEL: { dataType: 'DOMAIN'|'PREDEFINED', typeName, dataTypeLength, dataTypeDecimals, fieldLabels: { shortFieldLabel, mediumFieldLabel, longFieldLabel, headingFieldLabel }, searchHelp }"),
   service_definition: z.string().optional().describe("Solo SRVB: definición de servicio (SRVD) que publica"),
   activate: z.boolean().default(true).describe("Activar tras guardar la fuente inicial o las propiedades"),
 };
-type Args = z.objectOutputType<typeof input, z.ZodTypeAny>;
+type Args = ArgsOf<typeof input>;
 
 async function missingCollections(sap: SapConnection, kind: Kind): Promise<string[]> {
   const caps = await sap.capabilities();
