@@ -238,6 +238,13 @@ export function assertElevations(system: SystemConfig, names: Iterable<string>):
   return { categories: [...cats.keys()], elevated };
 }
 
+/** «SELECT *» o «x~*» en una consulta con JOIN (fuera de literales). */
+export function starOverJoin(sql: string): boolean {
+  const code = sql.replace(/'(?:[^']|'')*'/g, " ").toUpperCase();
+  if (!/\bJOIN\b/.test(code)) return false;
+  return /\bSELECT\s+(DISTINCT\s+|SINGLE\s+)?\*/.test(code) || /[A-Z0-9_/]~\*/.test(code) || /,\s*\*/.test(code);
+}
+
 /** Toda consulta de datos del usuario pasa por aquí: análisis de fuentes, veto, vistas, categorías, tope y enmascarado. */
 export async function guardedQuery(sap: SapConnection, system: SystemConfig, sql: string, requestedRows: number): Promise<GuardedResult> {
   const q = assertSelectOnly(sql);
@@ -250,8 +257,26 @@ export async function guardedQuery(sap: SapConnection, system: SystemConfig, sql
   const elev = assertElevations(system, all);
   const cls = elev.elevated.includes("PERSONAS_NEGOCIO") ? "test" : dataClassOf(system);
   const cap = Math.min(requestedRows, rowCap(system));
+  // Con una unión, «SELECT *» o «alias~*» hace que ADT devuelva una columna por alias con la fila entera como texto:
+  // los nombres de columna ya no son campos y el enmascarado no los reconoce. Con datos no de prueba, se exige la
+  // lista de columnas (verificado en vivo en un gateway con datos productivos).
+  if (cls !== "test" && starOverJoin(q)) {
+    throw new ToolError(
+      "POLICY",
+      `En un sistema con datos ${cls === "prod" ? "productivos" : "enmascarados"}, una consulta con JOIN tiene que nombrar sus columnas: «SELECT *» o «alias~*» devuelve la fila entera por alias y saltaría el enmascarado de datos personales.`,
+      "Escribe las columnas: SELECT a~campo1, b~campo2 FROM … JOIN …",
+    );
+  }
   const r = await sap.query(q, cap);
   const columns = r.columns.map((c) => c.name);
+  // Defensa en profundidad: una columna cuyo valor no es escalar (estructura o fila agrupada) no se puede enmascarar.
+  if (cls !== "test") {
+    const composite = columns.filter((c) => r.values.some((v) => v[c] !== null && typeof v[c] === "object"));
+    if (composite.length) {
+      r.values.length = 0;
+      throw new ToolError("POLICY", `Consulta bloqueada: columnas compuestas (${composite.join(", ")}) que no se pueden enmascarar. Nombra las columnas concretas.`);
+    }
+  }
   // «SELECT *» no nombra las columnas: el veto se aplica también a lo que DEVUELVE SAP. Si llega alguna vetada, se
   // descarta el resultado entero antes de mostrar nada.
   const vetoed = columns.filter((c) => SENSITIVE_COLUMNS.includes(c.toUpperCase()));
