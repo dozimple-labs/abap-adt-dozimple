@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { ToolDef } from "../src/core/tool.js";
 import addTask from "../src/tools/core/add_transport_task.js";
 import release from "../src/tools/core/release_transport.js";
+import { lockKeyHas } from "../src/core/transportrelease.js";
 
 const rel = release as ToolDef<any>;
 const add = addTask as ToolDef<any>;
@@ -26,8 +27,8 @@ function setup(rows: Row[], e071: Record<string, Array<{ PGMID: string; OBJECT: 
       }
       if (/FROM e071/.test(sql)) return { values: inList(sql).flatMap((t) => e071[t] ?? []) };
       if (/FROM tlock/.test(sql)) {
-        const name = inList(sql)[0].replace(/[%#]/g, "");
-        return { values: tlock.filter((l) => l.LOKEY.includes(name)) };
+        const names = inList(sql).filter((x) => x !== "#").map((x) => x.replace(/[%#]/g, ""));
+        return { values: tlock.filter((l) => names.some((n) => l.LOKEY.includes(n))) };
       }
       return { values: [] };
     },
@@ -84,6 +85,37 @@ describe("release_transport", () => {
     await expect(rel.preview!({ transport: "DEVK900005" }, s.ctx)).rejects.toThrow(/PROG ZDEMO_REP: el bloqueo del CTS lo tiene DEVK900007.*incluidos los cambios sin liberar/s);
   });
 
+  it("R15 con entradas LIMU: el módulo de función va dentro de la clave del grupo", async () => {
+    const s = setup(
+      [row("DEVK900005", { TRFUNCTION: "T" }), row("DEVK900007", { AS4USER: "OTRA" }), row("DEVK900008", { STRKORR: "DEVK900007", TRFUNCTION: "S", AS4USER: "OTRA" })],
+      { DEVK900005: [{ PGMID: "CORR", OBJECT: "MERG", OBJ_NAME: "DEVK900004 20261027 DEV_ME" }, { PGMID: "LIMU", OBJECT: "FUNC", OBJ_NAME: "ZDEMO_FM" }, { PGMID: "LIMU", OBJECT: "REPS", OBJ_NAME: "ZDEMO_REP_F01" }] },
+      [
+        { OBJECT: "FUGR", LOKEY: "ZDEMO_FG                  FUNCZDEMO_FM          ", TRKORR: "DEVK900008" },
+        { OBJECT: "PROG", LOKEY: "ZDEMO_REP_F01                        REPOREPS", TRKORR: "DEVK900008" },
+      ],
+    );
+    const e = await rel.preview!({ transport: "DEVK900005" }, s.ctx).catch((x) => x);
+    expect(e.message).toMatch(/FUNC ZDEMO_FM: el bloqueo del CTS lo tiene DEVK900007/);
+    expect(e.message).toMatch(/REPS ZDEMO_REP_F01: el bloqueo del CTS lo tiene DEVK900007/);
+  });
+
+  it("si el bloqueo lo tiene una orden propia, se libera con aviso de qué estado viaja", async () => {
+    const s = setup(
+      [row("DEVK900005", { TRFUNCTION: "T" }), row("DEVK900007"), row("DEVK900008", { STRKORR: "DEVK900007", TRFUNCTION: "S" })],
+      { DEVK900005: [OBJ] },
+      [{ OBJECT: "PROG", LOKEY: "ZDEMO_REP", TRKORR: "DEVK900008" }],
+    );
+    const p: any = await rel.preview!({ transport: "DEVK900005" }, s.ctx);
+    expect(p).toMatch(/1 objeto\(s\) los tiene bloqueados tu orden DEVK900007 \(PROG ZDEMO_REP\): viaja su estado actual/);
+  });
+
+  it("la clave de bloqueo se compara por trozos, no por subcadena", () => {
+    expect(lockKeyHas("ZDEMO_FG   FUNCZDEMO_FM   ", "ZDEMO_FM")).toBe(true);
+    expect(lockKeyHas("ZDEMO_FG   PROGLZDEMO_FGF02   REPOREPS", "LZDEMO_FGF02")).toBe(true);
+    expect(lockKeyHas("ZDEMO_TAB_E", "ZDEMO_TAB")).toBe(false);
+    expect(lockKeyHas("ZDEMO_FG   FUNCZDEMO_FM_2", "ZDEMO_FM")).toBe(false);
+  });
+
   it("transporte de copias limpio: dice a qué cola va y que no se importa nada", async () => {
     const s = setup([row("DEVK900005", { TRFUNCTION: "T" })], { DEVK900005: [OBJ] });
     const p: any = await rel.preview!({ transport: "DEVK900005" }, s.ctx);
@@ -117,5 +149,6 @@ describe("add_transport_task", () => {
     await expect(add.preview!({ transport: "DEVK900001" }, setup([row("DEVK900001"), row("DEVK900002", { STRKORR: "DEVK900001", TRFUNCTION: "S" })]).ctx)).rejects.toThrow(/ya tiene la tarea abierta DEVK900002/);
     await expect(add.preview!({ transport: "DEVK900002" }, setup([row("DEVK900002", { STRKORR: "DEVK900001" })]).ctx)).rejects.toThrow(/es una tarea de DEVK900001/);
     await expect(add.preview!({ transport: "DEVK900001" }, setup([row("DEVK900001", { TRSTATUS: "R" })]).ctx)).rejects.toThrow(/no está modificable/);
+    await expect(add.preview!({ transport: "DEVK900005" }, setup([row("DEVK900005", { TRFUNCTION: "T" })]).ctx)).rejects.toThrow(/transporte de copias: no lleva tareas/);
   });
 });

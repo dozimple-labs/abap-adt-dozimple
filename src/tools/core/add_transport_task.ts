@@ -12,6 +12,7 @@ async function inspect(sap: SapConnection, order: string, user: string) {
   const h = (await orderHeaders(sap, [order])).get(order);
   if (!h) throw new ToolError("NOT_FOUND", `${order} no existe en este sistema.`);
   if (h.parent?.trim()) throw new ToolError("INPUT", `${order} es una tarea de ${h.parent}: las tareas se añaden a la orden.`);
+  if (h.trfunction === "T") throw new ToolError("INPUT", `${order} es un transporte de copias: no lleva tareas, los objetos se añaden a la orden.`);
   if (!isOpen(h.trstatus)) throw new ToolError("INPUT", `${order} no está modificable (${TRSTATUS[h.trstatus] ?? h.trstatus}).`);
   const rows = await sap.query(`SELECT trkorr, as4user, trstatus FROM e070 WHERE strkorr = ${sqlLiteral(order)}`, 500);
   const own = rows.values.filter((r) => String(r.AS4USER).trim().toUpperCase() === user && isOpen(String(r.TRSTATUS)));

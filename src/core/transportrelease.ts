@@ -1,6 +1,6 @@
 import type { SapConnection } from "./connection.js";
 import { sqlLiteral } from "./objects.js";
-import { ctsLocks } from "./preflight.js";
+import { likeEscape } from "./preflight.js";
 import { describeOrder, isOpen, orderEntries, orderHeaders, TRFUNCTION, TRSTATUS, type OrderHeader } from "./transport.js";
 
 /**
@@ -10,8 +10,40 @@ import { describeOrder, isOpen, orderEntries, orderHeaders, TRFUNCTION, TRSTATUS
  * nada aquí ignora bloqueos ni el ATC de liberación.
  */
 
-/** Objetos R3TR que se revisan contra TLOCK; más allá, se dice que no se miró todo. */
+/** Objetos que se revisan contra TLOCK; más allá, se dice que no se miró todo. */
 export const LOCK_CHECK_CAP = 60;
+
+/**
+ * ¿Aparece el objeto en la clave de un bloqueo? La clave de TLOCK no es solo el nombre: un módulo de función o un
+ * include de grupo van dentro de la clave del grupo («ZGRUPO   FUNCZMODULO», «… PROGLZGRUPOF01  REPOREPS»), así que
+ * se compara cada trozo de la clave con el nombre, solo o tras un tipo de cuatro letras.
+ */
+export function lockKeyHas(lokey: string, name: string): boolean {
+  return lokey.trim().split(/\s+/).some((t) => t === name || (t.length === name.length + 4 && t.endsWith(name) && /^[A-Z]{4}$/.test(t.slice(0, 4))));
+}
+
+/** Bloqueos del CTS de unos objetos (R3TR o LIMU), resueltos a la orden que los tiene. */
+async function locksOf(sap: SapConnection, names: string[]): Promise<Map<string, OrderHeader[]>> {
+  const hits: Array<{ name: string; trkorr: string }> = [];
+  for (let i = 0; i < names.length; i += 10) {
+    const part = names.slice(i, i + 10);
+    const where = part.map((n) => `lokey LIKE ${sqlLiteral("%" + likeEscape(n) + "%")} ESCAPE '#'`).join(" OR ");
+    const r = await sap.query(`SELECT lokey, trkorr FROM tlock WHERE ${where}`, 500);
+    for (const l of r.values) for (const n of part) if (lockKeyHas(String(l.LOKEY), n)) hits.push({ name: n, trkorr: String(l.TRKORR) });
+  }
+  const heads = await orderHeaders(sap, hits.map((h) => h.trkorr));
+  const parents = await orderHeaders(sap, [...heads.values()].map((h) => h.parent).filter(Boolean));
+  const out = new Map<string, OrderHeader[]>();
+  for (const h of hits) {
+    const task = heads.get(h.trkorr);
+    const order = task?.parent ? parents.get(task.parent) ?? task : task;
+    if (!order) continue;
+    const list = out.get(h.name) ?? [];
+    if (!list.some((o) => o.trkorr === order.trkorr)) list.push(order);
+    out.set(h.name, list);
+  }
+  return out;
+}
 
 export interface ReleaseAssessment {
   target: OrderHeader;
@@ -59,16 +91,22 @@ export async function assessRelease(sap: SapConnection, trkorr: string, myUser: 
     : await orderEntries(sap, root);
   if (!entries.length) notes.push(`${scope} no tiene objetos: la liberación no transporta nada.`);
 
-  // R15: el bloqueo del CTS lo tiene otra orden.
-  const keys = [...new Map(entries.filter((e) => e.PGMID === "R3TR").map((e) => [`${e.OBJECT} ${e.OBJ_NAME}`, { object: e.OBJECT, name: e.OBJ_NAME.trim() }])).values()];
-  for (const k of keys.slice(0, LOCK_CHECK_CAP)) {
-    for (const l of await ctsLocks(sap, k)) {
-      if (l.order !== root) {
-        blockers.push(`${k.object} ${k.name}: el bloqueo del CTS lo tiene ${l.description}. Al liberar, ${scope} se lleva lo que haya en desarrollo, incluidos los cambios sin liberar de esa orden.`);
-      }
+  // R15: el bloqueo del CTS lo tiene otra orden. Las entradas LIMU cuentan: un transporte de copias suele llevarlas.
+  const objs = [...new Map(entries.filter((e) => e.PGMID === "R3TR" || e.PGMID === "LIMU").map((e) => [e.OBJ_NAME.trim(), `${e.OBJECT} ${e.OBJ_NAME.trim()}`])).entries()];
+  const locks = await locksOf(sap, objs.slice(0, LOCK_CHECK_CAP).map(([n]) => n));
+  // Si la orden que bloquea es de otra persona, se llevarían su trabajo sin liberar: no se libera. Si es propia
+  // (la copia de la orden en curso para probar en calidad), es el uso normal: se avisa de qué estado viaja.
+  const ownLocks = new Map<string, string[]>();
+  for (const [name, label] of objs.slice(0, LOCK_CHECK_CAP)) {
+    for (const o of (locks.get(name) ?? []).filter((o) => o.trkorr !== root)) {
+      if (same(o.owner, myUser)) ownLocks.set(o.trkorr, [...(ownLocks.get(o.trkorr) ?? []), label]);
+      else blockers.push(`${label}: el bloqueo del CTS lo tiene ${describeOrder(o)}. Al liberar, ${scope} se lleva lo que haya en desarrollo, incluidos los cambios sin liberar de ${o.owner}.`);
     }
   }
-  if (keys.length > LOCK_CHECK_CAP) notes.push(`Solo se revisaron los bloqueos del CTS de ${LOCK_CHECK_CAP} de ${keys.length} objetos.`);
+  for (const [tr, labels] of ownLocks) {
+    notes.push(`${labels.length} objeto(s) los tiene bloqueados tu orden ${tr} (${labels.slice(0, 3).join(", ")}${labels.length > 3 ? "…" : ""}): viaja su estado actual en desarrollo, también lo que aún no esté activado o terminado.`);
+  }
+  if (objs.length > LOCK_CHECK_CAP) notes.push(`Solo se revisaron los bloqueos del CTS de ${LOCK_CHECK_CAP} de ${objs.length} objetos.`);
 
   if (isTask) {
     notes.push(`Liberar la tarea no transporta nada: la orden ${root} sigue abierta.`);
