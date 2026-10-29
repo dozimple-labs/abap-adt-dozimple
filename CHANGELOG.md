@@ -4,6 +4,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Unreleased]
 
+### Seguridad
+- **`SELECT *` sobre una unión saltaba el enmascarado** en sistemas con datos productivos: ADT devuelve una columna
+  por alias con la fila entera y los nombres ya no son campos. Ahora, fuera de sistemas de prueba, una consulta con
+  JOIN tiene que nombrar sus columnas, y cualquier columna con valor compuesto se rechaza sin devolver datos.
+  Encontrado en vivo en un gateway con datos productivos.
+
 ## [2.1.0] - 2026-10-26
 
 Confirmaciones más cómodas sin perder control: caducidad configurable (20 minutos por defecto), renovación controlada
