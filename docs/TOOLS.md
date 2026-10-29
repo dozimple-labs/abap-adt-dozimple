@@ -1,6 +1,6 @@
 # Referencia de tools — abap-adt-doZimple
 
-Generado desde el código con `npm run docs`. 78 tools en 10 grupos y 3 flujos guiados.
+Generado desde el código con `npm run docs`. 80 tools en 10 grupos y 3 flujos guiados.
 Producto de [DoZimple](https://dozimple.cl).
 
 ## Índice
@@ -12,7 +12,7 @@ Producto de [DoZimple](https://dozimple.cl).
 - [Diagnóstico de incidentes](#diagnostico) — 8 tools: `dumps`, `diagnose_message`, `jobs`, `application_log`, `gateway_errors`, `abap_traces`, `sql_traces`, `system_messages`
 - [Depuración de solo lectura](#depuracion) — 5 tools: `debug_breakpoints`, `debug_listen`, `debug_variables`, `debug_step`, `debug_stop`
 - [Documentación SAP](#documentacion) — 7 tools: `abap_feature_matrix`, `docs_search`, `docs_fetch`, `clean_core_objects`, `clean_core_object`, `abap_lint`, `docs_community_search`
-- [Escritura controlada](#escritura) — 10 tools: `create_object`, `write_source`, `edit_source`, `push_sources`, `write_ddic_properties`, `revert_source`, `change_package`, `activate`, `write_text_elements`, `create_transport`
+- [Escritura controlada](#escritura) — 12 tools: `create_object`, `write_source`, `edit_source`, `push_sources`, `write_ddic_properties`, `revert_source`, `change_package`, `activate`, `write_text_elements`, `create_transport`, `add_transport_task`, `release_transport`
 - [DoZimple Transport Risk](#transport-risk) — 7 tools: `analyze_transport_risk`, `import_health`, `failure_ranking`, `change_audit`, `object_transport_history`, `remote_source`, `transport_source_check`
 - [Operación y crecimiento](#operacion) — 4 tools: `sap_systems`, `report_gap`, `close_gap`, `usage_stats`
 - [Flujos guiados](#flujos-guiados)
@@ -1481,6 +1481,43 @@ Crea una orden workbench para el paquete de un objeto, ANTES de la primera edici
 | `object_type` | string |  | Tipo corto: PROG, INCL, CLAS, INTF, FUGR, FUNC, DDLS, DDLX, DCLS, TABL, STRU, VIEW, DTEL, DOMA, TTYP, MSAG, XSLT, BDEF, SRVD, SRVB, ENHO. También vale el tipo ADT (p. ej. PROG/P). |
 | `text` * | string |  | Texto de la orden (máx. 60, E07T-AS4TEXT) |
 | `transport_layer` | string |  |  |
+| `confirm_token` | string |  | Token de la vista previa. Sin él la tool no escribe: devuelve qué va a cambiar y el token, que se usa tras la conformidad del usuario (un solo uso, 10 min). |
+
+\* obligatorio
+
+### `add_transport_task` — Añadir tarea a una orden
+
+Añade a una orden abierta una tarea para un usuario (por defecto, el de la conexión), como «Añadir usuario» en SE09. Sirve para trabajar en la orden de otra persona sin crear una orden nueva. La vista previa muestra la orden y sus tareas, y avisa si ese usuario ya tiene una tarea abierta en ella. No libera nada.
+
+| | |
+|---|---|
+| **Acceso** | Escribe (solo DEV con `allowWrite`; nunca QAS/PRD) |
+| **Requiere** | endpoint ADT `/sap/bc/adt/cts/transports` |
+| **Créditos** | [abap-adt-api](https://github.com/marcellourbani/abap-adt-api) — Marcello Urbani (MIT, dependencia) |
+
+| Parámetro | Tipo | Por defecto | Descripción |
+|---|---|---|---|
+| `system` | string |  | Sistema SAP configurado. Obligatorio si hay varios y ninguno por defecto. |
+| `transport` * | string |  | Orden (no tarea) a la que se añade la tarea |
+| `user` | string |  | Usuario SAP de la tarea (por defecto, el de la conexión) |
+| `confirm_token` | string |  | Token de la vista previa. Sin él la tool no escribe: devuelve qué va a cambiar y el token, que se usa tras la conformidad del usuario (un solo uso, 10 min). |
+
+\* obligatorio
+
+### `release_transport` — Liberar tarea u orden
+
+Libera una tarea u orden propia (workbench, customizing o transporte de copias), solo cuando la persona lo pide. La vista previa dice a qué cola va y qué lo impide: tareas sin liberar, orden ajena o un bloqueo del CTS de otra orden (R15). Nunca ignora bloqueos ni el ATC y no importa nada (eso es STMS). Antes, analyze_transport_risk.
+
+| | |
+|---|---|
+| **Acceso** | Escribe (solo DEV con `allowWrite`; nunca QAS/PRD) |
+| **Requiere** | endpoint ADT `/sap/bc/adt/cts/transports` |
+| **Créditos** | [abap-adt-api](https://github.com/marcellourbani/abap-adt-api) — Marcello Urbani (MIT, dependencia) |
+
+| Parámetro | Tipo | Por defecto | Descripción |
+|---|---|---|---|
+| `system` | string |  | Sistema SAP configurado. Obligatorio si hay varios y ninguno por defecto. |
+| `transport` * | string |  | Tarea u orden a liberar (p. ej. DEVK900123) |
 | `confirm_token` | string |  | Token de la vista previa. Sin él la tool no escribe: devuelve qué va a cambiar y el token, que se usa tras la conformidad del usuario (un solo uso, 10 min). |
 
 \* obligatorio

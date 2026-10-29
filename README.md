@@ -63,7 +63,7 @@ and **a failure is never presented as an empty result or as success**.
 | [Incident diagnosis](#g-diagnostico) | One conversation for what used to take ST22, SM37, SLG1 and /IWFND/ERROR_LOG. | 8 |
 | [Read-only debugging](#g-depuracion) | See where a program stops and what its values are, without changing anything and only in development. | 5 |
 | [SAP documentation](#g-documentacion) | Answer from official documentation and check which syntax exists in each release. | 7 |
-| [Controlled writes](#g-escritura) | Save changes only in development, in the right transport, previewed and confirmed by a human. | 10 |
+| [Controlled writes](#g-escritura) | Save changes only in development, in the right transport, previewed and confirmed by a human. | 12 |
 | [DoZimple Transport Risk](#g-transport-risk) | Decide whether a whole release can go to QA or production, with the why in business terms. | 7 |
 | [Operations and growth](#g-operacion) | See what works on each system and decide the next tool with data. | 4 |
 <!-- groups:end -->
@@ -231,6 +231,8 @@ Summary per group; each tool's details — parameters, types, defaults, requirem
 | [`activate`](docs/TOOLS.md#escritura) | **Activate objects.** Activates one object, a list, or all inactive objects of the connection user (optionally of one transport) together in a single SAP activation, which resolves mutual dependencies; never activates pending deletions. | writes (authorized DEV) |
 | [`write_text_elements`](docs/TOOLS.md#escritura) | **Create or change text symbols.** Adds or changes text symbols (or selection texts) of a program/class/group, merging with the existing ones: nothing not mentioned is deleted. | writes (authorized DEV) |
 | [`create_transport`](docs/TOOLS.md#escritura) | **Create transport request.** Creates a workbench request for an object's package BEFORE the first edit, so the change lands in the ticket's transport and not in a reused task. | writes (authorized DEV) |
+| [`add_transport_task`](docs/TOOLS.md#escritura) | **Add task to a transport.** Adds a task for a user (by default the connection user) to an open transport request, like “Add user” in SE09; warns if that user already has an open task there. Releases nothing. | writes (authorized DEV) |
+| [`release_transport`](docs/TOOLS.md#escritura) | **Release task or transport.** Releases a task or request (workbench, customizing or transport of copies) of the connection user, only on request: the preview shows what is released, its tasks and target queue, and what blocks it (unreleased tasks, someone else's request, CTS locks held by another request). Never ignores locks or the release ATC, and imports nothing. | writes (authorized DEV) |
 
 <a id="g-transport-risk"></a>
 ### DoZimple Transport Risk
@@ -430,7 +432,7 @@ abap-adt-doZimple is built on other people's work, and says so: each tool lists 
 <!-- credits:start -->
 | Project | Author / holder | License | Type | Used in |
 |---|---|---|---|---|
-| [abap-adt-api](https://github.com/marcellourbani/abap-adt-api) | Marcello Urbani | MIT | dependency | all (core), `transport_diff`, `transport_contents`, `my_transports`, `inactive_objects`, `edit_preflight` and 40 more |
+| [abap-adt-api](https://github.com/marcellourbani/abap-adt-api) | Marcello Urbani | MIT | dependency | all (core), `transport_diff`, `transport_contents`, `my_transports`, `inactive_objects`, `edit_preflight` and 42 more |
 | [Model Context Protocol TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk) | Model Context Protocol | MIT | dependency | all (core) |
 | [mcp-sap-docs](https://github.com/marianfoo/mcp-sap-docs) | Marian Zeis (marianfoo) | Apache-2.0 | dependency | `abap_feature_matrix`, `docs_search`, `docs_fetch`, `clean_core_objects`, `clean_core_object`, `abap_lint` and 1 more |
 | [abaplint](https://github.com/abaplint/abaplint) | Lars Hvam and contributors | MIT | dependency | `code_structure`, `package_dependencies`, `unused_methods`, `abap_lint` |
