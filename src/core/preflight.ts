@@ -35,7 +35,7 @@ export async function tadirInfo(sap: Pick<SapConnection, "query">, key: { object
 }
 
 const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&");
-const likeEscape = (s: string) => s.replace(/[#%_]/g, (c) => "#" + c);
+export const likeEscape = (s: string) => s.replace(/[#%_]/g, (c) => "#" + c);
 
 export interface CtsLock {
   /** Orden (padre) que tiene el bloqueo. */

@@ -62,7 +62,7 @@ El agente elige las tools, las encadena y responde con evidencia. Cada respuesta
 | [Diagnóstico de incidentes](#g-diagnostico) | Reunir en una conversación lo que antes exigía ST22, SM37, SLG1 y /IWFND/ERROR_LOG. | 8 |
 | [Depuración de solo lectura](#g-depuracion) | Ver dónde se para un programa y qué valores tiene, sin cambiar nada y solo en desarrollo. | 5 |
 | [Documentación SAP](#g-documentacion) | Responder con la documentación oficial y comprobar qué sintaxis existe en cada release. | 7 |
-| [Escritura controlada](#g-escritura) | Guardar cambios solo en desarrollo, en la orden correcta y con la sintaxis verificada antes. | 10 |
+| [Escritura controlada](#g-escritura) | Guardar cambios solo en desarrollo, en la orden correcta y con la sintaxis verificada antes. | 12 |
 | [DoZimple Transport Risk](#g-transport-risk) | Decidir si un pase entero puede ir a calidad o productivo, con el porqué en lenguaje de negocio. | 7 |
 | [Operación y crecimiento](#g-operacion) | Ver qué funciona en cada sistema y decidir con datos cuál es la siguiente tool. | 4 |
 <!-- groups:end -->
@@ -230,6 +230,8 @@ la **[referencia completa](docs/TOOLS.md)**.
 | [`activate`](docs/TOOLS.md#escritura) | **Activar objetos.** Activa un objeto, una lista o todos los inactivos del usuario (opcionalmente de una orden) y devuelve los mensajes de SAP tal cual (errores con línea, avisos, inactivos). | escribe (DEV autorizado) |
 | [`write_text_elements`](docs/TOOLS.md#escritura) | **Crear o cambiar símbolos de texto.** Añade o modifica símbolos de texto (o textos de selección) de un programa/clase/grupo, fusionando con los existentes: no borra los que no se mencionan. | escribe (DEV autorizado) |
 | [`create_transport`](docs/TOOLS.md#escritura) | **Crear orden de transporte.** Crea una orden workbench para el paquete de un objeto, ANTES de la primera edición, para que el cambio caiga en la orden del ticket y no en una tarea reutilizada. | escribe (DEV autorizado) |
+| [`add_transport_task`](docs/TOOLS.md#escritura) | **Añadir tarea a una orden.** Añade a una orden abierta una tarea para un usuario (por defecto, el de la conexión), como «Añadir usuario» en SE09. | escribe (DEV autorizado) |
+| [`release_transport`](docs/TOOLS.md#escritura) | **Liberar tarea u orden.** Libera una tarea u orden propia (workbench, customizing o transporte de copias), solo cuando la persona lo pide. | escribe (DEV autorizado) |
 
 <a id="g-transport-risk"></a>
 ### DoZimple Transport Risk
@@ -433,7 +435,7 @@ abap-adt-doZimple se construye sobre el trabajo de otros, y lo reconoce: cada to
 <!-- credits:start -->
 | Proyecto | Autor / titular | Licencia | Tipo | Usado en |
 |---|---|---|---|---|
-| [abap-adt-api](https://github.com/marcellourbani/abap-adt-api) | Marcello Urbani | MIT | dependencia | todas (núcleo), `transport_diff`, `transport_contents`, `my_transports`, `inactive_objects`, `edit_preflight` y 40 más |
+| [abap-adt-api](https://github.com/marcellourbani/abap-adt-api) | Marcello Urbani | MIT | dependencia | todas (núcleo), `transport_diff`, `transport_contents`, `my_transports`, `inactive_objects`, `edit_preflight` y 42 más |
 | [Model Context Protocol TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk) | Model Context Protocol | MIT | dependencia | todas (núcleo) |
 | [mcp-sap-docs](https://github.com/marianfoo/mcp-sap-docs) | Marian Zeis (marianfoo) | Apache-2.0 | dependencia | `abap_feature_matrix`, `docs_search`, `docs_fetch`, `clean_core_objects`, `clean_core_object`, `abap_lint` y 1 más |
 | [abaplint](https://github.com/abaplint/abaplint) | Lars Hvam y contribuidores | MIT | dependencia | `code_structure`, `package_dependencies`, `unused_methods`, `abap_lint` |

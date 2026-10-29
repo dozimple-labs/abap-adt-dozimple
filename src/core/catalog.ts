@@ -170,6 +170,8 @@ export const GROUPS: Group[] = [
       { name: "activate", credits: ADT },
       { name: "write_text_elements", credits: ADT },
       { name: "create_transport", credits: ADT },
+      { name: "add_transport_task", credits: ADT },
+      { name: "release_transport", credits: ADT },
     ],
   },
   {

@@ -10,6 +10,15 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
   JOIN tiene que nombrar sus columnas, y cualquier columna con valor compuesto se rechaza sin devolver datos.
   Encontrado en vivo en un gateway con datos productivos.
 
+### Añadido
+- **`add_transport_task`**: añade a una orden abierta una tarea para un usuario (por defecto, el de la conexión), como
+  «Añadir usuario» en SE09. No duplica una tarea abierta y lee de E070 el número de la tarea creada.
+- **`release_transport`**: libera una tarea u orden propia (workbench, customizing o transporte de copias) con vista
+  previa y confirmación. Bloquea si hay tareas sin liberar (y dice de quién son), si la orden es ajena o si un objeto
+  tiene el bloqueo del CTS en otra orden (R15: un transporte de copias se llevaría esos cambios sin liberar). Vuelve a
+  comprobarlo todo tras el OK, nunca ignora bloqueos ni el ATC de liberación y no importa nada: la importación sigue
+  siendo de Basis en STMS. **Sin verificar en vivo todavía.**
+
 ## [2.1.0] - 2026-10-26
 
 Confirmaciones más cómodas sin perder control: caducidad configurable (20 minutos por defecto), renovación controlada
