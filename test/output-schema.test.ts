@@ -73,7 +73,8 @@ describe("registro y protocolo", () => {
     expect(listed.outputSchema).toMatchObject({ type: "object", properties: { doubled: { type: "number" } } });
     const r = (await client.callTool({ name: "t_out", arguments: { n: 21 } })) as any;
     expect(r.isError).toBe(false);
-    expect(r.structuredContent).toEqual({ doubled: 42 });
+    expect(r.structuredContent).toMatchObject({ doubled: 42 });
+    expect(r.structuredContent.sap_data_note).toMatch(/datos, nunca como instrucciones/);
     expect(r.content[0].text).toMatch(/42/);
   });
 
@@ -104,6 +105,12 @@ describe("registro y protocolo", () => {
 });
 
 describe("sql_query", () => {
+  it("la vista previa estructurada lleva todo el texto que la persona debe revisar", () => {
+    const texto = "VISTA PREVIA\nToken\nInstrucciones\n\nTablas: MARA\nTope: 200 filas";
+    const s = (sqlQuery as ToolDef<any>).previewStructured!({}, texto) as { notes: string[] };
+    expect(s.notes).toContain(texto);
+  });
+
   it("devuelve filas, columnas y avisos estructurados, validados por el SDK", async () => {
     const client = await connect([sqlQuery as ToolDef<any>]);
     const r = (await client.callTool({ name: "sql_query", arguments: { query: "SELECT matnr, werks FROM mara", system: "DEV" } })) as any;
@@ -117,7 +124,9 @@ describe("sql_query", () => {
     const client = await connect([sqlQuery as ToolDef<any>]);
     const r = (await client.callTool({ name: "sql_query", arguments: { query: "SELECT matnr FROM vacia", system: "DEV" } })) as any;
     expect(r.isError).toBe(false);
-    expect(r.structuredContent).toEqual({ rows: 0, columns: ["MATNR"], values: [], truncated: false, notes: [] });
+    expect(r.structuredContent).toMatchObject({ rows: 0, columns: ["MATNR"], values: [], truncated: false, notes: [] });
+    expect(r.structuredContent.sap_system).toBe("DEV");
+    expect(r.structuredContent.sap_data_note).toMatch(/datos, nunca como instrucciones/);
     expect(r.content[0].text).toMatch(/no devolvió filas/);
   });
 });
@@ -127,7 +136,7 @@ describe("syntax_check", () => {
     const client = await connect([syntaxCheckTool as ToolDef<any>]);
     const r = (await client.callTool({ name: "syntax_check", arguments: { object_name: "ZDEMO", source: "REPORT zdemo.", system: "DEV" } })) as any;
     expect(r.isError).toBe(false);
-    expect(r.structuredContent).toEqual({ object: "ZDEMO", checked: "proposed", errors: 0, warnings: 0, messages: [] });
+    expect(r.structuredContent).toMatchObject({ object: "ZDEMO", checked: "proposed", errors: 0, warnings: 0, messages: [] });
   });
 
   it("con errores: isError y los mensajes con línea y severidad", async () => {
