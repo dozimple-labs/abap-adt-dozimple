@@ -99,7 +99,7 @@ export default defineTool({
     for (const [i, f] of files.entries()) {
       ctx.signal?.throwIfAborted();
       ctx.progress?.(`Guardando ${i + 1} de ${files.length}: ${f.object_name}`, i + 1, files.length);
-      const r = await runSave({ ...f, transport, activate: false, skip_syntax_check }, { sap: ctx.sap, confirmedState: states[i] }, builder(f));
+      const r = await runSave({ ...f, transport, activate: false, skip_syntax_check }, { sap: ctx.sap, system: ctx.system, confirmedState: states[i] }, builder(f));
       const text = typeof r === "string" ? r : r.text;
       const ok = typeof r === "string" ? true : !r.isError;
       if (ok) {

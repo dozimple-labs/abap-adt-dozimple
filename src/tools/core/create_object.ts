@@ -7,7 +7,7 @@ import type { SapConnection } from "../../core/connection.js";
 import { describeDdicProps, parseDdicProps, type DataElementProperties, type DomainProperties } from "../../core/ddicprops.js";
 import { normalizeError, ToolError } from "../../core/errors.js";
 import { resolveObject, sourceUrl, sqlLiteral, type ResolvedObject } from "../../core/objects.js";
-import { assertTrkorr } from "../../core/policy.js";
+import { assertTrkorr, assertPackageAllowed } from "../../core/policy.js";
 import { defineTool, type ArgsOf } from "../../core/tool.js";
 import { transportWarnings } from "../../core/transport.js";
 
@@ -245,6 +245,7 @@ export default defineTool({
   input,
   async preview(a, { sap, system }) {
     const t = await resolveTarget(sap, a);
+    assertPackageAllowed(system, t.pkg, t.name);
     const miss = await missingCollections(sap, t.kind);
     if (miss.length) {
       throw new ToolError(
@@ -290,6 +291,7 @@ export default defineTool({
   },
   async run(a, { sap, system, confirmedState }) {
     const t = await resolveTarget(sap, a);
+    assertPackageAllowed(system, t.pkg, t.name);
     // Lo confirmado fue «no existe»: si alguien lo creó entretanto, no se pisa.
     const exists = await existingObject(sap, t.kind, t.name);
     if (exists || (confirmedState && confirmedState !== absentState(t))) {

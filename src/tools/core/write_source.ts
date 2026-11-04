@@ -4,7 +4,7 @@ import { isError, renderSyntax, syntaxCheck } from "../../core/checks.js";
 import { CLASS_INCLUDES, type ClassIncludeName, resolveObject, sourceUrl, TYPE_HELP } from "../../core/objects.js";
 import { stateOf } from "../../core/confirm.js";
 import { diffLines, unified } from "../../core/diff.js";
-import { assertTrkorr } from "../../core/policy.js";
+import { assertTrkorr, assertPackageAllowed } from "../../core/policy.js";
 import { decideTransport, orderHeaders, transportWarnings } from "../../core/transport.js";
 import { defineTool, type PreviewResult, type ToolContext, type ToolResult } from "../../core/tool.js";
 
@@ -30,6 +30,7 @@ export async function previewSave(
   const requested = transport ? assertTrkorr(transport) : undefined;
   const c = await sap.adt();
   const obj = await resolveObject(c, object_name, object_type);
+  assertPackageAllowed(system, obj.packageName, obj.name);
   const url = await sourceUrl(c, obj, include);
   const current = await c.getObjectSource(url);
   const source = build(current);
@@ -62,12 +63,13 @@ export async function previewSave(
 
 export async function runSave(
   { object_name, object_type, include, transport, activate, skip_syntax_check }: SaveArgs,
-  { sap, confirmedState }: Pick<ToolContext, "sap" | "confirmedState">,
+  { sap, system, confirmedState }: Pick<ToolContext, "sap" | "system" | "confirmedState">,
   build: (current: string) => string,
 ): Promise<ToolResult> {
   const requested = transport ? assertTrkorr(transport) : undefined;
   const c = await sap.adt();
   const obj = await resolveObject(c, object_name, object_type);
+  assertPackageAllowed(system, obj.packageName, obj.name);
   const url = await sourceUrl(c, obj, include);
   const changed =
     `No se escribió nada: ${obj.name} cambió en SAP después de la vista previa (alguien lo guardó entretanto). ` +

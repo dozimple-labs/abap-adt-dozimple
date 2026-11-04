@@ -5,7 +5,7 @@ import { stateOf } from "../../core/confirm.js";
 import { diffLines, unified } from "../../core/diff.js";
 import { ToolError } from "../../core/errors.js";
 import { CLASS_INCLUDES, resolveObject, sourceUrl, TYPE_HELP, type ResolvedObject } from "../../core/objects.js";
-import { assertTrkorr } from "../../core/policy.js";
+import { assertTrkorr, assertPackageAllowed } from "../../core/policy.js";
 import { versionNumber } from "../../core/revisions.js";
 import { defineTool } from "../../core/tool.js";
 import { transportWarnings } from "../../core/transport.js";
@@ -74,6 +74,7 @@ export default defineTool({
     const requested = transport ? assertTrkorr(transport) : undefined;
     const c = await sap.adt();
     const obj = await resolveObject(c, object_name, object_type);
+    assertPackageAllowed(system, obj.packageName, obj.name);
     const url = await sourceUrl(c, obj, include);
     const current = await c.getObjectSource(url);
     const { rev, label, hasDraft, source } = await chosenSource(c, obj, include, target);
@@ -103,6 +104,7 @@ export default defineTool({
   async run({ object_name, object_type, include, target, transport, activate }, ctx) {
     const c = await ctx.sap.adt();
     const obj = await resolveObject(c, object_name, object_type);
+    assertPackageAllowed(ctx.system, obj.packageName, obj.name);
     const { label, source } = await chosenSource(c, obj, include, target);
     // La escritura real es la de write_source: mismo bloqueo, misma comprobación de que nada cambió desde la vista
     // previa (ctx.confirmedState), misma decisión de orden y misma activación.

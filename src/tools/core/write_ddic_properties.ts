@@ -5,7 +5,7 @@ import { describeDdicProps, parseDdicProps, type DataElementProperties, type Ddi
 import { diffLines, unified } from "../../core/diff.js";
 import { ToolError } from "../../core/errors.js";
 import { resolveObject } from "../../core/objects.js";
-import { assertTrkorr } from "../../core/policy.js";
+import { assertTrkorr, assertPackageAllowed } from "../../core/policy.js";
 import { defineTool, type ToolContext } from "../../core/tool.js";
 import { decideTransport, orderHeaders, transportWarnings } from "../../core/transport.js";
 
@@ -22,10 +22,11 @@ function sortKeys(v: unknown): unknown {
 }
 const canonical = (p: unknown) => JSON.stringify(sortKeys(p), null, 2);
 
-async function current(kind: DdicKind, name: string, ctx: Pick<ToolContext, "sap">) {
+async function current(kind: DdicKind, name: string, ctx: Pick<ToolContext, "sap" | "system">) {
   const c = await ctx.sap.adt();
   const obj = await resolveObject(c, name, kind);
   const cur = kind === "DOMA" ? await c.getDomainProperties(obj.uri) : await c.getDataElementProperties(obj.uri);
+  assertPackageAllowed(ctx.system, cur.metaData.packageName || obj.packageName, obj.name);
   return { c, obj, cur };
 }
 

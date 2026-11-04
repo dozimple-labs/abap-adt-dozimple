@@ -4,7 +4,7 @@ import { stateOf } from "../../core/confirm.js";
 import type { SapConnection } from "../../core/connection.js";
 import { normalizeError, ToolError } from "../../core/errors.js";
 import { resolveObject, sqlLiteral, TYPE_HELP } from "../../core/objects.js";
-import { assertTrkorr } from "../../core/policy.js";
+import { assertTrkorr, assertPackageAllowed } from "../../core/policy.js";
 import { defineTool, type ArgsOf } from "../../core/tool.js";
 import { transportWarnings } from "../../core/transport.js";
 
@@ -72,6 +72,8 @@ export default defineTool({
   input,
   async preview(a, { sap, system }) {
     const { move, targetLocal } = await plan(sap, a);
+    assertPackageAllowed(system, move.oldPackage, move.name);
+    assertPackageAllowed(system, move.newPackage, move.name);
     const out = [`${move.name} (${move.type}): paquete ${move.oldPackage} → ${move.newPackage}`];
     if (targetLocal) out.push("⚠ Paquete de destino LOCAL: el objeto dejará de viajar a calidad y a productivo.");
     else if (isLocal(move.oldPackage)) out.push("El objeto pasa a ser transportable: viajará con la orden cuando se libere.");
@@ -90,8 +92,10 @@ export default defineTool({
     out.push("Solo cambia la asignación de paquete: la fuente no se toca.");
     return { text: out.join("\n"), state: moveState(move) };
   },
-  async run(a, { sap, confirmedState }) {
+  async run(a, { sap, system, confirmedState }) {
     const { move } = await plan(sap, a);
+    assertPackageAllowed(system, move.oldPackage, move.name);
+    assertPackageAllowed(system, move.newPackage, move.name);
     if (confirmedState && confirmedState !== moveState(move)) {
       return { text: `No se cambió nada: ${move.name} ya no está en el paquete que se mostró en la vista previa. Pide una vista previa nueva.`, isError: true };
     }
