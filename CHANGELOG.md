@@ -4,6 +4,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-11-04
+
+Más control al escribir, órdenes desde el agente y una corrección de seguridad para los clientes que muestran solo la
+salida estructurada. `release_transport` y `writePackages` no están verificados en vivo: ver sus notas.
+
 ### Corregido
 - **La vista previa de `sql_query` se recortaba en esos clientes:** llegaban el token y las instrucciones, pero no las
   tablas ni el tope que la persona debe revisar. Ahora va completa.
@@ -16,7 +21,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
   estructurada.** Las tools con esa salida ahora incluyen también el sistema y el aviso.
 - **Lista de paquetes para escribir:** `writePackages` por sistema limita dónde se puede crear, modificar, activar o
   mover objetos, con `*` como comodín. Sin definir, no cambia nada; una lista vacía no deja escribir en ningún paquete.
-  Si no se puede saber el paquete de un objeto, no se escribe. La lectura no se limita.
+  Si no se puede saber el paquete de un objeto, no se escribe. La lectura no se limita. Probado con tests, no contra SAP.
 - **`SELECT *` sobre una unión saltaba el enmascarado** en sistemas con datos productivos: ADT devuelve una columna
   por alias con la fila entera y los nombres ya no son campos. Ahora, fuera de sistemas de prueba, una consulta con
   JOIN tiene que nombrar sus columnas, y cualquier columna con valor compuesto se rechaza sin devolver datos.
@@ -29,7 +34,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
   previa y confirmación. Bloquea si hay tareas sin liberar (y dice de quién son), si la orden es ajena o si un objeto
   tiene el bloqueo del CTS en otra orden (R15: un transporte de copias se llevaría esos cambios sin liberar). Vuelve a
   comprobarlo todo tras el OK, nunca ignora bloqueos ni el ATC de liberación y no importa nada: la importación sigue
-  siendo de Basis en STMS. **Sin verificar en vivo todavía.**
+  siendo de Basis en STMS. **Sin verificar en vivo todavía**; en NW 7.50 hay un fallo por confirmar: si no libera, hazlo en SE09 o SE10.
 
 ## [2.1.0] - 2026-10-26
 
