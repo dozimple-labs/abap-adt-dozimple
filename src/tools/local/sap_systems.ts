@@ -29,6 +29,7 @@ export default defineTool({
       const flags = [
         s.role,
         canWrite(s) ? "escritura" : "solo lectura",
+        ...(canWrite(s) && s.writePackages ? [`paquetes: ${s.writePackages.join(", ") || "ninguno"}`] : []),
         `datos ${dataClassOf(s)} (tope ${rowCap(s)} filas${dataClassOf(s) === "test" ? "" : ", columnas personales enmascaradas"})`,
         ...(s.modules.length ? [`módulos: ${s.modules.join(", ")}`] : []),
         ...(s.allowSelfSigned && !s.caFile ? ["⚠ TLS SIN VERIFICAR (configura caFile)"] : []),

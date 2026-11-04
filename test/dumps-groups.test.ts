@@ -109,6 +109,6 @@ describe("dumps · lista (feed) también estructurada", () => {
     const x = { sap: { adt: async () => ({ dumps: async () => ({ dumps: [d("ERR_A", "ZP1", "U1"), d("ERR_B", "ZP2", "U2")] }) }) }, system: { id: "DEV", role: "DEV" } } as any;
     const r: any = await def.run({ max: 20, days: 7 }, x);
     expect(r.text).toMatch(/2 dumps .*para un periodo usa group_by/);
-    expect(out.parse(r.structured)).toEqual({ mode: "list", total: 2, dumps: [{ n: 1, error: "ERR_A", program: "ZP1", user: "U1" }, { n: 2, error: "ERR_B", program: "ZP2", user: "U2" }] });
+    expect(out.parse(r.structured)).toEqual({ mode: "list", total: 2, dumps: [{ n: 1, short_text: "texto", error: "ERR_A", program: "ZP1", user: "U1" }, { n: 2, short_text: "texto", error: "ERR_B", program: "ZP2", user: "U2" }] });
   });
 });

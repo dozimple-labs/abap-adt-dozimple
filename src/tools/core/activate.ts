@@ -4,7 +4,7 @@ import { activateObject, activateObjects } from "../../core/activation.js";
 import { stateOf } from "../../core/confirm.js";
 import { ToolError } from "../../core/errors.js";
 import { resolveObject, TYPE_HELP } from "../../core/objects.js";
-import { assertTrkorr } from "../../core/policy.js";
+import { assertTrkorr, assertPackageAllowed } from "../../core/policy.js";
 import { defineTool, type ArgsOf, type ToolContext } from "../../core/tool.js";
 
 /**
@@ -76,6 +76,15 @@ async function plan(c: ADTClient, a: Args, ctx: ToolContext): Promise<Plan> {
   return { targets, skippedDeletions, label: `inactivos de ${me}${tr ? ` en la orden ${tr}` : ""}` };
 }
 
+/** Con writePackages, cada objeto a activar tiene que estar en un paquete permitido. */
+async function checkPackages(c: ADTClient, p: Plan, ctx: ToolContext): Promise<void> {
+  if (!ctx.system.writePackages) return;
+  for (const t of p.targets) {
+    const o = await resolveObject(c, t["adtcore:name"], t["adtcore:type"]);
+    assertPackageAllowed(ctx.system, o.packageName, o.name);
+  }
+}
+
 /** Huella de la lista exacta que se mostró: si cambia antes de confirmar, no se activa. */
 const listState = (p: Plan) => stateOf(p.targets.map((t) => `${t["adtcore:type"]}|${t["adtcore:uri"]}`).sort().join("\n"));
 
@@ -98,6 +107,7 @@ export default defineTool({
       const del = p.skippedDeletions.length ? ` Hay ${p.skippedDeletions.length} borrados pendientes, que esta tool no activa: ${p.skippedDeletions.join(", ")}.` : "";
       throw new ToolError("INPUT", `No hay nada que activar (${p.label}).${del}`);
     }
+    await checkPackages(c, p, ctx);
     const out = [
       p.targets.length === 1 ? `Se activará ${p.targets[0]["adtcore:name"]} (${p.targets[0]["adtcore:type"]}).` : `Se activarán juntos ${p.targets.length} objetos (${p.label}), en una sola activación:`,
       ...(p.targets.length > 1 ? p.targets.slice(0, 50).map((t) => `  · ${t["adtcore:name"]} (${t["adtcore:type"]})`) : []),
@@ -113,6 +123,7 @@ export default defineTool({
     const c = await ctx.sap.adt();
     const p = await plan(c, a, ctx);
     if (!p.targets.length) return { text: `No hay nada que activar (${p.label}).`, isError: true };
+    await checkPackages(c, p, ctx);
     if (ctx.confirmedState && ctx.confirmedState !== listState(p)) {
       return { text: "No se activó nada: la lista de objetos cambió desde la vista previa (alguien guardó o activó entretanto). Pide una vista previa nueva.", isError: true };
     }

@@ -22,6 +22,11 @@ const SystemSchema = z.object({
   role: z.enum(["DEV", "QAS", "PRD"]),
   /** Solo tiene efecto si role es DEV: QAS y PRD nunca se escriben. */
   allowWrite: z.boolean().default(false),
+  /**
+   * Paquetes donde se puede crear o modificar; admite * como comodín (ZDEMO*). Sin definir, todos; lista vacía, ninguno.
+   * No limita la lectura.
+   */
+  writePackages: z.array(z.string().regex(/^[A-Za-z0-9_$\/*]+$/, "writePackages: nombre de paquete, con * como comodín")).optional(),
   /** Módulos de cliente habilitados en este sistema, p. ej. "dz-transport-risk". */
   modules: z.array(z.string()).default([]),
   /** SIDs de calidad y productivo con los que comparar versiones antes de editar (necesita dz-transport-risk). */

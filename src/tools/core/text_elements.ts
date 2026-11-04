@@ -3,7 +3,7 @@ import { textElementsUrl, type ADTClient, type TextElement } from "abap-adt-api"
 import { stateOf } from "../../core/confirm.js";
 import { ToolError } from "../../core/errors.js";
 import { resolveObject, TYPE_HELP, type ResolvedObject } from "../../core/objects.js";
-import { assertTrkorr } from "../../core/policy.js";
+import { assertTrkorr, assertPackageAllowed } from "../../core/policy.js";
 import { decideTransport, orderHeaders, transportWarnings } from "../../core/transport.js";
 import { defineTool } from "../../core/tool.js";
 
@@ -70,6 +70,7 @@ const write = defineTool({
     const requested = transport ? assertTrkorr(transport) : undefined;
     const c = await sap.adt();
     const obj = await resolveObject(c, object_name, object_type);
+    assertPackageAllowed(system, obj.packageName, obj.name);
     const { current, merged } = await mergeTexts(c, obj, category, elements);
     const before = new Map(current.map((t) => [t.id.toUpperCase(), t]));
     const lines = elements.map((e) => {
@@ -89,10 +90,11 @@ const write = defineTool({
     ];
     return { text: text.join("\n"), state: textsState(current) };
   },
-  async run({ object_name, object_type, category, elements, transport }, { sap, confirmedState }) {
+  async run({ object_name, object_type, category, elements, transport }, { sap, system, confirmedState }) {
     const requested = transport ? assertTrkorr(transport) : undefined;
     const c = await sap.adt();
     const obj = await resolveObject(c, object_name, object_type);
+    assertPackageAllowed(system, obj.packageName, obj.name);
     const url = textElementsUrl(obj.type, obj.name);
     const { merged } = await mergeTexts(c, obj, category, elements);
     const res = await sap.stateful(async (s) => {

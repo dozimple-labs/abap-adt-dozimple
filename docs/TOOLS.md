@@ -899,7 +899,8 @@ Salida estructurada (`structuredContent`, además del texto):
 | `truncated` | boolean | true si el periodo tiene más dumps de los que se pudieron leer |
 | `group_by` | `error` \| `program` \| `error_program` \| `user` \| `day` |  |
 | `groups` | lista de { key, count, first, last, users, where } |  |
-| `dumps` | lista de { n, error, program, user } |  |
+| `dumps` | lista de { n, date, error, program, user, short_text } |  |
+| `text` | string | Con detail: el dump completo (análisis, conexión de origen, fuente, pila) |
 
 ### `diagnose_message` — Diagnosticar un mensaje
 

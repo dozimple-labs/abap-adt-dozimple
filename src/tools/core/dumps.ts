@@ -12,7 +12,7 @@ const stripHtml = htmlToText;
 
 /** Campo de la tabla «Header Information» del resumen HTML del dump. */
 function headerField(d: Dump, label: string): string | undefined {
-  const m = d.text.match(new RegExp(`<b>${label}&nbsp;</b></td><td[^>]*>([\\s\\S]*?)</td>`));
+  const m = d.text.match(new RegExp(`<b>${label}(?:&nbsp;)?</b>\\s*</td>\\s*<td[^>]*>([\\s\\S]*?)</td>`));
   return m ? decode(m[1]).trim() : undefined;
 }
 
@@ -140,7 +140,15 @@ export default defineTool({
     truncated: z.boolean().optional().describe("true si el periodo tiene más dumps de los que se pudieron leer"),
     group_by: z.enum(GROUP_BY).optional(),
     groups: z.array(GROUP).optional(),
-    dumps: z.array(z.object({ n: z.number().int(), error: z.string(), program: z.string(), user: z.string() })).optional(),
+    dumps: z.array(z.object({
+      n: z.number().int(),
+      date: z.string().optional().describe("Fecha y hora del sistema"),
+      error: z.string(),
+      program: z.string(),
+      user: z.string(),
+      short_text: z.string().optional(),
+    })).optional(),
+    text: z.string().optional().describe("Con detail: el dump completo (análisis, conexión de origen, fuente, pila)"),
   },
   async run({ user, contains, max, detail, group_by, days }, { sap, system }) {
     if (group_by) {
@@ -181,7 +189,7 @@ export default defineTool({
     const feed = await c.dumps(user ? `and( equals( user, ${user.toUpperCase()} ) )` : "");
     const needle = contains?.toUpperCase();
     const list = feed.dumps.filter((d) => !needle || d.categories.some((x) => x.term.toUpperCase().includes(needle)));
-    const asRow = (d: Dump, i: number) => ({ n: i + 1, error: cat(d, "ABAP runtime error") ?? "?", program: cat(d, "Terminated ABAP program") ?? "?", user: d.author ?? "?" });
+    const asRow = (d: Dump, i: number) => ({ n: i + 1, date: headerField(d, "Date/Time")?.replace(" (System)", ""), short_text: headerField(d, "Short Text"), error: cat(d, "ABAP runtime error") ?? "?", program: cat(d, "Terminated ABAP program") ?? "?", user: d.author ?? "?" });
     if (!list.length) {
       return {
         text: `El feed de dumps se leyó (${feed.dumps.length} en total) y ninguno casa${user ? ` con usuario ${user}` : ""}${contains ? ` y «${contains}»` : ""}. Para un periodo largo usa group_by.`,
@@ -193,10 +201,15 @@ export default defineTool({
       if (!d) throw new ToolError("INPUT", `Solo hay ${list.length} dumps en la lista.`);
       const structured = { mode: "detail" as const, total: list.length, dumps: [asRow(d, detail - 1)] };
       const self = d.links.find((l) => l.rel === "self")?.href.replace(/^adt:\/\/[^/]+/, "");
-      if (!self) return { text: budget(stripHtml(d.text)), structured };
+      if (!self) {
+        const text = budget(stripHtml(d.text));
+        return { text, structured: { ...structured, text } };
+      }
       // El recurso ofrece HTML (dump completo) o un XML índice; text/plain da 406.
       const r = await c.httpClient.request(self, { headers: { Accept: "text/html" } });
-      return { text: budget(`${summary(d, detail)}\n\n${stripHtml(String(r.body))}`, undefined, "El dump completo está en ST22."), structured };
+      const text = budget(`${summary(d, detail)}\n\n${stripHtml(String(r.body))}`, undefined, "El dump completo está en ST22.");
+      // Hay clientes que muestran solo la parte estructurada: el dump tiene que ir también ahí.
+      return { text, structured: { ...structured, text } };
     }
     const shown = list.slice(0, max);
     return {

@@ -157,7 +157,7 @@ describe("DZ-14 · la escritura no aplica un diff sobre algo que cambió tras la
       // Al empezar todavía es la versión de la vista previa: el cambio ajeno llega justo antes del bloqueo.
       getObjectSource: async () => "REPORT zdemo.\n",
     };
-    const ctx = { sap: { adt: async () => c, stateful: async (fn: any) => fn(s), query: async () => ({ values: [] }) }, confirmedState: stateOf("REPORT zdemo.\n") } as any;
+    const ctx = { sap: { adt: async () => c, stateful: async (fn: any) => fn(s), query: async () => ({ values: [] }) }, system: { id: "DEV" }, confirmedState: stateOf("REPORT zdemo.\n") } as any;
     const r: any = await (writeSource as ToolDef<any>).run(
       { object_name: "ZDEMO", object_type: "PROG", include: "main", source: "REPORT zdemo.\nWRITE 1.\n", activate: false, skip_syntax_check: true },
       ctx,

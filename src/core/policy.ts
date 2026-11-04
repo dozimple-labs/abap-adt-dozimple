@@ -18,6 +18,29 @@ export function assertAccess(access: Access, s: SystemConfig): void {
   }
 }
 
+/** ¿Admite la lista writePackages este paquete? Sin lista, todos. Comparación sin mayúsculas; * vale por cualquier texto. */
+export function packageAllowed(s: Pick<SystemConfig, "writePackages">, pkg: string | undefined): boolean {
+  if (!s.writePackages) return true;
+  if (!pkg) return false;
+  const name = pkg.trim().toUpperCase();
+  return s.writePackages.some((pattern) => {
+    const re = pattern.toUpperCase().replace(/[.+?^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*");
+    return new RegExp(`^${re}$`).test(name);
+  });
+}
+
+/** Lanza POLICY si writePackages no cubre el paquete. Si el paquete no se conoce, no se escribe. */
+export function assertPackageAllowed(s: SystemConfig, pkg: string | undefined, object: string): void {
+  if (packageAllowed(s, pkg)) return;
+  throw new ToolError(
+    "POLICY",
+    pkg
+      ? `${s.id} no permite escribir en el paquete ${pkg.trim().toUpperCase()} (objeto ${object}).`
+      : `${s.id} limita la escritura por paquete y no se pudo saber el paquete de ${object}: no se escribe.`,
+    `Paquetes permitidos: ${s.writePackages!.join(", ") || "ninguno"}. Se cambia en writePackages de systems.json.`,
+  );
+}
+
 /**
  * La vista previa de datos de ADT solo admite lecturas, pero se valida
  * igualmente para dar un error claro antes de ir a SAP.
